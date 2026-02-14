@@ -92,7 +92,7 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
-    void positionalAnnotatedMethodReturnsInvalidParamsForWrongPayload() throws Exception {
+    void positionalAnnotatedMethodReturnsInvalidParamsWhenRequiredFieldMissing() throws Exception {
         contextRunner
                 .withUserConfiguration(AnnotatedPositionalMethodConfig.class)
                 .run(context -> {
@@ -101,7 +101,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(9),
                             "sum",
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":2,\"right\":3}"),
+                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":2}"),
                             true
                     ));
 
@@ -147,6 +147,25 @@ class JsonRpcAutoConfigurationTest {
 
                     assertNotNull(response.error());
                     assertEquals(-32602, response.error().code());
+                });
+    }
+
+    @Test
+    void namedAnnotatedMethodCanUseJavaParameterNamesWhenAvailable() throws Exception {
+        contextRunner
+                .withUserConfiguration(AnnotatedNamedWithoutParamAnnotationConfig.class)
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(13),
+                            "join",
+                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":\"x\",\"right\":\"y\"}"),
+                            true
+                    ));
+
+                    assertNotNull(response);
+                    assertEquals("xy", response.result().asText());
                 });
     }
 
@@ -348,6 +367,14 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Configuration(proxyBeanMethods = false)
+    static class AnnotatedNamedWithoutParamAnnotationConfig {
+        @Bean
+        AnnotatedNamedWithoutParamAnnotationHandler annotatedNamedWithoutParamAnnotationHandler() {
+            return new AnnotatedNamedWithoutParamAnnotationHandler();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
     static class InterceptorConfig {
         @Bean
         CountingInterceptor countingInterceptor() {
@@ -372,6 +399,13 @@ class JsonRpcAutoConfigurationTest {
     static class AnnotatedNamedHandler {
         @JsonRpcMethod("concat")
         public String concat(@JsonRpcParam("left") String left, @JsonRpcParam("right") String right) {
+            return left + right;
+        }
+    }
+
+    static class AnnotatedNamedWithoutParamAnnotationHandler {
+        @JsonRpcMethod("join")
+        public String join(String left, String right) {
             return left + right;
         }
     }

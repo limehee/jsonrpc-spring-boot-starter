@@ -59,6 +59,8 @@ class GreetingService {
 - multiple params with positional array (`params` as `[arg1,arg2,...]`)
 - multiple params with named object using `@JsonRpcParam` on each parameter
 
+Named object binding also works with Java parameter names (compiled with `-parameters`, enabled by default in this project).
+
 Default endpoint is `POST /jsonrpc`.
 Request/response content type is `application/json`.
 
