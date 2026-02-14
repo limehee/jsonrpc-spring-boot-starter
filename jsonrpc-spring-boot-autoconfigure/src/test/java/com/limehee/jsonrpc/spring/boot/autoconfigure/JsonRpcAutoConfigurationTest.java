@@ -3,6 +3,7 @@ package com.limehee.jsonrpc.spring.boot.autoconfigure;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
+import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Configuration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonRpcAutoConfigurationTest {
@@ -85,6 +87,54 @@ class JsonRpcAutoConfigurationTest {
                     assertEquals("pong", response.result().asText());
                     assertTrue(interceptor.beforeInvokeCount > 0);
                     assertTrue(interceptor.afterInvokeCount > 0);
+                });
+    }
+
+    @Test
+    void hidesErrorDataByDefault() {
+        contextRunner
+                .withBean("boom", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("boom", params -> {
+                            throw new JsonRpcException(-32001, "domain", TextNode.valueOf("secret"));
+                        }))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(11),
+                            "boom",
+                            null,
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32001, response.error().code());
+                    assertEquals("domain", response.error().message());
+                    assertNull(response.error().data());
+                });
+    }
+
+    @Test
+    void includesErrorDataWhenConfigured() {
+        contextRunner
+                .withPropertyValues("jsonrpc.include-error-data=true")
+                .withBean("boom", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("boom", params -> {
+                            throw new JsonRpcException(-32001, "domain", TextNode.valueOf("secret"));
+                        }))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(11),
+                            "boom",
+                            null,
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32001, response.error().code());
+                    assertEquals("secret", response.error().data().asText());
                 });
     }
 

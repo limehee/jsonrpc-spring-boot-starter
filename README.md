@@ -55,6 +55,15 @@ class GreetingService {
 
 Default endpoint is `POST /jsonrpc`.
 
+## Configuration
+
+- `jsonrpc.path` (default `/jsonrpc`)
+- `jsonrpc.max-batch-size` (default `100`)
+- `jsonrpc.max-request-bytes` (default `1048576`)
+- `jsonrpc.method-namespace-policy` (default `DISALLOW_RPC_PREFIX`)
+- `jsonrpc.scan-annotated-methods` (default `true`)
+- `jsonrpc.include-error-data` (default `false`)
+
 ## Build
 
 ```bash

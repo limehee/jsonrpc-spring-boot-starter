@@ -67,8 +67,8 @@ public class JsonRpcAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public JsonRpcExceptionResolver jsonRpcExceptionResolver() {
-        return new DefaultJsonRpcExceptionResolver();
+    public JsonRpcExceptionResolver jsonRpcExceptionResolver(JsonRpcProperties properties) {
+        return new DefaultJsonRpcExceptionResolver(properties.isIncludeErrorData());
     }
 
     @Bean
