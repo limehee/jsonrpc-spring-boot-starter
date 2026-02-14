@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -74,6 +75,35 @@ class JsonRpcDispatcherTest {
 
         assertFalse(result.hasResponse());
         assertTrue(result.singleResponse().isEmpty());
+    }
+
+    @Test
+    void dispatchNotificationUsesNotificationExecutor() throws Exception {
+        RecordingNotificationExecutor notificationExecutor = new RecordingNotificationExecutor();
+        AtomicInteger invocationCount = new AtomicInteger();
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+                new InMemoryJsonRpcMethodRegistry(),
+                new DefaultJsonRpcRequestParser(),
+                new DefaultJsonRpcRequestValidator(),
+                new DefaultJsonRpcMethodInvoker(),
+                new DefaultJsonRpcExceptionResolver(),
+                new DefaultJsonRpcResponseComposer(),
+                100,
+                List.of(),
+                notificationExecutor
+        );
+        dispatcher.register("ping", params -> {
+            invocationCount.incrementAndGet();
+            return TextNode.valueOf("pong");
+        });
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","method":"ping"}
+                """));
+
+        assertFalse(result.hasResponse());
+        assertEquals(1, notificationExecutor.executeCount);
+        assertEquals(1, invocationCount.get());
     }
 
     @Test
@@ -293,6 +323,33 @@ class JsonRpcDispatcherTest {
         assertTrue(interceptor.events.contains("onError:-32601"));
     }
 
+    @Test
+    void notificationInvocationErrorTriggersOnErrorInterceptor() throws Exception {
+        RecordingInterceptor interceptor = new RecordingInterceptor();
+        RecordingNotificationExecutor notificationExecutor = new RecordingNotificationExecutor();
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+                new InMemoryJsonRpcMethodRegistry(),
+                new DefaultJsonRpcRequestParser(),
+                new DefaultJsonRpcRequestValidator(),
+                new DefaultJsonRpcMethodInvoker(),
+                new DefaultJsonRpcExceptionResolver(),
+                new DefaultJsonRpcResponseComposer(),
+                100,
+                List.of(interceptor),
+                notificationExecutor
+        );
+        dispatcher.register("fail", params -> {
+            throw new RuntimeException("boom");
+        });
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","method":"fail"}
+                """));
+
+        assertFalse(result.hasResponse());
+        assertTrue(interceptor.events.contains("onError:-32603"));
+    }
+
     private static final class RecordingInterceptor implements JsonRpcInterceptor {
         private final List<String> events = new ArrayList<>();
 
@@ -314,6 +371,16 @@ class JsonRpcDispatcherTest {
         @Override
         public void onError(JsonRpcRequest request, Throwable throwable, JsonRpcError mappedError) {
             events.add("onError:" + mappedError.code());
+        }
+    }
+
+    private static final class RecordingNotificationExecutor implements JsonRpcNotificationExecutor {
+        private int executeCount;
+
+        @Override
+        public void execute(Runnable task) {
+            executeCount++;
+            task.run();
         }
     }
 }

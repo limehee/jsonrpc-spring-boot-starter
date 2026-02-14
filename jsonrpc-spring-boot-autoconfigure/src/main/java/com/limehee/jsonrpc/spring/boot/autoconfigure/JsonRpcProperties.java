@@ -18,6 +18,7 @@ public class JsonRpcProperties {
     private boolean scanAnnotatedMethods = true;
     private boolean includeErrorData = false;
     private boolean metricsEnabled = true;
+    private boolean notificationExecutorEnabled = false;
     private JsonRpcMethodRegistrationConflictPolicy methodRegistrationConflictPolicy = JsonRpcMethodRegistrationConflictPolicy.REJECT;
     private List<String> methodAllowlist = new ArrayList<>();
     private List<String> methodDenylist = new ArrayList<>();
@@ -84,6 +85,14 @@ public class JsonRpcProperties {
 
     public void setMetricsEnabled(boolean metricsEnabled) {
         this.metricsEnabled = metricsEnabled;
+    }
+
+    public boolean isNotificationExecutorEnabled() {
+        return notificationExecutorEnabled;
+    }
+
+    public void setNotificationExecutorEnabled(boolean notificationExecutorEnabled) {
+        this.notificationExecutorEnabled = notificationExecutorEnabled;
     }
 
     public JsonRpcMethodRegistrationConflictPolicy getMethodRegistrationConflictPolicy() {

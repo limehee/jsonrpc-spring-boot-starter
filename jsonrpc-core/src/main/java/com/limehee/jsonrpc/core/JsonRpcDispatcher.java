@@ -16,6 +16,7 @@ public class JsonRpcDispatcher {
     private final JsonRpcResponseComposer responseComposer;
     private final int maxBatchSize;
     private final List<JsonRpcInterceptor> interceptors;
+    private final JsonRpcNotificationExecutor notificationExecutor;
 
     public JsonRpcDispatcher() {
         this(
@@ -26,7 +27,8 @@ public class JsonRpcDispatcher {
                 new DefaultJsonRpcExceptionResolver(),
                 new DefaultJsonRpcResponseComposer(),
                 100,
-                List.of()
+                List.of(),
+                new DirectJsonRpcNotificationExecutor()
         );
     }
 
@@ -47,7 +49,8 @@ public class JsonRpcDispatcher {
                 exceptionResolver,
                 responseComposer,
                 maxBatchSize,
-                List.of()
+                List.of(),
+                new DirectJsonRpcNotificationExecutor()
         );
     }
 
@@ -61,6 +64,30 @@ public class JsonRpcDispatcher {
             int maxBatchSize,
             List<JsonRpcInterceptor> interceptors
     ) {
+        this(
+                methodRegistry,
+                requestParser,
+                requestValidator,
+                methodInvoker,
+                exceptionResolver,
+                responseComposer,
+                maxBatchSize,
+                interceptors,
+                new DirectJsonRpcNotificationExecutor()
+        );
+    }
+
+    public JsonRpcDispatcher(
+            JsonRpcMethodRegistry methodRegistry,
+            JsonRpcRequestParser requestParser,
+            JsonRpcRequestValidator requestValidator,
+            JsonRpcMethodInvoker methodInvoker,
+            JsonRpcExceptionResolver exceptionResolver,
+            JsonRpcResponseComposer responseComposer,
+            int maxBatchSize,
+            List<JsonRpcInterceptor> interceptors,
+            JsonRpcNotificationExecutor notificationExecutor
+    ) {
         this.methodRegistry = methodRegistry;
         this.requestParser = requestParser;
         this.requestValidator = requestValidator;
@@ -69,6 +96,7 @@ public class JsonRpcDispatcher {
         this.responseComposer = responseComposer;
         this.maxBatchSize = maxBatchSize;
         this.interceptors = List.copyOf(interceptors);
+        this.notificationExecutor = notificationExecutor;
     }
 
     public void register(String method, JsonRpcMethodHandler handler) {
@@ -152,11 +180,13 @@ public class JsonRpcDispatcher {
                         JsonRpcErrorCode.METHOD_NOT_FOUND,
                         JsonRpcConstants.MESSAGE_METHOD_NOT_FOUND));
 
-        JsonNode result = methodInvoker.invoke(handler, request.params());
-        runAfterInvoke(request, result);
         if (request.isNotification()) {
+            notificationExecutor.execute(() -> invokeNotificationHandler(request, handler));
             return Optional.empty();
         }
+
+        JsonNode result = methodInvoker.invoke(handler, request.params());
+        runAfterInvoke(request, result);
         return Optional.of(responseComposer.success(request.id(), result));
     }
 
@@ -212,6 +242,16 @@ public class JsonRpcDispatcher {
             } catch (Exception ignored) {
                 // Avoid masking JSON-RPC error responses because of interceptor failures.
             }
+        }
+    }
+
+    private void invokeNotificationHandler(JsonRpcRequest request, JsonRpcMethodHandler handler) {
+        try {
+            JsonNode result = methodInvoker.invoke(handler, request.params());
+            runAfterInvoke(request, result);
+        } catch (Throwable ex) {
+            JsonRpcError error = exceptionResolver.resolve(ex);
+            runOnError(request, ex, error);
         }
     }
 }

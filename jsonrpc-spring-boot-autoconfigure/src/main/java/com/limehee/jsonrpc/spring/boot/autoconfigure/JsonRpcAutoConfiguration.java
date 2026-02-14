@@ -15,6 +15,7 @@ import com.limehee.jsonrpc.core.JsonRpcExceptionResolver;
 import com.limehee.jsonrpc.core.JsonRpcMethodInvoker;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistry;
+import com.limehee.jsonrpc.core.JsonRpcNotificationExecutor;
 import com.limehee.jsonrpc.core.JsonRpcParameterBinder;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcRequestParser;
@@ -22,6 +23,8 @@ import com.limehee.jsonrpc.core.JsonRpcRequestValidator;
 import com.limehee.jsonrpc.core.JsonRpcResultWriter;
 import com.limehee.jsonrpc.core.JsonRpcResponseComposer;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
+import com.limehee.jsonrpc.core.DirectJsonRpcNotificationExecutor;
+import com.limehee.jsonrpc.core.ExecutorJsonRpcNotificationExecutor;
 import io.micrometer.core.instrument.MeterRegistry;
 import com.limehee.jsonrpc.spring.webmvc.DefaultJsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
@@ -40,6 +43,7 @@ import org.springframework.context.annotation.Bean;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executor;
 
 @AutoConfiguration
 @EnableConfigurationProperties(JsonRpcProperties.class)
@@ -107,6 +111,21 @@ public class JsonRpcAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcNotificationExecutor jsonRpcNotificationExecutor(
+            JsonRpcProperties properties,
+            ObjectProvider<Executor> executors
+    ) {
+        if (properties.isNotificationExecutorEnabled()) {
+            Executor executor = executors.orderedStream().findFirst().orElse(null);
+            if (executor != null) {
+                return new ExecutorJsonRpcNotificationExecutor(executor);
+            }
+        }
+        return new DirectJsonRpcNotificationExecutor();
+    }
+
+    @Bean
     @ConditionalOnMissingBean(name = "jsonRpcMethodAccessInterceptor")
     public JsonRpcInterceptor jsonRpcMethodAccessInterceptor(JsonRpcProperties properties) {
         return new JsonRpcMethodAccessInterceptor(
@@ -151,6 +170,7 @@ public class JsonRpcAutoConfiguration {
             JsonRpcMethodInvoker methodInvoker,
             JsonRpcExceptionResolver exceptionResolver,
             JsonRpcResponseComposer responseComposer,
+            JsonRpcNotificationExecutor notificationExecutor,
             JsonRpcProperties properties,
             ObjectProvider<JsonRpcMethodRegistration> registrations,
             ObjectProvider<JsonRpcInterceptor> interceptors
@@ -163,7 +183,8 @@ public class JsonRpcAutoConfiguration {
                 exceptionResolver,
                 responseComposer,
                 Math.max(1, properties.getMaxBatchSize()),
-                interceptors.orderedStream().toList()
+                interceptors.orderedStream().toList(),
+                notificationExecutor
         );
         registrations.orderedStream().forEach(registration ->
                 dispatcher.register(registration.method(), registration.handler()));

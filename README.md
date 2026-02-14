@@ -73,6 +73,7 @@ Request/response content type is `application/json`.
 - `jsonrpc.scan-annotated-methods` (default `true`)
 - `jsonrpc.include-error-data` (default `false`)
 - `jsonrpc.metrics-enabled` (default `true`, requires `MeterRegistry`)
+- `jsonrpc.notification-executor-enabled` (default `false`, uses available `Executor` bean)
 - `jsonrpc.method-allowlist` (default empty)
 - `jsonrpc.method-denylist` (default empty)
 - `jsonrpc.method-registration-conflict-policy` (default `REJECT`, or `REPLACE`)
