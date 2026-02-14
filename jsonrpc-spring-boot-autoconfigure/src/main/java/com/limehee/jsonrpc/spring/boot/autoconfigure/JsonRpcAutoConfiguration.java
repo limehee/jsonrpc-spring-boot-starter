@@ -6,15 +6,21 @@ import com.limehee.jsonrpc.core.DefaultJsonRpcMethodInvoker;
 import com.limehee.jsonrpc.core.DefaultJsonRpcRequestParser;
 import com.limehee.jsonrpc.core.DefaultJsonRpcRequestValidator;
 import com.limehee.jsonrpc.core.DefaultJsonRpcResponseComposer;
+import com.limehee.jsonrpc.core.DefaultJsonRpcTypedMethodHandlerFactory;
 import com.limehee.jsonrpc.core.InMemoryJsonRpcMethodRegistry;
+import com.limehee.jsonrpc.core.JacksonJsonRpcParameterBinder;
+import com.limehee.jsonrpc.core.JacksonJsonRpcResultWriter;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcExceptionResolver;
 import com.limehee.jsonrpc.core.JsonRpcMethodInvoker;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistry;
+import com.limehee.jsonrpc.core.JsonRpcParameterBinder;
 import com.limehee.jsonrpc.core.JsonRpcRequestParser;
 import com.limehee.jsonrpc.core.JsonRpcRequestValidator;
+import com.limehee.jsonrpc.core.JsonRpcResultWriter;
 import com.limehee.jsonrpc.core.JsonRpcResponseComposer;
+import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import com.limehee.jsonrpc.spring.webmvc.DefaultJsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcEndpoint;
@@ -67,6 +73,27 @@ public class JsonRpcAutoConfiguration {
     @ConditionalOnMissingBean
     public JsonRpcResponseComposer jsonRpcResponseComposer() {
         return new DefaultJsonRpcResponseComposer();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcParameterBinder jsonRpcParameterBinder(ObjectProvider<ObjectMapper> objectMapperProvider) {
+        return new JacksonJsonRpcParameterBinder(objectMapperProvider.getIfAvailable(ObjectMapper::new));
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcResultWriter jsonRpcResultWriter(ObjectProvider<ObjectMapper> objectMapperProvider) {
+        return new JacksonJsonRpcResultWriter(objectMapperProvider.getIfAvailable(ObjectMapper::new));
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcTypedMethodHandlerFactory jsonRpcTypedMethodHandlerFactory(
+            JsonRpcParameterBinder parameterBinder,
+            JsonRpcResultWriter resultWriter
+    ) {
+        return new DefaultJsonRpcTypedMethodHandlerFactory(parameterBinder, resultWriter);
     }
 
     @Bean

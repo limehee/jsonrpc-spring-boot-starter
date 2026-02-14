@@ -31,6 +31,17 @@ JsonRpcMethodRegistration pingMethod() {
 }
 ```
 
+Typed registration is also available:
+
+```java
+@Bean
+JsonRpcMethodRegistration greet(JsonRpcTypedMethodHandlerFactory factory) {
+    return JsonRpcMethodRegistration.of(
+            "greet",
+            factory.unary(GreetParams.class, params -> "hello " + params.name()));
+}
+```
+
 Default endpoint is `POST /jsonrpc`.
 
 ## Build

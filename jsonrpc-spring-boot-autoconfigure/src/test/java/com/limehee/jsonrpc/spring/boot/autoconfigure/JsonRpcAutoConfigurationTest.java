@@ -6,6 +6,7 @@ import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
+import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -31,6 +32,9 @@ class JsonRpcAutoConfigurationTest {
                     JsonRpcResponse response = dispatcher.dispatch(request);
                     assertNotNull(response);
                     assertEquals("pong", response.result().asText());
+
+                    JsonRpcTypedMethodHandlerFactory typedFactory = context.getBean(JsonRpcTypedMethodHandlerFactory.class);
+                    assertNotNull(typedFactory);
                 });
     }
 }
