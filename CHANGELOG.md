@@ -16,6 +16,7 @@ All notable changes to this project are documented in this file.
 - Expanded branch-focused tests for parser/validator/binder, dispatcher/interceptor errors, HTTP endpoint/status strategy, and autoconfiguration access-control behavior.
 - Runnable sample module at `samples/spring-boot-demo` with annotation-based JSON-RPC methods and curl examples.
 - Contribution assets: `CONTRIBUTING.md`, GitHub issue templates, and pull request template.
+- Integration tests for `samples/spring-boot-demo` covering bean registration, method/param binding, JSON response shape, and end-to-end invocation.
 
 ### Changed
 - JSON-RPC compliance handling for batch, notification, and invalid request edge cases.
@@ -42,7 +43,9 @@ All notable changes to this project are documented in this file.
 - CI/Publish workflows now run API compatibility checks automatically when baseline tags are available.
 - Added JMH benchmark support in `jsonrpc-core` with dispatcher benchmark scenarios.
 - Added `docs/release-checklist.md` for repeatable release execution.
+- `jsonrpc-spring-boot-autoconfigure` now includes Micrometer runtime dependency so optional metrics conditions can be evaluated safely in consumer applications.
 
 ### Fixed
 - Invalid id-less requests now correctly return JSON-RPC error responses while valid notifications remain no-response.
 - Error mapping tightened so only explicit `JsonRpcException(-32602)` paths produce `Invalid params`; generic runtime exceptions now map to `Internal error` (-32603).
+- WebMVC endpoint response serialization now produces stable JSON-RPC payloads even when non-Jackson message converters are active.

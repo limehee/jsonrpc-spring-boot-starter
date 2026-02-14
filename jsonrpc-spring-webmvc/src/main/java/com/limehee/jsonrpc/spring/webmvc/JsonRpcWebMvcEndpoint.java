@@ -3,7 +3,6 @@ package com.limehee.jsonrpc.spring.webmvc;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
@@ -43,7 +42,7 @@ public class JsonRpcWebMvcEndpoint {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<JsonNode> invoke(@RequestBody(required = false) byte[] body) {
+    public ResponseEntity<String> invoke(@RequestBody(required = false) byte[] body) {
         if (body == null || body.length == 0) {
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
@@ -77,19 +76,30 @@ public class JsonRpcWebMvcEndpoint {
 
         if (result.isBatch()) {
             List<JsonRpcResponse> responses = result.responses();
-            ArrayNode arrayNode = objectMapper.createArrayNode();
-            for (JsonRpcResponse response : responses) {
-                arrayNode.add(objectMapper.valueToTree(response));
-            }
-            return ResponseEntity.status(httpStatusStrategy.statusForBatch(responses)).body(arrayNode);
+            return jsonResponse(httpStatusStrategy.statusForBatch(responses), responses);
         }
 
         JsonRpcResponse single = result.singleResponse().orElseThrow();
-        return ResponseEntity.status(httpStatusStrategy.statusForSingle(single)).body(objectMapper.valueToTree(single));
+        return jsonResponse(httpStatusStrategy.statusForSingle(single), single);
     }
 
-    private ResponseEntity<JsonNode> singleErrorResponse(JsonRpcResponse response, HttpStatus status) {
-        return ResponseEntity.status(status).body(objectMapper.valueToTree(response));
+    private ResponseEntity<String> singleErrorResponse(JsonRpcResponse response, HttpStatus status) {
+        return jsonResponse(status, response);
+    }
+
+    private ResponseEntity<String> jsonResponse(HttpStatus status, Object payload) {
+        return ResponseEntity
+                .status(status)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(toJson(payload));
+    }
+
+    private String toJson(Object payload) {
+        try {
+            return objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException("Failed to serialize JSON-RPC response payload", ex);
+        }
     }
 
     private boolean isJsonWhitespaceOnly(byte[] body) {
