@@ -33,9 +33,9 @@ class JacksonJsonRpcParameterBinderTest {
 
     @Test
     void bindConvertsObjectNodeToPojo() throws Exception {
-        PingParams params = binder.bind(OBJECT_MAPPER.readTree("{\"name\":\"codex\"}"), PingParams.class);
+        PingParams params = binder.bind(OBJECT_MAPPER.readTree("{\"name\":\"developer\"}"), PingParams.class);
 
-        assertEquals("codex", params.name());
+        assertEquals("developer", params.name());
     }
 
     @Test

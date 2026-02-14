@@ -24,9 +24,9 @@ class GreetingRpcServiceDenylistIntegrationTest extends AbstractJsonRpcIntegrati
     @Test
     void denylistStillAllowsOtherMethods() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"greet","params":{"name":"codex"},"id":2}
+                {"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":2}
                 """);
 
-        assertEquals("hello codex", body.get("result").asText());
+        assertEquals("hello developer", body.get("result").asText());
     }
 }

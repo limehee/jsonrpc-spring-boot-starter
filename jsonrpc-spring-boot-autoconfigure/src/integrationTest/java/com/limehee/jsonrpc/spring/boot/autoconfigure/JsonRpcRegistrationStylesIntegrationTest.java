@@ -86,10 +86,10 @@ class JsonRpcRegistrationStylesIntegrationTest {
     @Test
     void supportsTypedFactoryRegistrationWithClassParamAndClassReturn() throws Exception {
         JsonNode body = invoke("""
-                {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"codex"},"id":4}
+                {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"developer"},"id":4}
                 """);
 
-        assertEquals("CODEX", body.get("result").get("result").asText());
+        assertEquals("DEVELOPER", body.get("result").get("result").asText());
     }
 
     @Test

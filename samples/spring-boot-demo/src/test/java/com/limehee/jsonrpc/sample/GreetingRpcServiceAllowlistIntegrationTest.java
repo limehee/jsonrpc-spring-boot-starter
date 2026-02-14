@@ -24,7 +24,7 @@ class GreetingRpcServiceAllowlistIntegrationTest extends AbstractJsonRpcIntegrat
     @Test
     void allowlistBlocksMethodsOutsideAllowlist() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"greet","params":{"name":"codex"},"id":2}
+                {"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":2}
                 """);
 
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, body.get("error").get("code").asInt());

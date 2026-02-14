@@ -66,12 +66,12 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(7),
                             "hello",
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"name\":\"codex\"}"),
+                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"name\":\"developer\"}"),
                             true
                     ));
 
                     assertNotNull(response);
-                    assertEquals("hello codex", response.result().asText());
+                    assertEquals("hello developer", response.result().asText());
                 });
     }
 
@@ -87,7 +87,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(70),
                             "hello",
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"name\":\"codex\"}"),
+                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"name\":\"developer\"}"),
                             true
                     ));
 

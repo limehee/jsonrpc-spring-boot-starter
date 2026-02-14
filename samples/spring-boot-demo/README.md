@@ -27,7 +27,7 @@ Typed object params:
 ```bash
 curl -s http://localhost:8080/jsonrpc \
   -H 'content-type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"greet","params":{"name":"codex"},"id":2}'
+  -d '{"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":2}'
 ```
 
 Named params with `@JsonRpcParam`:

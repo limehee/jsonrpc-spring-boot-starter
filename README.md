@@ -75,13 +75,13 @@ Default endpoint is `POST /jsonrpc` with `application/json`.
 Request:
 
 ```json
-{"jsonrpc":"2.0","method":"greet","params":{"name":"codex"},"id":1}
+{"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":1}
 ```
 
 Response:
 
 ```json
-{"jsonrpc":"2.0","id":1,"result":"hello codex"}
+{"jsonrpc":"2.0","id":1,"result":"hello developer"}
 ```
 
 ## Documentation

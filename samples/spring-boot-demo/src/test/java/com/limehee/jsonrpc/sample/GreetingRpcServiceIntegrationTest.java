@@ -43,14 +43,14 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
                 {"jsonrpc":"2.0","method":"ping","id":1}
                 """);
         JsonRpcResponse greet = dispatchSingle("""
-                {"jsonrpc":"2.0","method":"greet","params":{"name":"codex"},"id":2}
+                {"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":2}
                 """);
         JsonRpcResponse sum = dispatchSingle("""
                 {"jsonrpc":"2.0","method":"sum","params":{"left":2,"right":3},"id":3}
                 """);
 
         assertEquals("pong", ping.result().asText());
-        assertEquals("hello codex", greet.result().asText());
+        assertEquals("hello developer", greet.result().asText());
         assertEquals(5, sum.result().asInt());
     }
 

@@ -36,7 +36,7 @@ class JsonRpcTypedMethodHandlerFactoryTest {
     void unaryBindsObjectParams() throws Exception {
         JsonRpcMethodHandler handler = factory.unary(PingParams.class, params -> "hello " + params.name());
 
-        assertEquals("hello codex", handler.handle(OBJECT_MAPPER.readTree("{\"name\":\"codex\"}")).asText());
+        assertEquals("hello developer", handler.handle(OBJECT_MAPPER.readTree("{\"name\":\"developer\"}")).asText());
     }
 
     @Test
