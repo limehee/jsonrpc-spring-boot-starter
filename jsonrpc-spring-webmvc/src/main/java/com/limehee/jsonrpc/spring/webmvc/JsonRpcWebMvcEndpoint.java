@@ -24,6 +24,7 @@ public class JsonRpcWebMvcEndpoint {
     private final ObjectMapper objectMapper;
     private final JsonRpcHttpStatusStrategy httpStatusStrategy;
     private final int maxRequestBytes;
+    private final JsonRpcWebMvcObserver observer;
 
     public JsonRpcWebMvcEndpoint(
             JsonRpcDispatcher dispatcher,
@@ -31,10 +32,27 @@ public class JsonRpcWebMvcEndpoint {
             JsonRpcHttpStatusStrategy httpStatusStrategy,
             int maxRequestBytes
     ) {
+        this(
+                dispatcher,
+                objectMapper,
+                httpStatusStrategy,
+                maxRequestBytes,
+                JsonRpcWebMvcObserver.noOp()
+        );
+    }
+
+    public JsonRpcWebMvcEndpoint(
+            JsonRpcDispatcher dispatcher,
+            ObjectMapper objectMapper,
+            JsonRpcHttpStatusStrategy httpStatusStrategy,
+            int maxRequestBytes,
+            JsonRpcWebMvcObserver observer
+    ) {
         this.dispatcher = dispatcher;
         this.objectMapper = objectMapper;
         this.httpStatusStrategy = httpStatusStrategy;
         this.maxRequestBytes = maxRequestBytes;
+        this.observer = observer;
     }
 
     @PostMapping(
@@ -44,9 +62,11 @@ public class JsonRpcWebMvcEndpoint {
     )
     public ResponseEntity<String> invoke(@RequestBody(required = false) byte[] body) {
         if (body == null || body.length == 0) {
+            observer.onParseError();
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
         if (body.length > maxRequestBytes) {
+            observer.onRequestTooLarge(body.length, maxRequestBytes);
             JsonRpcResponse response = JsonRpcResponse.error(
                     null,
                     JsonRpcErrorCode.INVALID_REQUEST,
@@ -54,6 +74,7 @@ public class JsonRpcWebMvcEndpoint {
             return singleErrorResponse(response, httpStatusStrategy.statusForRequestTooLarge());
         }
         if (isJsonWhitespaceOnly(body)) {
+            observer.onParseError();
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
 
@@ -61,25 +82,31 @@ public class JsonRpcWebMvcEndpoint {
         try {
             payload = objectMapper.readTree(body);
         } catch (JsonProcessingException ex) {
+            observer.onParseError();
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         } catch (IOException ex) {
+            observer.onParseError();
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
         if (payload == null) {
+            observer.onParseError();
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
 
         JsonRpcDispatchResult result = dispatcher.dispatch(payload);
         if (!result.hasResponse()) {
+            observer.onNotificationOnly(payload.isArray(), payload.isArray() ? payload.size() : 1);
             return ResponseEntity.status(httpStatusStrategy.statusForNotificationOnly()).build();
         }
 
         if (result.isBatch()) {
             List<JsonRpcResponse> responses = result.responses();
+            observer.onBatchResponse(payload.size(), responses);
             return jsonResponse(httpStatusStrategy.statusForBatch(responses), responses);
         }
 
         JsonRpcResponse single = result.singleResponse().orElseThrow();
+        observer.onSingleResponse(single);
         return jsonResponse(httpStatusStrategy.statusForSingle(single), single);
     }
 

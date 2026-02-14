@@ -296,6 +296,73 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void recordsStageAndFailureMetricsForErrorCases() {
+        contextRunner
+                .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
+                .withBean("badParams", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("bad.params", params -> {
+                            throw new JsonRpcException(-32602, "Invalid params");
+                        }))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
+
+                    dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(22),
+                            "bad.params",
+                            null,
+                            true
+                    ));
+
+                    assertEquals(1.0, meterRegistry.counter(
+                            "jsonrpc.server.stage.events",
+                            "method", "bad.params",
+                            "stage", "invalid_params"
+                    ).count());
+                    assertEquals(1.0, meterRegistry.counter(
+                            "jsonrpc.server.failures",
+                            "method", "bad.params",
+                            "errorCode", "-32602",
+                            "source", "binding"
+                    ).count());
+                });
+    }
+
+    @Test
+    void capsMethodTagCardinalityWhenConfigured() {
+        contextRunner
+                .withPropertyValues("jsonrpc.metrics-max-method-tag-values=1")
+                .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
+                .withBean("a", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("method.a", params -> TextNode.valueOf("a")))
+                .withBean("b", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("method.b", params -> TextNode.valueOf("b")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
+
+                    dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0", IntNode.valueOf(23), "method.a", null, true));
+                    dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0", IntNode.valueOf(24), "method.b", null, true));
+
+                    assertEquals(1.0, meterRegistry.counter(
+                            "jsonrpc.server.calls",
+                            "method", "method.a",
+                            "outcome", "success",
+                            "errorCode", "none"
+                    ).count());
+                    assertEquals(1.0, meterRegistry.counter(
+                            "jsonrpc.server.calls",
+                            "method", "other",
+                            "outcome", "success",
+                            "errorCode", "none"
+                    ).count());
+                });
+    }
+
+    @Test
     void recordsLatencyForAsyncNotificationWhenExecutorEnabled() {
         contextRunner
                 .withPropertyValues("jsonrpc.notification-executor-enabled=true")
@@ -328,6 +395,9 @@ class JsonRpcAutoConfigurationTest {
                             "method", "notify",
                             "outcome", "success"
                     ).count());
+                    assertEquals(1.0, meterRegistry.counter("jsonrpc.server.notification.submitted").count());
+                    assertEquals(1L, meterRegistry.timer("jsonrpc.server.notification.execution").count());
+                    assertEquals(1L, meterRegistry.timer("jsonrpc.server.notification.queue.delay").count());
                 });
     }
 
@@ -454,6 +524,20 @@ class JsonRpcAutoConfigurationTest {
     void rejectsInvalidPathThatDoesNotStartWithSlash() {
         contextRunner
                 .withPropertyValues("jsonrpc.path=jsonrpc")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void rejectsMetricsMaxMethodTagValuesLessThanOne() {
+        contextRunner
+                .withPropertyValues("jsonrpc.metrics-max-method-tag-values=0")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void rejectsInvalidMetricsLatencyPercentiles() {
+        contextRunner
+                .withPropertyValues("jsonrpc.metrics-latency-percentiles[0]=1.0")
                 .run(context -> assertNotNull(context.getStartupFailure()));
     }
 

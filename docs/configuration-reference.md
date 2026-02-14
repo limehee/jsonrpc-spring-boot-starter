@@ -13,6 +13,9 @@ All configuration keys are under `jsonrpc.*`.
 | `jsonrpc.scan-annotated-methods` | `boolean` | `true` | Scan Spring beans for `@JsonRpcMethod` |
 | `jsonrpc.include-error-data` | `boolean` | `false` | Include `JsonRpcException.data` in error payload |
 | `jsonrpc.metrics-enabled` | `boolean` | `true` | Enable Micrometer interceptor when registry exists |
+| `jsonrpc.metrics-latency-histogram-enabled` | `boolean` | `false` | Enable latency histogram publication for JSON-RPC metrics |
+| `jsonrpc.metrics-latency-percentiles` | `List<Double>` | `[]` | Optional latency percentiles (each value must be `0.0 < p < 1.0`) |
+| `jsonrpc.metrics-max-method-tag-values` | `int` | `100` | Maximum unique method tags; extra methods are grouped as `other` |
 | `jsonrpc.notification-executor-enabled` | `boolean` | `false` | Enable executor-backed notification invocation |
 | `jsonrpc.notification-executor-bean-name` | `String` | `""` | Explicit executor bean name for notification execution |
 | `jsonrpc.method-registration-conflict-policy` | `REJECT` or `REPLACE` | `REJECT` | Duplicate method registration behavior |
@@ -29,6 +32,9 @@ Application startup fails if:
 - `jsonrpc.max-batch-size <= 0`
 - `jsonrpc.max-request-bytes <= 0`
 - `jsonrpc.method-registration-conflict-policy == null`
+- `jsonrpc.metrics-max-method-tag-values <= 0`
+- `jsonrpc.metrics-latency-percentiles` is null
+- percentile value is null, `<= 0.0`, or `>= 1.0`
 - `jsonrpc.notification-executor-bean-name == null`
 - `jsonrpc.method-allowlist` or `jsonrpc.method-denylist` is null
 - allowlist/denylist contains null or blank entry
@@ -58,6 +64,9 @@ jsonrpc:
   scan-annotated-methods: true
   include-error-data: false
   metrics-enabled: true
+  metrics-latency-histogram-enabled: false
+  metrics-latency-percentiles: [0.9, 0.95, 0.99]
+  metrics-max-method-tag-values: 100
   notification-executor-enabled: true
   notification-executor-bean-name: applicationTaskExecutor
   method-registration-conflict-policy: REJECT

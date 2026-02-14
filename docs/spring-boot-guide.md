@@ -175,6 +175,26 @@ Metrics (Micrometer) are enabled by default when `MeterRegistry` is present:
 
 - `jsonrpc.server.calls`
 - `jsonrpc.server.latency`
+- `jsonrpc.server.stage.events`
+- `jsonrpc.server.failures`
+- `jsonrpc.server.transport.errors`
+- `jsonrpc.server.batch.requests`
+- `jsonrpc.server.batch.entries`
+- `jsonrpc.server.batch.size`
+- `jsonrpc.server.notification.queue.delay`
+- `jsonrpc.server.notification.execution`
+- `jsonrpc.server.notification.submitted`
+- `jsonrpc.server.notification.failed`
+
+Tune metrics behavior:
+
+```yaml
+jsonrpc:
+  metrics-enabled: true
+  metrics-latency-histogram-enabled: true
+  metrics-latency-percentiles: [0.9, 0.95, 0.99]
+  metrics-max-method-tag-values: 100
+```
 
 Disable metrics:
 

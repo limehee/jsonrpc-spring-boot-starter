@@ -36,6 +36,10 @@ It includes dispatcher scenarios (single call and notification paths).
 - Keep `include-error-data=false` in production unless required.
 - Disable metrics if not needed (`jsonrpc.metrics-enabled=false`).
 - Use allowlist/denylist to reduce exposed method surface area.
+- Set `jsonrpc.metrics-max-method-tag-values` to bound method tag cardinality.
+- Enable histogram/percentiles only when needed:
+  - `jsonrpc.metrics-latency-histogram-enabled`
+  - `jsonrpc.metrics-latency-percentiles`
 
 ## Performance Testing Guidance
 

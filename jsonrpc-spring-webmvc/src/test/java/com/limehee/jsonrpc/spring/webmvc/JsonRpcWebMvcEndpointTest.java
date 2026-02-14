@@ -13,6 +13,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -229,5 +231,114 @@ class JsonRpcWebMvcEndpointTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
                 .andExpect(result -> assertEquals(413, result.getResponse().getStatus()));
+    }
+
+    @Test
+    void notifiesObserverForParseErrorsRequestTooLargeAndNotificationOnly() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        RecordingObserver observer = new RecordingObserver();
+        JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
+                dispatcher,
+                OBJECT_MAPPER,
+                new DefaultJsonRpcHttpStatusStrategy(),
+                64,
+                observer
+        );
+        MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
+
+        localMockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{"))
+                .andExpect(status().isOk());
+        localMockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"jsonrpc":"2.0","method":"ping","params":{"value":"abcdefghijklmnopqrstuvwxyz"},"id":1}
+                                """))
+                .andExpect(status().isOk());
+        localMockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\"}"))
+                .andExpect(status().isNoContent());
+
+        assertEquals(1, observer.parseErrors);
+        assertEquals(1, observer.requestTooLarge);
+        assertEquals(1, observer.notificationOnly);
+        assertEquals(1, observer.notificationOnlyRequestCount);
+    }
+
+    @Test
+    void notifiesObserverForSingleAndBatchResponses() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        RecordingObserver observer = new RecordingObserver();
+        JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
+                dispatcher,
+                OBJECT_MAPPER,
+                new DefaultJsonRpcHttpStatusStrategy(),
+                1024 * 1024,
+                observer
+        );
+        MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
+
+        localMockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+                .andExpect(status().isOk());
+        localMockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                [
+                                  {"jsonrpc":"2.0","method":"ping","id":1},
+                                  {"jsonrpc":"2.0","method":"ping"},
+                                  {"jsonrpc":"2.0","method":"missing","id":2}
+                                ]
+                                """))
+                .andExpect(status().isOk());
+
+        assertEquals(1, observer.singleResponses);
+        assertEquals(1, observer.batchResponses);
+        assertEquals(3, observer.lastBatchRequestCount);
+        assertEquals(2, observer.lastBatchResponseCount);
+    }
+
+    private static final class RecordingObserver implements JsonRpcWebMvcObserver {
+        int parseErrors;
+        int requestTooLarge;
+        int notificationOnly;
+        int notificationOnlyRequestCount;
+        int singleResponses;
+        int batchResponses;
+        int lastBatchRequestCount;
+        int lastBatchResponseCount;
+
+        @Override
+        public void onParseError() {
+            parseErrors++;
+        }
+
+        @Override
+        public void onRequestTooLarge(int actualBytes, int maxBytes) {
+            requestTooLarge++;
+        }
+
+        @Override
+        public void onSingleResponse(JsonRpcResponse response) {
+            singleResponses++;
+        }
+
+        @Override
+        public void onBatchResponse(int requestCount, List<JsonRpcResponse> responses) {
+            batchResponses++;
+            lastBatchRequestCount = requestCount;
+            lastBatchResponseCount = responses.size();
+        }
+
+        @Override
+        public void onNotificationOnly(boolean batch, int requestCount) {
+            notificationOnly++;
+            notificationOnlyRequestCount = requestCount;
+        }
     }
 }

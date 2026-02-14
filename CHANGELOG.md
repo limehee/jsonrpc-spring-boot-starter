@@ -21,9 +21,11 @@ All notable changes to this project are documented in this file.
 - Library-level integration and end-to-end tests for auto-configuration/HTTP execution paths.
 - Added library integration/e2e scenarios that validate all primary registration styles (`@JsonRpcMethod`, explicit `JsonRpcMethodRegistration`, and `JsonRpcTypedMethodHandlerFactory`) with class/record/collection parameter and return payloads.
 - Added pure Java (no Spring) integration/e2e tests in `jsonrpc-core` and standalone usage documentation in README.
+- Expanded metrics coverage with transport/batch/notification instrumentation and configurable latency histogram/percentiles/method-tag cardinality limits.
 
 ### Changed
 - Rewrote `README.md` as a documentation entrypoint and expanded official-style documentation under `docs/` (getting started, architecture, protocol compliance, configuration reference, extension points, testing, performance, troubleshooting).
+- WebMVC endpoint now emits observer callbacks for parse errors, payload-size violations, batch aggregation, and notification-only calls.
 - JSON-RPC compliance handling for batch, notification, and invalid request edge cases.
 - HTTP endpoint behavior: JSON content-type enforcement and request size limit handling.
 - Build now uses Gradle Version Catalog (`gradle/libs.versions.toml`).

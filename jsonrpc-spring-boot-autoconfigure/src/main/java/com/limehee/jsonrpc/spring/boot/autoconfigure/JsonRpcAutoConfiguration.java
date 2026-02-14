@@ -26,12 +26,15 @@ import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import com.limehee.jsonrpc.core.DirectJsonRpcNotificationExecutor;
 import com.limehee.jsonrpc.core.ExecutorJsonRpcNotificationExecutor;
 import com.limehee.jsonrpc.spring.boot.autoconfigure.support.JsonRpcAnnotatedMethodRegistrar;
+import com.limehee.jsonrpc.spring.boot.autoconfigure.support.InstrumentedJsonRpcNotificationExecutor;
 import com.limehee.jsonrpc.spring.boot.autoconfigure.support.JsonRpcMethodAccessInterceptor;
 import com.limehee.jsonrpc.spring.boot.autoconfigure.support.JsonRpcMetricsInterceptor;
+import com.limehee.jsonrpc.spring.boot.autoconfigure.support.JsonRpcWebMvcMetricsObserver;
 import io.micrometer.core.instrument.MeterRegistry;
 import com.limehee.jsonrpc.spring.webmvc.DefaultJsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcEndpoint;
+import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcObserver;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -115,10 +118,13 @@ public class JsonRpcAutoConfiguration {
     @ConditionalOnMissingBean
     public JsonRpcNotificationExecutor jsonRpcNotificationExecutor(
             JsonRpcProperties properties,
-            ListableBeanFactory beanFactory
+            ListableBeanFactory beanFactory,
+            ObjectProvider<MeterRegistry> meterRegistryProvider
     ) {
+        JsonRpcNotificationExecutor executor;
         if (!properties.isNotificationExecutorEnabled()) {
-            return new DirectJsonRpcNotificationExecutor();
+            executor = new DirectJsonRpcNotificationExecutor();
+            return instrumentNotificationExecutorIfEnabled(executor, properties, meterRegistryProvider);
         }
 
         Map<String, Executor> executors = beanFactory.getBeansOfType(Executor.class, false, false);
@@ -129,18 +135,22 @@ public class JsonRpcAutoConfiguration {
                 throw new IllegalStateException(
                         "jsonrpc.notification-executor-bean-name points to missing Executor bean: " + configuredBeanName);
             }
-            return new ExecutorJsonRpcNotificationExecutor(configuredExecutor);
+            executor = new ExecutorJsonRpcNotificationExecutor(configuredExecutor);
+            return instrumentNotificationExecutorIfEnabled(executor, properties, meterRegistryProvider);
         }
 
         if (executors.size() == 1) {
-            return new ExecutorJsonRpcNotificationExecutor(executors.values().iterator().next());
+            executor = new ExecutorJsonRpcNotificationExecutor(executors.values().iterator().next());
+            return instrumentNotificationExecutorIfEnabled(executor, properties, meterRegistryProvider);
         }
 
         Executor applicationTaskExecutor = executors.get("applicationTaskExecutor");
         if (applicationTaskExecutor != null) {
-            return new ExecutorJsonRpcNotificationExecutor(applicationTaskExecutor);
+            executor = new ExecutorJsonRpcNotificationExecutor(applicationTaskExecutor);
+            return instrumentNotificationExecutorIfEnabled(executor, properties, meterRegistryProvider);
         }
-        return new DirectJsonRpcNotificationExecutor();
+        executor = new DirectJsonRpcNotificationExecutor();
+        return instrumentNotificationExecutorIfEnabled(executor, properties, meterRegistryProvider);
     }
 
     @Bean
@@ -157,8 +167,32 @@ public class JsonRpcAutoConfiguration {
     @ConditionalOnBean(MeterRegistry.class)
     @ConditionalOnMissingBean(name = "jsonRpcMetricsInterceptor")
     @ConditionalOnProperty(prefix = "jsonrpc", name = "metrics-enabled", havingValue = "true", matchIfMissing = true)
-    public JsonRpcInterceptor jsonRpcMetricsInterceptor(MeterRegistry meterRegistry) {
-        return new JsonRpcMetricsInterceptor(meterRegistry);
+    public JsonRpcInterceptor jsonRpcMetricsInterceptor(JsonRpcProperties properties, MeterRegistry meterRegistry) {
+        return new JsonRpcMetricsInterceptor(
+                meterRegistry,
+                properties.isMetricsLatencyHistogramEnabled(),
+                toPercentileArray(properties.getMetricsLatencyPercentiles()),
+                properties.getMetricsMaxMethodTagValues()
+        );
+    }
+
+    @Bean
+    @ConditionalOnClass(MeterRegistry.class)
+    @ConditionalOnBean(MeterRegistry.class)
+    @ConditionalOnMissingBean(JsonRpcWebMvcObserver.class)
+    @ConditionalOnProperty(prefix = "jsonrpc", name = "metrics-enabled", havingValue = "true", matchIfMissing = true)
+    public JsonRpcWebMvcObserver jsonRpcWebMvcMetricsObserver(JsonRpcProperties properties, MeterRegistry meterRegistry) {
+        return new JsonRpcWebMvcMetricsObserver(
+                meterRegistry,
+                properties.isMetricsLatencyHistogramEnabled(),
+                toPercentileArray(properties.getMetricsLatencyPercentiles())
+        );
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(JsonRpcWebMvcObserver.class)
+    public JsonRpcWebMvcObserver jsonRpcWebMvcObserver() {
+        return JsonRpcWebMvcObserver.noOp();
     }
 
     @Bean
@@ -225,6 +259,7 @@ public class JsonRpcAutoConfiguration {
             JsonRpcDispatcher dispatcher,
             JsonRpcHttpStatusStrategy httpStatusStrategy,
             ObjectProvider<ObjectMapper> objectMapperProvider,
+            JsonRpcWebMvcObserver webMvcObserver,
             JsonRpcProperties properties
     ) {
         ObjectMapper objectMapper = objectMapperProvider.getIfAvailable(ObjectMapper::new);
@@ -232,7 +267,8 @@ public class JsonRpcAutoConfiguration {
                 dispatcher,
                 objectMapper,
                 httpStatusStrategy,
-                properties.getMaxRequestBytes()
+                properties.getMaxRequestBytes(),
+                webMvcObserver
         );
     }
 
@@ -269,12 +305,16 @@ public class JsonRpcAutoConfiguration {
         if (properties.getMethodRegistrationConflictPolicy() == null) {
             throw new IllegalArgumentException("jsonrpc.method-registration-conflict-policy must not be null");
         }
+        if (properties.getMetricsMaxMethodTagValues() <= 0) {
+            throw new IllegalArgumentException("jsonrpc.metrics-max-method-tag-values must be greater than 0");
+        }
         if (properties.getNotificationExecutorBeanName() == null) {
             throw new IllegalArgumentException("jsonrpc.notification-executor-bean-name must not be null");
         }
 
         validateMethodList("jsonrpc.method-allowlist", properties.getMethodAllowlist());
         validateMethodList("jsonrpc.method-denylist", properties.getMethodDenylist());
+        validatePercentiles(properties.getMetricsLatencyPercentiles());
     }
 
     private boolean containsWhitespace(String value) {
@@ -303,5 +343,53 @@ public class JsonRpcAutoConfiguration {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private JsonRpcNotificationExecutor instrumentNotificationExecutorIfEnabled(
+            JsonRpcNotificationExecutor delegate,
+            JsonRpcProperties properties,
+            ObjectProvider<MeterRegistry> meterRegistryProvider
+    ) {
+        if (!properties.isMetricsEnabled()) {
+            return delegate;
+        }
+        MeterRegistry meterRegistry = meterRegistryProvider.getIfAvailable();
+        if (meterRegistry == null) {
+            return delegate;
+        }
+        return new InstrumentedJsonRpcNotificationExecutor(
+                delegate,
+                meterRegistry,
+                properties.isMetricsLatencyHistogramEnabled(),
+                toPercentileArray(properties.getMetricsLatencyPercentiles())
+        );
+    }
+
+    private void validatePercentiles(List<Double> percentiles) {
+        if (percentiles == null) {
+            throw new IllegalArgumentException("jsonrpc.metrics-latency-percentiles must not be null");
+        }
+        for (Double percentile : percentiles) {
+            if (percentile == null || percentile <= 0.0 || percentile >= 1.0) {
+                throw new IllegalArgumentException(
+                        "jsonrpc.metrics-latency-percentiles values must be greater than 0.0 and less than 1.0");
+            }
+        }
+    }
+
+    private double[] toPercentileArray(List<Double> percentiles) {
+        if (percentiles == null || percentiles.isEmpty()) {
+            return new double[0];
+        }
+        double[] values = new double[percentiles.size()];
+        for (int i = 0; i < percentiles.size(); i++) {
+            Double percentile = percentiles.get(i);
+            if (percentile == null || percentile <= 0.0 || percentile >= 1.0) {
+                throw new IllegalArgumentException(
+                        "jsonrpc.metrics-latency-percentiles values must be greater than 0.0 and less than 1.0");
+            }
+            values[i] = percentile;
+        }
+        return values;
     }
 }

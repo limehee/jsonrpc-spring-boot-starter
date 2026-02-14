@@ -53,6 +53,21 @@ Metrics:
   - tags: `method`, `outcome`, `errorCode`
 - Timer: `jsonrpc.server.latency`
   - tags: `method`, `outcome`
+- Counter: `jsonrpc.server.stage.events`
+  - tags: `method`, `stage`
+- Counter: `jsonrpc.server.failures`
+  - tags: `method`, `errorCode`, `source`
+- Counter: `jsonrpc.server.transport.errors`
+  - tags: `reason` (`parse_error`, `request_too_large`)
+- Counter: `jsonrpc.server.batch.requests`
+  - tags: `outcome` (`all_success`, `all_error`, `mixed`, `notification_only`)
+- Counter: `jsonrpc.server.batch.entries`
+  - tags: `outcome` (`success`, `error`, `notification`)
+- Summary: `jsonrpc.server.batch.size`
+- Timer: `jsonrpc.server.notification.queue.delay`
+- Timer: `jsonrpc.server.notification.execution`
+- Counter: `jsonrpc.server.notification.submitted`
+- Counter: `jsonrpc.server.notification.failed`
 
 ## 4. Method Access Control
 
@@ -81,5 +96,6 @@ Default strategy returns `200` for protocol responses and `204` for notification
 
 - `DirectJsonRpcNotificationExecutor`: same thread
 - `ExecutorJsonRpcNotificationExecutor`: delegated to Java `Executor`
+- `InstrumentedJsonRpcNotificationExecutor`: wraps notification execution for queue/latency/failure metrics when metrics are enabled
 
 You can provide your own implementation for custom backpressure/isolation/retry behavior.

@@ -43,6 +43,23 @@
       "description": "Enable Micrometer metrics interceptor when MeterRegistry is present."
     },
     {
+      "name": "jsonrpc.metrics-latency-histogram-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Enable percentile histogram publication for JSON-RPC latency-related metrics."
+    },
+    {
+      "name": "jsonrpc.metrics-latency-percentiles",
+      "type": "java.util.List<java.lang.Double>",
+      "description": "Optional latency percentiles to publish (each value must be between 0.0 and 1.0, exclusive)."
+    },
+    {
+      "name": "jsonrpc.metrics-max-method-tag-values",
+      "type": "java.lang.Integer",
+      "defaultValue": 100,
+      "description": "Maximum unique method tag values for metrics. Additional methods are grouped under 'other'."
+    },
+    {
       "name": "jsonrpc.notification-executor-enabled",
       "type": "java.lang.Boolean",
       "defaultValue": false,
@@ -90,6 +107,23 @@
       "name": "jsonrpc.notification-executor-bean-name",
       "values": [
         { "value": "applicationTaskExecutor" }
+      ]
+    },
+    {
+      "name": "jsonrpc.metrics-latency-percentiles",
+      "values": [
+        { "value": 0.5 },
+        { "value": 0.9 },
+        { "value": 0.95 },
+        { "value": 0.99 }
+      ]
+    },
+    {
+      "name": "jsonrpc.metrics-max-method-tag-values",
+      "values": [
+        { "value": 50 },
+        { "value": 100 },
+        { "value": 200 }
       ]
     }
   ]

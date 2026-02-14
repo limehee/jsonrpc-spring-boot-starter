@@ -16,6 +16,9 @@ public class JsonRpcProperties {
     private boolean scanAnnotatedMethods = true;
     private boolean includeErrorData = false;
     private boolean metricsEnabled = true;
+    private boolean metricsLatencyHistogramEnabled = false;
+    private List<Double> metricsLatencyPercentiles = new ArrayList<>();
+    private int metricsMaxMethodTagValues = 100;
     private boolean notificationExecutorEnabled = false;
     private String notificationExecutorBeanName = "";
     private JsonRpcMethodRegistrationConflictPolicy methodRegistrationConflictPolicy = JsonRpcMethodRegistrationConflictPolicy.REJECT;
@@ -76,6 +79,30 @@ public class JsonRpcProperties {
 
     public void setMetricsEnabled(boolean metricsEnabled) {
         this.metricsEnabled = metricsEnabled;
+    }
+
+    public boolean isMetricsLatencyHistogramEnabled() {
+        return metricsLatencyHistogramEnabled;
+    }
+
+    public void setMetricsLatencyHistogramEnabled(boolean metricsLatencyHistogramEnabled) {
+        this.metricsLatencyHistogramEnabled = metricsLatencyHistogramEnabled;
+    }
+
+    public List<Double> getMetricsLatencyPercentiles() {
+        return metricsLatencyPercentiles;
+    }
+
+    public void setMetricsLatencyPercentiles(List<Double> metricsLatencyPercentiles) {
+        this.metricsLatencyPercentiles = metricsLatencyPercentiles;
+    }
+
+    public int getMetricsMaxMethodTagValues() {
+        return metricsMaxMethodTagValues;
+    }
+
+    public void setMetricsMaxMethodTagValues(int metricsMaxMethodTagValues) {
+        this.metricsMaxMethodTagValues = metricsMaxMethodTagValues;
     }
 
     public boolean isNotificationExecutorEnabled() {
