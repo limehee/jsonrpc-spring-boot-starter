@@ -2,6 +2,7 @@ package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
@@ -342,6 +343,77 @@ class JsonRpcAutoConfigurationTest {
 
                     assertNotNull(response.error());
                     assertEquals(-32601, response.error().code());
+                });
+    }
+
+    @Test
+    void denylistTakesPrecedenceWhenMethodInAllowlistAndDenylist() {
+        contextRunner
+                .withPropertyValues(
+                        "jsonrpc.method-allowlist[0]=ping",
+                        "jsonrpc.method-denylist[0]=ping"
+                )
+                .withBean("ping", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(33),
+                            "ping",
+                            null,
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32601, response.error().code());
+                });
+    }
+
+    @Test
+    void normalizesAllowAndDenyListsByTrimmingAndIgnoringBlankValues() {
+        contextRunner
+                .withPropertyValues(
+                        "jsonrpc.method-allowlist[0]=  ping  ",
+                        "jsonrpc.method-allowlist[1]=   ",
+                        "jsonrpc.method-denylist[0]=   "
+                )
+                .withBean("ping", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(34),
+                            "ping",
+                            null,
+                            true
+                    ));
+
+                    assertEquals("pong", response.result().asText());
+                });
+    }
+
+    @Test
+    void clampsMaxBatchSizeToAtLeastOne() throws Exception {
+        contextRunner
+                .withPropertyValues("jsonrpc.max-batch-size=0")
+                .withBean("ping", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+
+                    JsonRpcDispatchResult result = dispatcher.dispatch(new com.fasterxml.jackson.databind.ObjectMapper().readTree("""
+                            [
+                              {"jsonrpc":"2.0","method":"ping","id":1}
+                            ]
+                            """));
+
+                    assertTrue(result.isBatch());
+                    assertEquals(1, result.responses().size());
+                    assertEquals("pong", result.responses().get(0).result().asText());
                 });
     }
 

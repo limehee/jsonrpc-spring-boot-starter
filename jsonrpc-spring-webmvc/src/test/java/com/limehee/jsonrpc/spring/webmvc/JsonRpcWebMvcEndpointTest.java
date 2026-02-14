@@ -52,10 +52,48 @@ class JsonRpcWebMvcEndpointTest {
     }
 
     @Test
+    void returnsParseErrorForEmptyBody() throws Exception {
+        MvcResult result = mockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new byte[0]))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        assertEquals(JsonRpcErrorCode.PARSE_ERROR, response.error().code());
+    }
+
+    @Test
+    void returnsSingleSuccessResponseForRequest() throws Exception {
+        MvcResult result = mockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        assertEquals("pong", response.result().asText());
+        assertEquals(1, response.id().asInt());
+    }
+
+    @Test
     void returnsNoContentForNotification() throws Exception {
         mockMvc.perform(post("/jsonrpc")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\"}"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void returnsNoContentForNotificationOnlyBatch() throws Exception {
+        mockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                [
+                                  {"jsonrpc":"2.0","method":"ping"},
+                                  {"jsonrpc":"2.0","method":"ping"}
+                                ]
+                                """))
                 .andExpect(status().isNoContent());
     }
 

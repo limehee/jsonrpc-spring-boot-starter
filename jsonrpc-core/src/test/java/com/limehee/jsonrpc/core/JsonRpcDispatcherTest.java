@@ -405,6 +405,36 @@ class JsonRpcDispatcherTest {
         assertTrue(interceptor.events.contains("onError:-32603"));
     }
 
+    @Test
+    void interceptorOnErrorFailureDoesNotMaskOriginalError() throws Exception {
+        RecordingInterceptor interceptor = new RecordingInterceptor();
+        JsonRpcInterceptor throwingInterceptor = new JsonRpcInterceptor() {
+            @Override
+            public void onError(JsonRpcRequest request, Throwable throwable, JsonRpcError mappedError) {
+                throw new RuntimeException("observer failed");
+            }
+        };
+
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+                new InMemoryJsonRpcMethodRegistry(),
+                new DefaultJsonRpcRequestParser(),
+                new DefaultJsonRpcRequestValidator(),
+                new DefaultJsonRpcMethodInvoker(),
+                new DefaultJsonRpcExceptionResolver(),
+                new DefaultJsonRpcResponseComposer(),
+                100,
+                List.of(throwingInterceptor, interceptor)
+        );
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","method":"missing","id":1}
+                """));
+
+        JsonRpcResponse response = result.singleResponse().orElseThrow();
+        assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, response.error().code());
+        assertTrue(interceptor.events.contains("onError:-32601"));
+    }
+
     private static final class RecordingInterceptor implements JsonRpcInterceptor {
         private final List<String> events = new ArrayList<>();
 

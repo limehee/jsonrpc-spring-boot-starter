@@ -1,5 +1,8 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.limehee.jsonrpc.core.JsonRpcErrorCode;
+import com.limehee.jsonrpc.core.JsonRpcResponse;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcEndpoint;
 import org.junit.jupiter.api.Test;
@@ -48,6 +51,21 @@ class JsonRpcWebAutoConfigurationTest {
                     JsonRpcWebMvcEndpoint endpoint = context.getBean(JsonRpcWebMvcEndpoint.class);
                     HttpStatusCode status = endpoint.invoke("{".getBytes(StandardCharsets.UTF_8)).getStatusCode();
                     assertEquals(HttpStatus.BAD_REQUEST.value(), status.value());
+                });
+    }
+
+    @Test
+    void clampsMaxRequestBytesToAtLeastOne() {
+        webContextRunner
+                .withPropertyValues("jsonrpc.max-request-bytes=0")
+                .run(context -> {
+                    JsonRpcWebMvcEndpoint endpoint = context.getBean(JsonRpcWebMvcEndpoint.class);
+                    JsonRpcResponse response = new ObjectMapper().convertValue(
+                            endpoint.invoke("[".getBytes(StandardCharsets.UTF_8)).getBody(),
+                            JsonRpcResponse.class
+                    );
+
+                    assertEquals(JsonRpcErrorCode.PARSE_ERROR, response.error().code());
                 });
     }
 
