@@ -4,21 +4,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class JsonRpcResponse {
+public record JsonRpcResponse(
+        String jsonrpc,
+        @JsonInclude(JsonInclude.Include.ALWAYS) JsonNode id,
+        JsonNode result,
+        JsonRpcError error
+) {
 
-    private String jsonrpc = JsonRpcConstants.VERSION;
-    private JsonNode id;
-    private JsonNode result;
-    private JsonRpcError error;
-
-    public JsonRpcResponse() {
-    }
-
-    public JsonRpcResponse(String jsonrpc, JsonNode id, JsonNode result, JsonRpcError error) {
-        this.jsonrpc = jsonrpc;
-        this.id = id;
-        this.result = result;
-        this.error = error;
+    public JsonRpcResponse {
+        boolean hasResult = result != null;
+        boolean hasError = error != null;
+        if (hasResult == hasError) {
+            throw new IllegalArgumentException("Response must contain exactly one of result or error");
+        }
     }
 
     public static JsonRpcResponse success(JsonNode id, JsonNode result) {
@@ -29,35 +27,7 @@ public class JsonRpcResponse {
         return new JsonRpcResponse(JsonRpcConstants.VERSION, id, null, JsonRpcError.of(code, message));
     }
 
-    public String getJsonrpc() {
-        return jsonrpc;
-    }
-
-    public void setJsonrpc(String jsonrpc) {
-        this.jsonrpc = jsonrpc;
-    }
-
-    public JsonNode getId() {
-        return id;
-    }
-
-    public void setId(JsonNode id) {
-        this.id = id;
-    }
-
-    public JsonNode getResult() {
-        return result;
-    }
-
-    public void setResult(JsonNode result) {
-        this.result = result;
-    }
-
-    public JsonRpcError getError() {
-        return error;
-    }
-
-    public void setError(JsonRpcError error) {
-        this.error = error;
+    public static JsonRpcResponse error(JsonNode id, JsonRpcError error) {
+        return new JsonRpcResponse(JsonRpcConstants.VERSION, id, null, error);
     }
 }

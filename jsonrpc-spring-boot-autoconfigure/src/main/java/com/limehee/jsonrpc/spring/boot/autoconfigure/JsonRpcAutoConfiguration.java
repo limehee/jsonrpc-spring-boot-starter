@@ -1,10 +1,23 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.limehee.jsonrpc.core.DefaultJsonRpcExceptionResolver;
+import com.limehee.jsonrpc.core.DefaultJsonRpcMethodInvoker;
+import com.limehee.jsonrpc.core.DefaultJsonRpcRequestParser;
+import com.limehee.jsonrpc.core.DefaultJsonRpcRequestValidator;
+import com.limehee.jsonrpc.core.DefaultJsonRpcResponseComposer;
+import com.limehee.jsonrpc.core.InMemoryJsonRpcMethodRegistry;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
+import com.limehee.jsonrpc.core.JsonRpcExceptionResolver;
+import com.limehee.jsonrpc.core.JsonRpcMethodInvoker;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
-import com.limehee.jsonrpc.core.JsonRpcRequest;
-import com.limehee.jsonrpc.core.JsonRpcResponse;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.limehee.jsonrpc.core.JsonRpcMethodRegistry;
+import com.limehee.jsonrpc.core.JsonRpcRequestParser;
+import com.limehee.jsonrpc.core.JsonRpcRequestValidator;
+import com.limehee.jsonrpc.core.JsonRpcResponseComposer;
+import com.limehee.jsonrpc.spring.webmvc.DefaultJsonRpcHttpStatusStrategy;
+import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
+import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcEndpoint;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -14,10 +27,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
 
 @AutoConfiguration
 @EnableConfigurationProperties(JsonRpcProperties.class)
@@ -26,38 +35,89 @@ public class JsonRpcAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public JsonRpcDispatcher jsonRpcDispatcher(ObjectProvider<JsonRpcMethodRegistration> registrations) {
-        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+    public JsonRpcMethodRegistry jsonRpcMethodRegistry(JsonRpcProperties properties) {
+        return new InMemoryJsonRpcMethodRegistry(properties.getMethodNamespacePolicy());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcRequestParser jsonRpcRequestParser() {
+        return new DefaultJsonRpcRequestParser();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcRequestValidator jsonRpcRequestValidator() {
+        return new DefaultJsonRpcRequestValidator();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcMethodInvoker jsonRpcMethodInvoker() {
+        return new DefaultJsonRpcMethodInvoker();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcExceptionResolver jsonRpcExceptionResolver() {
+        return new DefaultJsonRpcExceptionResolver();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcResponseComposer jsonRpcResponseComposer() {
+        return new DefaultJsonRpcResponseComposer();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcDispatcher jsonRpcDispatcher(
+            JsonRpcMethodRegistry methodRegistry,
+            JsonRpcRequestParser requestParser,
+            JsonRpcRequestValidator requestValidator,
+            JsonRpcMethodInvoker methodInvoker,
+            JsonRpcExceptionResolver exceptionResolver,
+            JsonRpcResponseComposer responseComposer,
+            JsonRpcProperties properties,
+            ObjectProvider<JsonRpcMethodRegistration> registrations
+    ) {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+                methodRegistry,
+                requestParser,
+                requestValidator,
+                methodInvoker,
+                exceptionResolver,
+                responseComposer,
+                Math.max(1, properties.getMaxBatchSize())
+        );
         registrations.orderedStream().forEach(registration ->
                 dispatcher.register(registration.method(), registration.handler()));
         return dispatcher;
     }
 
     @Bean
-    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-    @ConditionalOnBean(JsonRpcDispatcher.class)
-    @ConditionalOnProperty(prefix = "jsonrpc", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public JsonRpcHttpController jsonRpcHttpController(JsonRpcDispatcher dispatcher) {
-        return new JsonRpcHttpController(dispatcher);
+    @ConditionalOnMissingBean
+    public JsonRpcHttpStatusStrategy jsonRpcHttpStatusStrategy() {
+        return new DefaultJsonRpcHttpStatusStrategy();
     }
 
-    @RestController
-    static class JsonRpcHttpController {
-
-        private final JsonRpcDispatcher dispatcher;
-
-        JsonRpcHttpController(JsonRpcDispatcher dispatcher) {
-            this.dispatcher = dispatcher;
-        }
-
-        @PostMapping("${jsonrpc.path:/jsonrpc}")
-        ResponseEntity<JsonRpcResponse> invoke(@RequestBody JsonRpcRequest request) {
-            JsonRpcResponse response = dispatcher.dispatch(request);
-            JsonNode id = request != null ? request.getId() : null;
-            if (id == null) {
-                return ResponseEntity.noContent().build();
-            }
-            return ResponseEntity.ok(response);
-        }
+    @Bean
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    @ConditionalOnBean(JsonRpcDispatcher.class)
+    @ConditionalOnClass(JsonRpcWebMvcEndpoint.class)
+    @ConditionalOnProperty(prefix = "jsonrpc", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public JsonRpcWebMvcEndpoint jsonRpcWebMvcEndpoint(
+            JsonRpcDispatcher dispatcher,
+            JsonRpcHttpStatusStrategy httpStatusStrategy,
+            ObjectProvider<ObjectMapper> objectMapperProvider,
+            JsonRpcProperties properties
+    ) {
+        ObjectMapper objectMapper = objectMapperProvider.getIfAvailable(ObjectMapper::new);
+        return new JsonRpcWebMvcEndpoint(
+                dispatcher,
+                objectMapper,
+                httpStatusStrategy,
+                Math.max(1, properties.getMaxRequestBytes())
+        );
     }
 }

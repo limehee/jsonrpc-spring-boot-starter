@@ -1,0 +1,82 @@
+package com.limehee.jsonrpc.spring.webmvc;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.limehee.jsonrpc.core.JsonRpcDispatcher;
+import com.limehee.jsonrpc.core.JsonRpcErrorCode;
+import com.limehee.jsonrpc.core.JsonRpcResponse;
+import com.fasterxml.jackson.databind.node.TextNode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+class JsonRpcWebMvcEndpointTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    private MockMvc mockMvc;
+
+    @BeforeEach
+    void setUp() {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+
+        JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
+                dispatcher,
+                OBJECT_MAPPER,
+                new DefaultJsonRpcHttpStatusStrategy(),
+                1024 * 1024
+        );
+
+        mockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
+    }
+
+    @Test
+    void returnsParseErrorForInvalidJson() throws Exception {
+        MvcResult result = mockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        assertEquals(JsonRpcErrorCode.PARSE_ERROR, response.error().code());
+    }
+
+    @Test
+    void returnsNoContentForNotification() throws Exception {
+        mockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\"}"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void returnsBatchResponseWithoutNotifications() throws Exception {
+        MvcResult result = mockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                [
+                                  {"jsonrpc":"2.0","method":"ping","id":1},
+                                  {"jsonrpc":"2.0","method":"ping"},
+                                  {"jsonrpc":"2.0","method":"missing","id":2}
+                                ]
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode response = OBJECT_MAPPER.readTree(result.getResponse().getContentAsByteArray());
+        assertTrue(response.isArray());
+        assertEquals(2, response.size());
+        assertEquals("pong", response.get(0).get("result").asText());
+        assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, response.get(1).get("error").get("code").asInt());
+    }
+}

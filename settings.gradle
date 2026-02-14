@@ -1,5 +1,6 @@
 rootProject.name = 'jsonrpc-spring-boot-starter'
 
 include 'jsonrpc-core'
+include 'jsonrpc-spring-webmvc'
 include 'jsonrpc-spring-boot-autoconfigure'
 include 'jsonrpc-spring-boot-starter'

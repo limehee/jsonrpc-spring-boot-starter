@@ -5,7 +5,8 @@ Baseline: Spring Boot 4.0.2, Gradle 9.3.1.
 
 ## Modules
 
-- `jsonrpc-core`: JSON-RPC 2.0 domain model and dispatcher.
+- `jsonrpc-core`: JSON-RPC 2.0 protocol model and dispatch pipeline.
+- `jsonrpc-spring-webmvc`: Spring WebMVC transport adapter.
 - `jsonrpc-spring-boot-autoconfigure`: Spring Boot auto-configuration.
 - `jsonrpc-spring-boot-starter`: starter dependency bundle.
 

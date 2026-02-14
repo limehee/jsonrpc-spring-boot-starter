@@ -1,0 +1,10 @@
+description = 'Spring WebMVC transport adapter for JSON-RPC 2.0'
+
+dependencies {
+    api project(':jsonrpc-core')
+    implementation 'org.springframework:spring-web'
+
+    testImplementation 'org.springframework:spring-test'
+    testImplementation 'org.springframework:spring-webmvc'
+    testImplementation 'jakarta.servlet:jakarta.servlet-api'
+}

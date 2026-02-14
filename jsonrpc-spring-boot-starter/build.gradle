@@ -3,5 +3,6 @@ description = 'Starter dependency for JSON-RPC 2.0 with Spring Boot'
 dependencies {
     api 'org.springframework.boot:spring-boot-starter'
     api project(':jsonrpc-core')
+    api project(':jsonrpc-spring-webmvc')
     api project(':jsonrpc-spring-boot-autoconfigure')
 }
