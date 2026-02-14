@@ -91,6 +91,25 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void positionalAnnotatedMethodReturnsInvalidParamsForWrongPayload() throws Exception {
+        contextRunner
+                .withUserConfiguration(AnnotatedPositionalMethodConfig.class)
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(9),
+                            "sum",
+                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":2,\"right\":3}"),
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32602, response.error().code());
+                });
+    }
+
+    @Test
     void wiresInterceptorsIntoDispatcher() {
         contextRunner
                 .withUserConfiguration(InterceptorConfig.class)
