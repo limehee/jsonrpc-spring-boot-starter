@@ -9,6 +9,7 @@ import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,7 +37,11 @@ public class JsonRpcWebMvcEndpoint {
         this.maxRequestBytes = maxRequestBytes;
     }
 
-    @PostMapping("${jsonrpc.path:/jsonrpc}")
+    @PostMapping(
+            value = "${jsonrpc.path:/jsonrpc}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<JsonNode> invoke(@RequestBody(required = false) byte[] body) {
         if (body == null || body.length == 0) {
             return singleErrorResponse(dispatcher.parseErrorResponse(), HttpStatus.OK);

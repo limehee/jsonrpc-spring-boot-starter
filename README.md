@@ -60,6 +60,7 @@ class GreetingService {
 - multiple params with named object using `@JsonRpcParam` on each parameter
 
 Default endpoint is `POST /jsonrpc`.
+Request/response content type is `application/json`.
 
 ## Configuration
 

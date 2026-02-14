@@ -130,6 +130,31 @@ class JsonRpcDispatcherTest {
     }
 
     @Test
+    void dispatchBatchOverLimitReturnsInvalidRequest() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+                new InMemoryJsonRpcMethodRegistry(),
+                new DefaultJsonRpcRequestParser(),
+                new DefaultJsonRpcRequestValidator(),
+                new DefaultJsonRpcMethodInvoker(),
+                new DefaultJsonRpcExceptionResolver(),
+                new DefaultJsonRpcResponseComposer(),
+                1,
+                List.of()
+        );
+        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                [
+                  {"jsonrpc":"2.0","method":"ping","id":1},
+                  {"jsonrpc":"2.0","method":"ping","id":2}
+                ]
+                """));
+
+        JsonRpcResponse response = result.singleResponse().orElseThrow();
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
+    }
+
+    @Test
     void parseErrorResponseReturnsParseErrorCode() {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 

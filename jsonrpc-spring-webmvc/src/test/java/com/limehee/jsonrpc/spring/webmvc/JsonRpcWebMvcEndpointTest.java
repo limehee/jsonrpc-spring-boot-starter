@@ -79,4 +79,34 @@ class JsonRpcWebMvcEndpointTest {
         assertEquals("pong", response.get(0).get("result").asText());
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, response.get(1).get("error").get("code").asInt());
     }
+
+    @Test
+    void returnsInvalidRequestWhenPayloadTooLarge() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
+                dispatcher,
+                OBJECT_MAPPER,
+                new DefaultJsonRpcHttpStatusStrategy(),
+                8
+        );
+        MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
+
+        MvcResult result = localMockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
+    }
+
+    @Test
+    void rejectsNonJsonContentType() throws Exception {
+        mockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+                .andExpect(status().isUnsupportedMediaType());
+    }
 }
