@@ -140,7 +140,6 @@ public class JsonRpcDispatcher {
         try {
             requestValidator.validate(request);
             validRequest = true;
-            runBeforeInvoke(request);
             return dispatchSingleRequest(request).orElse(null);
         } catch (Throwable ex) {
             JsonNode id = request == null ? null : normalizeErrorId(request.id());
@@ -170,7 +169,6 @@ public class JsonRpcDispatcher {
             request = requestParser.parse(node);
             requestValidator.validate(request);
             validRequest = true;
-            runBeforeInvoke(request);
             return dispatchSingleRequest(request);
         } catch (Throwable ex) {
             return handleRequestError(errorId, request, validRequest, ex);
@@ -188,6 +186,7 @@ public class JsonRpcDispatcher {
             return Optional.empty();
         }
 
+        runBeforeInvoke(request);
         JsonNode result = methodInvoker.invoke(handler, request.params());
         runAfterInvoke(request, result);
         return Optional.of(responseComposer.success(request.id(), result));
@@ -268,6 +267,7 @@ public class JsonRpcDispatcher {
 
     private void invokeNotificationHandler(JsonRpcRequest request, JsonRpcMethodHandler handler) {
         try {
+            runBeforeInvoke(request);
             JsonNode result = methodInvoker.invoke(handler, request.params());
             runAfterInvoke(request, result);
         } catch (Throwable ex) {

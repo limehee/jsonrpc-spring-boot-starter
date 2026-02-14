@@ -2,4 +2,5 @@ description = 'Core JSON-RPC 2.0 model and dispatcher'
 
 dependencies {
     api libs.jackson.databind
+    api libs.jspecify
 }

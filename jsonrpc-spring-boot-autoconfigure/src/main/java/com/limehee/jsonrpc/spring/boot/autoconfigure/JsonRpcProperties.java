@@ -17,6 +17,7 @@ public class JsonRpcProperties {
     private boolean includeErrorData = false;
     private boolean metricsEnabled = true;
     private boolean notificationExecutorEnabled = false;
+    private String notificationExecutorBeanName = "";
     private JsonRpcMethodRegistrationConflictPolicy methodRegistrationConflictPolicy = JsonRpcMethodRegistrationConflictPolicy.REJECT;
     private List<String> methodAllowlist = new ArrayList<>();
     private List<String> methodDenylist = new ArrayList<>();
@@ -83,6 +84,14 @@ public class JsonRpcProperties {
 
     public void setNotificationExecutorEnabled(boolean notificationExecutorEnabled) {
         this.notificationExecutorEnabled = notificationExecutorEnabled;
+    }
+
+    public String getNotificationExecutorBeanName() {
+        return notificationExecutorBeanName;
+    }
+
+    public void setNotificationExecutorBeanName(String notificationExecutorBeanName) {
+        this.notificationExecutorBeanName = notificationExecutorBeanName;
     }
 
     public JsonRpcMethodRegistrationConflictPolicy getMethodRegistrationConflictPolicy() {

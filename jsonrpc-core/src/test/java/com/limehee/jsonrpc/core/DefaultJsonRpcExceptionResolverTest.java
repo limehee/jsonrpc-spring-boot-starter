@@ -9,6 +9,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class DefaultJsonRpcExceptionResolverTest {
 
     @Test
+    void defaultConstructorHidesErrorData() {
+        DefaultJsonRpcExceptionResolver resolver = new DefaultJsonRpcExceptionResolver();
+
+        JsonRpcError error = resolver.resolve(new JsonRpcException(-32000, "domain", TextNode.valueOf("secret")));
+
+        assertEquals(-32000, error.code());
+        assertNull(error.data());
+    }
+
+    @Test
     void includesErrorDataWhenEnabled() {
         DefaultJsonRpcExceptionResolver resolver = new DefaultJsonRpcExceptionResolver(true);
 

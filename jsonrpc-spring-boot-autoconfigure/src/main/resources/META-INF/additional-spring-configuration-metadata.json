@@ -49,6 +49,12 @@
       "description": "Dispatch notifications through a Spring Executor bean when available."
     },
     {
+      "name": "jsonrpc.notification-executor-bean-name",
+      "type": "java.lang.String",
+      "defaultValue": "",
+      "description": "Executor bean name for notification dispatch when multiple Executor beans are present."
+    },
+    {
       "name": "jsonrpc.method-registration-conflict-policy",
       "type": "com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy",
       "defaultValue": "REJECT",
@@ -78,6 +84,12 @@
       "values": [
         { "value": "REJECT" },
         { "value": "REPLACE" }
+      ]
+    },
+    {
+      "name": "jsonrpc.notification-executor-bean-name",
+      "values": [
+        { "value": "applicationTaskExecutor" }
       ]
     }
   ]

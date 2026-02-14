@@ -5,7 +5,7 @@ public class DefaultJsonRpcExceptionResolver implements JsonRpcExceptionResolver
     private final boolean includeErrorData;
 
     public DefaultJsonRpcExceptionResolver() {
-        this(true);
+        this(false);
     }
 
     public DefaultJsonRpcExceptionResolver(boolean includeErrorData) {

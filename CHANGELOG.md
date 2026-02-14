@@ -34,6 +34,10 @@ All notable changes to this project are documented in this file.
 - Metrics interceptor latency recording now avoids per-call `Timer.builder(...)` and `Duration` allocations.
 - Configuration handling now fails fast for invalid values (`path`, `max-batch-size`, `max-request-bytes`, method list entries) to prevent silent misconfiguration.
 - Spring Boot configuration metadata generation is now enabled via configuration processor, with additional IDE hints in `additional-spring-configuration-metadata.json`.
+- Notification interception now runs on the executor thread for notifications, ensuring async metrics timing is accurate.
+- Notification executor selection is deterministic: explicit bean-name override, then single `Executor`, then `applicationTaskExecutor`, else direct execution.
+- Core default exception resolver now hides error `data` unless explicitly enabled.
+- `jsonrpc-core` now exports JSpecify as an API dependency so downstream consumers get nullness annotations transitively.
 
 ### Fixed
 - Invalid id-less requests now correctly return JSON-RPC error responses while valid notifications remain no-response.

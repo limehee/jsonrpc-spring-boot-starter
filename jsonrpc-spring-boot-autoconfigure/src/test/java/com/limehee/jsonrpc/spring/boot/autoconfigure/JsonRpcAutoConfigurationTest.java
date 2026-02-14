@@ -25,7 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class JsonRpcAutoConfigurationTest {
@@ -294,6 +296,42 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void recordsLatencyForAsyncNotificationWhenExecutorEnabled() {
+        contextRunner
+                .withPropertyValues("jsonrpc.notification-executor-enabled=true")
+                .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
+                .withUserConfiguration(AsyncNotificationExecutorConfig.class)
+                .withBean("notify", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("notify", params -> TextNode.valueOf("ok")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
+                    AsyncCountingExecutor executor = (AsyncCountingExecutor) context.getBean("applicationTaskExecutor");
+
+                    dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            null,
+                            "notify",
+                            null,
+                            false
+                    ));
+
+                    assertTrue(executor.awaitCompletion());
+                    assertEquals(1.0, meterRegistry.counter(
+                            "jsonrpc.server.calls",
+                            "method", "notify",
+                            "outcome", "success",
+                            "errorCode", "none"
+                    ).count());
+                    assertEquals(1L, meterRegistry.timer(
+                            "jsonrpc.server.latency",
+                            "method", "notify",
+                            "outcome", "success"
+                    ).count());
+                });
+    }
+
+    @Test
     void doesNotCreateMetricsInterceptorWhenDisabled() {
         contextRunner
                 .withPropertyValues("jsonrpc.metrics-enabled=false")
@@ -486,6 +524,70 @@ class JsonRpcAutoConfigurationTest {
                 });
     }
 
+    @Test
+    void usesDirectNotificationExecutionWhenMultipleExecutorsExistWithoutSelectionHint() {
+        contextRunner
+                .withPropertyValues("jsonrpc.notification-executor-enabled=true")
+                .withUserConfiguration(MultipleNotificationExecutorConfig.class)
+                .withBean("notify", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("notify", params -> TextNode.valueOf("ok")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    CountingExecutor firstExecutor = (CountingExecutor) context.getBean("firstExecutor");
+                    CountingExecutor secondExecutor = (CountingExecutor) context.getBean("secondExecutor");
+
+                    dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            null,
+                            "notify",
+                            null,
+                            false
+                    ));
+
+                    assertEquals(0, firstExecutor.executeCount.get());
+                    assertEquals(0, secondExecutor.executeCount.get());
+                });
+    }
+
+    @Test
+    void usesSelectedNotificationExecutorBeanWhenConfigured() {
+        contextRunner
+                .withPropertyValues(
+                        "jsonrpc.notification-executor-enabled=true",
+                        "jsonrpc.notification-executor-bean-name=secondExecutor"
+                )
+                .withUserConfiguration(MultipleNotificationExecutorConfig.class)
+                .withBean("notify", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("notify", params -> TextNode.valueOf("ok")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    CountingExecutor firstExecutor = (CountingExecutor) context.getBean("firstExecutor");
+                    CountingExecutor secondExecutor = (CountingExecutor) context.getBean("secondExecutor");
+
+                    dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            null,
+                            "notify",
+                            null,
+                            false
+                    ));
+
+                    assertEquals(0, firstExecutor.executeCount.get());
+                    assertEquals(1, secondExecutor.executeCount.get());
+                });
+    }
+
+    @Test
+    void failsFastWhenSelectedNotificationExecutorBeanDoesNotExist() {
+        contextRunner
+                .withPropertyValues(
+                        "jsonrpc.notification-executor-enabled=true",
+                        "jsonrpc.notification-executor-bean-name=missingExecutor"
+                )
+                .withUserConfiguration(NotificationExecutorConfig.class)
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
     @Configuration(proxyBeanMethods = false)
     static class AnnotatedMethodConfig {
         @Bean
@@ -531,6 +633,27 @@ class JsonRpcAutoConfigurationTest {
         @Bean
         CountingExecutor countingExecutor() {
             return new CountingExecutor();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class MultipleNotificationExecutorConfig {
+        @Bean
+        Executor firstExecutor() {
+            return new CountingExecutor();
+        }
+
+        @Bean
+        Executor secondExecutor() {
+            return new CountingExecutor();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class AsyncNotificationExecutorConfig {
+        @Bean
+        Executor applicationTaskExecutor() {
+            return new AsyncCountingExecutor();
         }
     }
 
@@ -587,6 +710,33 @@ class JsonRpcAutoConfigurationTest {
         public void execute(Runnable command) {
             executeCount.incrementAndGet();
             command.run();
+        }
+    }
+
+    static class AsyncCountingExecutor implements Executor {
+        private final AtomicInteger executeCount = new AtomicInteger();
+        private final CountDownLatch completion = new CountDownLatch(1);
+
+        @Override
+        public void execute(Runnable command) {
+            executeCount.incrementAndGet();
+            Thread thread = new Thread(() -> {
+                try {
+                    command.run();
+                } finally {
+                    completion.countDown();
+                }
+            }, "jsonrpc-test-notification");
+            thread.start();
+        }
+
+        boolean awaitCompletion() {
+            try {
+                return completion.await(2, TimeUnit.SECONDS);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
         }
     }
 }

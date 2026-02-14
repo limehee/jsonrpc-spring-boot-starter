@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
@@ -114,13 +115,30 @@ public class JsonRpcAutoConfiguration {
     @ConditionalOnMissingBean
     public JsonRpcNotificationExecutor jsonRpcNotificationExecutor(
             JsonRpcProperties properties,
-            ObjectProvider<Executor> executors
+            ListableBeanFactory beanFactory
     ) {
-        if (properties.isNotificationExecutorEnabled()) {
-            Executor executor = executors.orderedStream().findFirst().orElse(null);
-            if (executor != null) {
-                return new ExecutorJsonRpcNotificationExecutor(executor);
+        if (!properties.isNotificationExecutorEnabled()) {
+            return new DirectJsonRpcNotificationExecutor();
+        }
+
+        Map<String, Executor> executors = beanFactory.getBeansOfType(Executor.class, false, false);
+        String configuredBeanName = trimToNull(properties.getNotificationExecutorBeanName());
+        if (configuredBeanName != null) {
+            Executor configuredExecutor = executors.get(configuredBeanName);
+            if (configuredExecutor == null) {
+                throw new IllegalStateException(
+                        "jsonrpc.notification-executor-bean-name points to missing Executor bean: " + configuredBeanName);
             }
+            return new ExecutorJsonRpcNotificationExecutor(configuredExecutor);
+        }
+
+        if (executors.size() == 1) {
+            return new ExecutorJsonRpcNotificationExecutor(executors.values().iterator().next());
+        }
+
+        Executor applicationTaskExecutor = executors.get("applicationTaskExecutor");
+        if (applicationTaskExecutor != null) {
+            return new ExecutorJsonRpcNotificationExecutor(applicationTaskExecutor);
         }
         return new DirectJsonRpcNotificationExecutor();
     }
@@ -251,6 +269,9 @@ public class JsonRpcAutoConfiguration {
         if (properties.getMethodRegistrationConflictPolicy() == null) {
             throw new IllegalArgumentException("jsonrpc.method-registration-conflict-policy must not be null");
         }
+        if (properties.getNotificationExecutorBeanName() == null) {
+            throw new IllegalArgumentException("jsonrpc.notification-executor-bean-name must not be null");
+        }
 
         validateMethodList("jsonrpc.method-allowlist", properties.getMethodAllowlist());
         validateMethodList("jsonrpc.method-denylist", properties.getMethodDenylist());
@@ -274,5 +295,13 @@ public class JsonRpcAutoConfiguration {
                 throw new IllegalArgumentException(propertyName + " entries must not be blank");
             }
         }
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

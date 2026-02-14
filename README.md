@@ -149,6 +149,7 @@ JsonRpcInterceptor auditInterceptor() {
 - `jsonrpc.include-error-data` (default `false`)
 - `jsonrpc.metrics-enabled` (default `true`, requires `MeterRegistry`)
 - `jsonrpc.notification-executor-enabled` (default `false`, uses available `Executor` bean)
+- `jsonrpc.notification-executor-bean-name` (default empty, explicit `Executor` bean name for notifications)
 - `jsonrpc.method-allowlist` (default empty)
 - `jsonrpc.method-denylist` (default empty)
 - `jsonrpc.method-registration-conflict-policy` (default `REJECT`, or `REPLACE`)
@@ -156,6 +157,7 @@ JsonRpcInterceptor auditInterceptor() {
 Notes:
 - Reserved methods starting with `rpc.` are always blocked for JSON-RPC compliance.
 - If both allowlist and denylist include the same method, denylist wins.
+- When multiple `Executor` beans exist, notifications run direct unless `jsonrpc.notification-executor-bean-name` is set (or `applicationTaskExecutor` exists).
 - Invalid configuration now fails fast at startup (for example: non-positive `max-batch-size`, non-positive `max-request-bytes`, blank method list entries, invalid path format).
 
 Validation rules:
