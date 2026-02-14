@@ -330,6 +330,64 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void recordsAccessControlFailureMetricWhenDenylistBlocksMethod() {
+        contextRunner
+                .withPropertyValues("jsonrpc.method-denylist[0]=ping")
+                .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
+                .withBean("ping", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
+
+                    dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(25),
+                            "ping",
+                            null,
+                            true
+                    ));
+
+                    assertEquals(1.0, meterRegistry.counter(
+                            "jsonrpc.server.failures",
+                            "method", "ping",
+                            "errorCode", "-32601",
+                            "source", "access_control"
+                    ).count());
+                });
+    }
+
+    @Test
+    void recordsInterceptorFailureMetricWhenInterceptorThrows() {
+        contextRunner
+                .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
+                .withUserConfiguration(ThrowingInterceptorConfig.class)
+                .withBean("ping", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
+
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(26),
+                            "ping",
+                            null,
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32603, response.error().code());
+                    assertEquals(1.0, meterRegistry.counter(
+                            "jsonrpc.server.failures",
+                            "method", "ping",
+                            "errorCode", "-32603",
+                            "source", "interceptor"
+                    ).count());
+                });
+    }
+
+    @Test
     void capsMethodTagCardinalityWhenConfigured() {
         contextRunner
                 .withPropertyValues("jsonrpc.metrics-max-method-tag-values=1")
@@ -709,6 +767,19 @@ class JsonRpcAutoConfigurationTest {
         @Bean
         CountingInterceptor countingInterceptor() {
             return new CountingInterceptor();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class ThrowingInterceptorConfig {
+        @Bean
+        JsonRpcInterceptor throwingInterceptor() {
+            return new JsonRpcInterceptor() {
+                @Override
+                public void beforeInvoke(JsonRpcRequest request) {
+                    throw new IllegalStateException("boom");
+                }
+            };
         }
     }
 

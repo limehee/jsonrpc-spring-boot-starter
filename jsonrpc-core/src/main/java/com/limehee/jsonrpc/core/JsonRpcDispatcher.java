@@ -230,7 +230,13 @@ public class JsonRpcDispatcher {
             return;
         }
         for (JsonRpcInterceptor interceptor : interceptors) {
-            interceptor.beforeValidate(node);
+            try {
+                interceptor.beforeValidate(node);
+            } catch (JsonRpcException ex) {
+                throw ex;
+            } catch (RuntimeException ex) {
+                throw new JsonRpcInterceptorExecutionException(ex);
+            }
         }
     }
 
@@ -239,7 +245,13 @@ public class JsonRpcDispatcher {
             return;
         }
         for (JsonRpcInterceptor interceptor : interceptors) {
-            interceptor.beforeInvoke(request);
+            try {
+                interceptor.beforeInvoke(request);
+            } catch (JsonRpcException ex) {
+                throw ex;
+            } catch (RuntimeException ex) {
+                throw new JsonRpcInterceptorExecutionException(ex);
+            }
         }
     }
 
@@ -248,7 +260,13 @@ public class JsonRpcDispatcher {
             return;
         }
         for (JsonRpcInterceptor interceptor : interceptors) {
-            interceptor.afterInvoke(request, result);
+            try {
+                interceptor.afterInvoke(request, result);
+            } catch (JsonRpcException ex) {
+                throw ex;
+            } catch (RuntimeException ex) {
+                throw new JsonRpcInterceptorExecutionException(ex);
+            }
         }
     }
 

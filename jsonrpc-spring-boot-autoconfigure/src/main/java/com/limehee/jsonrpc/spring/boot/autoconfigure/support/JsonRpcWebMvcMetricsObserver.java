@@ -16,7 +16,17 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
     private static final String BATCH_ENTRY_METRIC = "jsonrpc.server.batch.entries";
     private static final String BATCH_SIZE_METRIC = "jsonrpc.server.batch.size";
 
-    private final MeterRegistry meterRegistry;
+    private final Counter parseErrorCounter;
+    private final Counter requestTooLargeCounter;
+    private final Counter singleNotificationCounter;
+    private final Counter batchNotificationCounter;
+    private final Counter batchRequestAllSuccessCounter;
+    private final Counter batchRequestAllErrorCounter;
+    private final Counter batchRequestMixedCounter;
+    private final Counter batchRequestNotificationOnlyCounter;
+    private final Counter batchEntrySuccessCounter;
+    private final Counter batchEntryErrorCounter;
+    private final Counter batchEntryNotificationCounter;
     private final DistributionSummary batchSizeSummary;
 
     public JsonRpcWebMvcMetricsObserver(
@@ -24,7 +34,18 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
             boolean latencyHistogramEnabled,
             double[] latencyPercentiles
     ) {
-        this.meterRegistry = meterRegistry;
+        this.parseErrorCounter = meterRegistry.counter(TRANSPORT_ERRORS_METRIC, "reason", "parse_error");
+        this.requestTooLargeCounter = meterRegistry.counter(TRANSPORT_ERRORS_METRIC, "reason", "request_too_large");
+        this.singleNotificationCounter = meterRegistry.counter(NOTIFICATION_METRIC, "mode", "single");
+        this.batchNotificationCounter = meterRegistry.counter(NOTIFICATION_METRIC, "mode", "batch");
+        this.batchRequestAllSuccessCounter = meterRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "all_success");
+        this.batchRequestAllErrorCounter = meterRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "all_error");
+        this.batchRequestMixedCounter = meterRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "mixed");
+        this.batchRequestNotificationOnlyCounter = meterRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "notification_only");
+        this.batchEntrySuccessCounter = meterRegistry.counter(BATCH_ENTRY_METRIC, "outcome", "success");
+        this.batchEntryErrorCounter = meterRegistry.counter(BATCH_ENTRY_METRIC, "outcome", "error");
+        this.batchEntryNotificationCounter = meterRegistry.counter(BATCH_ENTRY_METRIC, "outcome", "notification");
+
         DistributionSummary.Builder summaryBuilder = DistributionSummary.builder(BATCH_SIZE_METRIC);
         if (latencyHistogramEnabled) {
             summaryBuilder.publishPercentileHistogram();
@@ -37,12 +58,12 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
 
     @Override
     public void onParseError() {
-        meterRegistry.counter(TRANSPORT_ERRORS_METRIC, "reason", "parse_error").increment();
+        parseErrorCounter.increment();
     }
 
     @Override
     public void onRequestTooLarge(int actualBytes, int maxBytes) {
-        meterRegistry.counter(TRANSPORT_ERRORS_METRIC, "reason", "request_too_large").increment();
+        requestTooLargeCounter.increment();
     }
 
     @Override
@@ -65,32 +86,38 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
         incrementByOutcome("error", errorCount);
         incrementByOutcome("notification", notificationCount);
 
-        String batchOutcome;
         if (responseCount == 0) {
-            batchOutcome = "notification_only";
+            batchRequestNotificationOnlyCounter.increment();
         } else if (errorCount == 0) {
-            batchOutcome = "all_success";
+            batchRequestAllSuccessCounter.increment();
         } else if (successCount == 0) {
-            batchOutcome = "all_error";
+            batchRequestAllErrorCounter.increment();
         } else {
-            batchOutcome = "mixed";
+            batchRequestMixedCounter.increment();
         }
-        meterRegistry.counter(BATCH_REQUEST_METRIC, "outcome", batchOutcome).increment();
     }
 
     @Override
     public void onNotificationOnly(boolean batch, int requestCount) {
-        Counter counter = meterRegistry.counter(
-                NOTIFICATION_METRIC,
-                "mode", batch ? "batch" : "single"
-        );
-        counter.increment();
+        if (batch) {
+            batchNotificationCounter.increment();
+            return;
+        }
+        singleNotificationCounter.increment();
     }
 
     private void incrementByOutcome(String outcome, int count) {
         if (count <= 0) {
             return;
         }
-        meterRegistry.counter(BATCH_ENTRY_METRIC, "outcome", outcome).increment(count);
+        if ("success".equals(outcome)) {
+            batchEntrySuccessCounter.increment(count);
+            return;
+        }
+        if ("error".equals(outcome)) {
+            batchEntryErrorCounter.increment(count);
+            return;
+        }
+        batchEntryNotificationCounter.increment(count);
     }
 }

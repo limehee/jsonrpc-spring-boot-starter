@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcError;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
+import com.limehee.jsonrpc.core.JsonRpcInterceptorExecutionException;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 
@@ -26,6 +28,9 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
     private final double[] latencyPercentiles;
     private final int maxMethodTagValues;
     private final Set<String> seenMethods = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<CounterKey, Counter> callCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<CounterKey, Counter> stageCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<CounterKey, Counter> failureCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<LatencyKey, Timer> latencyTimers = new ConcurrentHashMap<>();
     private final ThreadLocal<Long> startedAtNanos = new ThreadLocal<>();
 
@@ -54,9 +59,7 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
     public void afterInvoke(JsonRpcRequest request, JsonNode result) {
         String method = normalizeMethodName(request == null ? null : request.method());
         recordCallAndLatency(method, "success", "none");
-        meterRegistry.counter(STAGE_EVENTS_METRIC,
-                "method", method,
-                "stage", "invoke_success").increment();
+        counter(stageCounters, STAGE_EVENTS_METRIC, method, "invoke_success", "").increment();
     }
 
     @Override
@@ -66,22 +69,14 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         recordCallAndLatency(method, "error", errorCode);
 
         String stage = classifyStage(mappedError);
-        meterRegistry.counter(STAGE_EVENTS_METRIC,
-                "method", method,
-                "stage", stage).increment();
+        counter(stageCounters, STAGE_EVENTS_METRIC, method, stage, "").increment();
 
         String source = classifyFailureSource(throwable, mappedError);
-        meterRegistry.counter(FAILURE_METRIC,
-                "method", method,
-                "errorCode", errorCode,
-                "source", source).increment();
+        counter(failureCounters, FAILURE_METRIC, method, errorCode, source).increment();
     }
 
     private void recordCallAndLatency(String method, String outcome, String errorCode) {
-        meterRegistry.counter(CALLS_METRIC,
-                "method", method,
-                "outcome", outcome,
-                "errorCode", errorCode).increment();
+        counter(callCounters, CALLS_METRIC, method, outcome, errorCode).increment();
 
         Long startNanos = startedAtNanos.get();
         startedAtNanos.remove();
@@ -133,13 +128,13 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
             return "binding";
         }
         if (code == JsonRpcErrorCode.METHOD_NOT_FOUND) {
-            if (containsClass(throwable, "JsonRpcMethodAccessInterceptor")) {
+            if (throwable instanceof JsonRpcMethodAccessDeniedException) {
                 return "access_control";
             }
             return "resolution";
         }
         if (code == JsonRpcErrorCode.INTERNAL_ERROR) {
-            if (containsClass(throwable, "Interceptor")) {
+            if (throwable instanceof JsonRpcInterceptorExecutionException) {
                 return "interceptor";
             }
             return "handler";
@@ -147,16 +142,37 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         return "custom";
     }
 
-    private boolean containsClass(Throwable throwable, String classNameFragment) {
-        if (throwable == null) {
-            return false;
-        }
-        for (StackTraceElement element : throwable.getStackTrace()) {
-            if (element.getClassName().contains(classNameFragment)) {
-                return true;
+    private Counter counter(
+            ConcurrentHashMap<CounterKey, Counter> cache,
+            String metricName,
+            String method,
+            String firstTagValue,
+            String secondTagValue
+    ) {
+        CounterKey key = new CounterKey(metricName, method, firstTagValue, secondTagValue);
+        return cache.computeIfAbsent(key, ignored -> {
+            if (metricName.equals(CALLS_METRIC)) {
+                return meterRegistry.counter(
+                        metricName,
+                        "method", method,
+                        "outcome", firstTagValue,
+                        "errorCode", secondTagValue
+                );
             }
-        }
-        return false;
+            if (metricName.equals(STAGE_EVENTS_METRIC)) {
+                return meterRegistry.counter(
+                        metricName,
+                        "method", method,
+                        "stage", firstTagValue
+                );
+            }
+            return meterRegistry.counter(
+                    metricName,
+                    "method", method,
+                    "errorCode", firstTagValue,
+                    "source", secondTagValue
+            );
+        });
     }
 
     private String normalizeMethodName(String method) {
@@ -172,8 +188,13 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         if (seenMethods.size() >= maxMethodTagValues) {
             return METHOD_OTHER;
         }
-        seenMethods.add(method);
+        if (seenMethods.add(method)) {
+            return method;
+        }
         return method;
+    }
+
+    private record CounterKey(String metric, String method, String first, String second) {
     }
 
     private record LatencyKey(String method, String outcome) {

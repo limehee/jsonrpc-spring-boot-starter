@@ -1,8 +1,5 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure.support;
 
-import com.limehee.jsonrpc.core.JsonRpcConstants;
-import com.limehee.jsonrpc.core.JsonRpcErrorCode;
-import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
 import org.springframework.core.Ordered;
@@ -24,10 +21,10 @@ public final class JsonRpcMethodAccessInterceptor implements JsonRpcInterceptor,
         String method = request.method();
 
         if (!allowlist.isEmpty() && !allowlist.contains(method)) {
-            throw new JsonRpcException(JsonRpcErrorCode.METHOD_NOT_FOUND, JsonRpcConstants.MESSAGE_METHOD_NOT_FOUND);
+            throw new JsonRpcMethodAccessDeniedException();
         }
         if (denylist.contains(method)) {
-            throw new JsonRpcException(JsonRpcErrorCode.METHOD_NOT_FOUND, JsonRpcConstants.MESSAGE_METHOD_NOT_FOUND);
+            throw new JsonRpcMethodAccessDeniedException();
         }
     }
 
