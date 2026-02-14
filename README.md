@@ -186,6 +186,16 @@ Run it:
 ./gradlew test
 ```
 
+Integration tests:
+```bash
+./gradlew integrationTest
+```
+
+End-to-end tests:
+```bash
+./gradlew e2eTest
+```
+
 API compatibility check (against a released baseline version):
 ```bash
 ./gradlew apiCompat -PapiBaselineVersion=0.1.0

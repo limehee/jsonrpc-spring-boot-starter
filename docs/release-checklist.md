@@ -12,6 +12,7 @@ Use this checklist before creating a release tag (`vX.Y.Z`).
 
 - Run full verification:
   - `./gradlew clean check`
+  - `./gradlew test integrationTest e2eTest`
 - Run API compatibility check against latest released version:
   - `./gradlew apiCompat -PapiBaselineVersion=<latest released version>`
 - Run benchmark smoke:

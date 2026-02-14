@@ -17,6 +17,8 @@ All notable changes to this project are documented in this file.
 - Runnable sample module at `samples/spring-boot-demo` with annotation-based JSON-RPC methods and curl examples.
 - Contribution assets: `CONTRIBUTING.md`, GitHub issue templates, and pull request template.
 - Integration tests for `samples/spring-boot-demo` covering bean registration, method/param binding, JSON response shape, and end-to-end invocation.
+- Multi-stage test structure support in library modules: `test` (unit), `integrationTest`, and `e2eTest` Gradle tasks.
+- Library-level integration and end-to-end tests for auto-configuration/HTTP execution paths.
 
 ### Changed
 - JSON-RPC compliance handling for batch, notification, and invalid request edge cases.

@@ -31,6 +31,26 @@ subprojects {
         compileOnly libs.jspecify
     }
 
+    def integrationTestSourceSet = sourceSets.create('integrationTest') {
+        java.srcDir file('src/integrationTest/java')
+        resources.srcDir file('src/integrationTest/resources')
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+    def e2eTestSourceSet = sourceSets.create('e2eTest') {
+        java.srcDir file('src/e2eTest/java')
+        resources.srcDir file('src/e2eTest/resources')
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+
+    configurations {
+        integrationTestImplementation.extendsFrom(testImplementation)
+        integrationTestRuntimeOnly.extendsFrom(testRuntimeOnly)
+        e2eTestImplementation.extendsFrom(testImplementation)
+        e2eTestRuntimeOnly.extendsFrom(testRuntimeOnly)
+    }
+
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
         options.compilerArgs += ['-parameters']
@@ -38,6 +58,27 @@ subprojects {
 
     tasks.withType(Test).configureEach {
         useJUnitPlatform()
+    }
+
+    tasks.register('integrationTest', Test) {
+        description = 'Runs integration tests.'
+        group = 'verification'
+        testClassesDirs = integrationTestSourceSet.output.classesDirs
+        classpath = integrationTestSourceSet.runtimeClasspath
+        shouldRunAfter(tasks.named('test'))
+    }
+
+    tasks.register('e2eTest', Test) {
+        description = 'Runs end-to-end tests.'
+        group = 'verification'
+        testClassesDirs = e2eTestSourceSet.output.classesDirs
+        classpath = e2eTestSourceSet.runtimeClasspath
+        shouldRunAfter(tasks.named('integrationTest'))
+    }
+
+    tasks.named('check') {
+        dependsOn(tasks.named('integrationTest'))
+        dependsOn(tasks.named('e2eTest'))
     }
 
     publishing {
