@@ -44,23 +44,23 @@ public class JsonRpcWebMvcEndpoint {
     )
     public ResponseEntity<JsonNode> invoke(@RequestBody(required = false) byte[] body) {
         if (body == null || body.length == 0) {
-            return singleErrorResponse(dispatcher.parseErrorResponse(), HttpStatus.OK);
+            return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
         if (body.length > maxRequestBytes) {
             JsonRpcResponse response = JsonRpcResponse.error(
                     null,
                     JsonRpcErrorCode.INVALID_REQUEST,
                     "Request payload too large");
-            return singleErrorResponse(response, HttpStatus.OK);
+            return singleErrorResponse(response, httpStatusStrategy.statusForRequestTooLarge());
         }
 
         JsonNode payload;
         try {
             payload = objectMapper.readTree(body);
         } catch (JsonProcessingException ex) {
-            return singleErrorResponse(dispatcher.parseErrorResponse(), HttpStatus.OK);
+            return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         } catch (IOException ex) {
-            return singleErrorResponse(dispatcher.parseErrorResponse(), HttpStatus.OK);
+            return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
 
         JsonRpcDispatchResult result = dispatcher.dispatch(payload);

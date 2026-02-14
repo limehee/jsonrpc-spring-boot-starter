@@ -21,4 +21,14 @@ public class DefaultJsonRpcHttpStatusStrategy implements JsonRpcHttpStatusStrate
     public HttpStatus statusForNotificationOnly() {
         return HttpStatus.NO_CONTENT;
     }
+
+    @Override
+    public HttpStatus statusForParseError() {
+        return HttpStatus.OK;
+    }
+
+    @Override
+    public HttpStatus statusForRequestTooLarge() {
+        return HttpStatus.OK;
+    }
 }

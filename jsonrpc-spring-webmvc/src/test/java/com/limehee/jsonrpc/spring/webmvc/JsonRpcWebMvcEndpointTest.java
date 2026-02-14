@@ -109,4 +109,54 @@ class JsonRpcWebMvcEndpointTest {
                         .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
                 .andExpect(status().isUnsupportedMediaType());
     }
+
+    @Test
+    void usesCustomStatusStrategyForParseErrorAndPayloadLimit() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        JsonRpcHttpStatusStrategy strategy = new JsonRpcHttpStatusStrategy() {
+            @Override
+            public org.springframework.http.HttpStatus statusForSingle(JsonRpcResponse response) {
+                return org.springframework.http.HttpStatus.OK;
+            }
+
+            @Override
+            public org.springframework.http.HttpStatus statusForBatch(java.util.List<JsonRpcResponse> responses) {
+                return org.springframework.http.HttpStatus.OK;
+            }
+
+            @Override
+            public org.springframework.http.HttpStatus statusForNotificationOnly() {
+                return org.springframework.http.HttpStatus.NO_CONTENT;
+            }
+
+            @Override
+            public org.springframework.http.HttpStatus statusForParseError() {
+                return org.springframework.http.HttpStatus.BAD_REQUEST;
+            }
+
+            @Override
+            public org.springframework.http.HttpStatus statusForRequestTooLarge() {
+                return org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE;
+            }
+        };
+
+        JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
+                dispatcher,
+                OBJECT_MAPPER,
+                strategy,
+                8
+        );
+        MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
+
+        localMockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{"))
+                .andExpect(status().isBadRequest());
+
+        localMockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+                .andExpect(status().isPayloadTooLarge());
+    }
 }

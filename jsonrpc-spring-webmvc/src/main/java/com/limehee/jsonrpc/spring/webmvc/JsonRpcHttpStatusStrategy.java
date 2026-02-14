@@ -12,4 +12,8 @@ public interface JsonRpcHttpStatusStrategy {
     HttpStatus statusForBatch(List<JsonRpcResponse> responses);
 
     HttpStatus statusForNotificationOnly();
+
+    HttpStatus statusForParseError();
+
+    HttpStatus statusForRequestTooLarge();
 }
