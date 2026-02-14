@@ -1,10 +1,11 @@
 package com.limehee.jsonrpc.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.jspecify.annotations.Nullable;
 
 public interface JsonRpcResponseComposer {
 
-    JsonRpcResponse success(JsonNode id, JsonNode result);
+    JsonRpcResponse success(@Nullable JsonNode id, JsonNode result);
 
-    JsonRpcResponse error(JsonNode id, JsonRpcError error);
+    JsonRpcResponse error(@Nullable JsonNode id, JsonRpcError error);
 }

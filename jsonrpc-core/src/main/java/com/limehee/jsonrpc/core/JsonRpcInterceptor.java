@@ -1,6 +1,7 @@
 package com.limehee.jsonrpc.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.jspecify.annotations.Nullable;
 
 public interface JsonRpcInterceptor {
 
@@ -13,6 +14,6 @@ public interface JsonRpcInterceptor {
     default void afterInvoke(JsonRpcRequest request, JsonNode result) {
     }
 
-    default void onError(JsonRpcRequest request, Throwable throwable, JsonRpcError mappedError) {
+    default void onError(@Nullable JsonRpcRequest request, Throwable throwable, JsonRpcError mappedError) {
     }
 }

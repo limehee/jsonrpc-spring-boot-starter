@@ -1,8 +1,9 @@
 package com.limehee.jsonrpc.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.jspecify.annotations.Nullable;
 
 public interface JsonRpcParameterBinder {
 
-    <T> T bind(JsonNode params, Class<T> targetType);
+    <T> T bind(@Nullable JsonNode params, Class<T> targetType);
 }

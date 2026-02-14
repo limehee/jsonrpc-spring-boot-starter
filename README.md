@@ -3,6 +3,8 @@
 JSON-RPC 2.0 server components for Spring Boot.
 Baseline: Spring Boot 4.0.2, Gradle 9.3.1.
 
+The library uses JSpecify annotations for nullness contracts on core APIs.
+
 ## Modules
 
 - `jsonrpc-core`: JSON-RPC 2.0 protocol model and dispatch pipeline.

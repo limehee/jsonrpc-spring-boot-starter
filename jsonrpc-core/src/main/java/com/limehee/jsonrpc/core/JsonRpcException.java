@@ -1,21 +1,22 @@
 package com.limehee.jsonrpc.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.jspecify.annotations.Nullable;
 
 public class JsonRpcException extends RuntimeException {
 
     private final int code;
-    private final JsonNode data;
+    private final @Nullable JsonNode data;
 
     public JsonRpcException(int code, String message) {
         this(code, message, null, null);
     }
 
-    public JsonRpcException(int code, String message, JsonNode data) {
+    public JsonRpcException(int code, String message, @Nullable JsonNode data) {
         this(code, message, data, null);
     }
 
-    public JsonRpcException(int code, String message, JsonNode data, Throwable cause) {
+    public JsonRpcException(int code, String message, @Nullable JsonNode data, @Nullable Throwable cause) {
         super(message, cause);
         this.code = code;
         this.data = data;
@@ -25,7 +26,7 @@ public class JsonRpcException extends RuntimeException {
         return code;
     }
 
-    public JsonNode getData() {
+    public @Nullable JsonNode getData() {
         return data;
     }
 }

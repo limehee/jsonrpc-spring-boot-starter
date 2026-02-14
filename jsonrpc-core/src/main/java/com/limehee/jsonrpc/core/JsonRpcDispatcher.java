@@ -1,6 +1,7 @@
 package com.limehee.jsonrpc.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +104,7 @@ public class JsonRpcDispatcher {
         methodRegistry.register(method, handler);
     }
 
-    public JsonRpcDispatchResult dispatch(JsonNode payload) {
+    public JsonRpcDispatchResult dispatch(@Nullable JsonNode payload) {
         if (payload == null) {
             return JsonRpcDispatchResult.single(errorResponse(null, new JsonRpcException(
                     JsonRpcErrorCode.INVALID_REQUEST,
@@ -132,7 +133,7 @@ public class JsonRpcDispatcher {
         return JsonRpcDispatchResult.single(dispatchSingleNode(payload));
     }
 
-    public JsonRpcResponse dispatch(JsonRpcRequest request) {
+    public @Nullable JsonRpcResponse dispatch(@Nullable JsonRpcRequest request) {
         boolean validRequest = false;
         try {
             requestValidator.validate(request);
@@ -151,7 +152,7 @@ public class JsonRpcDispatcher {
                 JsonRpcConstants.MESSAGE_PARSE_ERROR));
     }
 
-    private Optional<JsonRpcResponse> dispatchSingleNode(JsonNode node) {
+    private Optional<JsonRpcResponse> dispatchSingleNode(@Nullable JsonNode node) {
         if (node == null || !node.isObject()) {
             return Optional.of(errorResponse(null, new JsonRpcException(
                     JsonRpcErrorCode.INVALID_REQUEST,
@@ -190,15 +191,15 @@ public class JsonRpcDispatcher {
         return Optional.of(responseComposer.success(request.id(), result));
     }
 
-    private JsonRpcResponse errorResponse(JsonNode id, Throwable ex) {
+    private JsonRpcResponse errorResponse(@Nullable JsonNode id, Throwable ex) {
         JsonRpcError error = exceptionResolver.resolve(ex);
         runOnError(null, ex, error);
         return responseComposer.error(id, error);
     }
 
     private Optional<JsonRpcResponse> handleRequestError(
-            JsonNode id,
-            JsonRpcRequest request,
+            @Nullable JsonNode id,
+            @Nullable JsonRpcRequest request,
             boolean validRequest,
             Throwable ex
     ) {
@@ -211,12 +212,12 @@ public class JsonRpcDispatcher {
         return Optional.of(responseComposer.error(id, error));
     }
 
-    private JsonNode extractIdForError(JsonNode node) {
+    private @Nullable JsonNode extractIdForError(JsonNode node) {
         JsonNode id = node.get("id");
         return normalizeErrorId(id);
     }
 
-    private JsonNode normalizeErrorId(JsonNode id) {
+    private @Nullable JsonNode normalizeErrorId(@Nullable JsonNode id) {
         if (id == null || id.isNull() || id.isTextual() || id.isNumber()) {
             return id;
         }
@@ -235,7 +236,7 @@ public class JsonRpcDispatcher {
         interceptors.forEach(interceptor -> interceptor.afterInvoke(request, result));
     }
 
-    private void runOnError(JsonRpcRequest request, Throwable throwable, JsonRpcError error) {
+    private void runOnError(@Nullable JsonRpcRequest request, Throwable throwable, JsonRpcError error) {
         for (JsonRpcInterceptor interceptor : interceptors) {
             try {
                 interceptor.onError(request, throwable, error);
