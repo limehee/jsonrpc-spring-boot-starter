@@ -12,6 +12,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,6 +44,32 @@ class JsonRpcDispatcherTest {
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
                 {"jsonrpc":"2.0","method":"ping"}
+                """));
+
+        assertFalse(result.hasResponse());
+        assertTrue(result.singleResponse().isEmpty());
+    }
+
+    @Test
+    void dispatchInvalidRequestWithoutIdReturnsErrorResponse() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","params":[]}
+                """));
+
+        assertTrue(result.hasResponse());
+        JsonRpcResponse response = result.singleResponse().orElseThrow();
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
+        assertNull(response.id());
+    }
+
+    @Test
+    void dispatchNotificationMethodNotFoundReturnsNoResponse() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","method":"missing"}
                 """));
 
         assertFalse(result.hasResponse());
@@ -115,6 +142,24 @@ class JsonRpcDispatcherTest {
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, responses.get(1).error().code());
 
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, responses.get(2).error().code());
+    }
+
+    @Test
+    void dispatchBatchIncludesInvalidRequestWithoutId() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                [
+                  {"jsonrpc":"2.0","params":[]},
+                  {"jsonrpc":"2.0","method":"ping"}
+                ]
+                """));
+
+        assertTrue(result.isBatch());
+        assertEquals(1, result.responses().size());
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, result.responses().get(0).error().code());
+        assertNull(result.responses().get(0).id());
     }
 
     @Test

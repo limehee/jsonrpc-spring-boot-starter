@@ -105,14 +105,15 @@ public class JsonRpcDispatcher {
     }
 
     public JsonRpcResponse dispatch(JsonRpcRequest request) {
+        boolean validRequest = false;
         try {
+            requestValidator.validate(request);
+            validRequest = true;
             runBeforeInvoke(request);
             return dispatchSingleRequest(request).orElse(null);
         } catch (Throwable ex) {
-            if (request != null && request.isNotification()) {
-                return null;
-            }
-            return errorResponse(request == null ? null : request.id(), ex);
+            JsonNode id = request == null ? null : normalizeErrorId(request.id());
+            return handleRequestError(id, request, validRequest, ex).orElse(null);
         }
     }
 
@@ -131,15 +132,17 @@ public class JsonRpcDispatcher {
 
         JsonNode errorId = extractIdForError(node);
         JsonRpcRequest request = null;
+        boolean validRequest = false;
 
         try {
             runBeforeValidate(node);
             request = requestParser.parse(node);
             requestValidator.validate(request);
+            validRequest = true;
             runBeforeInvoke(request);
             return dispatchSingleRequest(request);
         } catch (Throwable ex) {
-            return handleRequestError(errorId, request, ex);
+            return handleRequestError(errorId, request, validRequest, ex);
         }
     }
 
@@ -163,11 +166,16 @@ public class JsonRpcDispatcher {
         return responseComposer.error(id, error);
     }
 
-    private Optional<JsonRpcResponse> handleRequestError(JsonNode id, JsonRpcRequest request, Throwable ex) {
+    private Optional<JsonRpcResponse> handleRequestError(
+            JsonNode id,
+            JsonRpcRequest request,
+            boolean validRequest,
+            Throwable ex
+    ) {
         JsonRpcError error = exceptionResolver.resolve(ex);
         runOnError(request, ex, error);
 
-        if (request != null && request.isNotification()) {
+        if (validRequest && request != null && request.isNotification()) {
             return Optional.empty();
         }
         return Optional.of(responseComposer.error(id, error));
@@ -175,6 +183,10 @@ public class JsonRpcDispatcher {
 
     private JsonNode extractIdForError(JsonNode node) {
         JsonNode id = node.get("id");
+        return normalizeErrorId(id);
+    }
+
+    private JsonNode normalizeErrorId(JsonNode id) {
         if (id == null || id.isNull() || id.isTextual() || id.isNumber()) {
             return id;
         }
