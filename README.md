@@ -90,6 +90,8 @@ Provide a custom `JsonRpcHttpStatusStrategy` bean to override HTTP status mappin
 ./gradlew test
 ```
 
+Dependencies are managed with Gradle Version Catalog at `gradle/libs.versions.toml`.
+
 ## Publish
 
 Set OSSRH and signing credentials via `gradle.properties` or environment variables:
@@ -102,3 +104,7 @@ Then run:
 ```bash
 ./gradlew publish
 ```
+
+GitHub Actions workflows:
+- `.github/workflows/ci.yml`: build and test on push/PR
+- `.github/workflows/publish.yml`: publish on tag push (`v*`) or manual dispatch
