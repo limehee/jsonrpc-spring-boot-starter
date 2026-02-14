@@ -14,3 +14,33 @@ jmh {
     iterations = 5
     fork = 1
 }
+
+tasks.register('jmhQuick', me.champeau.jmh.JMHTask) {
+    group = 'verification'
+    description = 'Runs a quick JMH profile with short warmup/measurement.'
+
+    dependsOn tasks.named('jmhJar')
+
+    def standardJmhTask = tasks.named('jmh', me.champeau.jmh.JMHTask).get()
+    jmhClasspath.from(standardJmhTask.jmhClasspath)
+    testRuntimeClasspath.from(standardJmhTask.testRuntimeClasspath)
+    jarArchive.set(standardJmhTask.jarArchive)
+
+    warmupIterations.set(1)
+    iterations.set(1)
+    warmup.set('1s')
+    timeOnIteration.set('1s')
+    fork.set(1)
+    failOnError.set(true)
+    forceGC.set(true)
+    synchronizeIterations.set(true)
+    resultFormat.set('TEXT')
+    resultExtension.set('txt')
+    humanOutputFile.set(layout.buildDirectory.file('results/jmh/quick-human.txt'))
+    resultsFile.set(layout.buildDirectory.file('results/jmh/quick-results.txt'))
+
+    def includePattern = providers.gradleProperty('jmhQuickInclude').orNull
+    if (includePattern != null && !includePattern.trim().isEmpty()) {
+        includes.set([includePattern.trim()])
+    }
+}

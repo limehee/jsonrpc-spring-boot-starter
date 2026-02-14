@@ -28,6 +28,7 @@ All notable changes to this project are documented in this file.
 - WebMVC endpoint now emits observer callbacks for parse errors, payload-size violations, batch aggregation, and notification-only calls.
 - Reduced runtime metrics overhead by caching Micrometer counters and replacing stack-trace scans with typed failure markers for access-control/interceptor paths.
 - Expanded JMH dispatcher benchmark scenarios to cover success, invalid request/params, method-not-found, and large batch profiles.
+- Added `:jsonrpc-core:jmhQuick` task for short JMH smoke profiling, with optional include filter (`-PjmhQuickInclude=...`).
 - JSON-RPC compliance handling for batch, notification, and invalid request edge cases.
 - HTTP endpoint behavior: JSON content-type enforcement and request size limit handling.
 - Build now uses Gradle Version Catalog (`gradle/libs.versions.toml`).

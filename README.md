@@ -125,6 +125,7 @@ flowchart TD
 ./gradlew test integrationTest e2eTest
 ./gradlew apiCompat -PapiBaselineVersion=<released-version>
 ./gradlew :jsonrpc-core:jmh
+./gradlew :jsonrpc-core:jmhQuick
 ```
 
 ## Sample Application

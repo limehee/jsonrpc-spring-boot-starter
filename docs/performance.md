@@ -29,6 +29,18 @@ JMH benchmark exists in `jsonrpc-core`:
 
 It includes dispatcher scenarios (single call and notification paths).
 
+Quick profile (short warmup/measurement):
+
+```bash
+./gradlew :jsonrpc-core:jmhQuick
+```
+
+Run quick profile for a specific benchmark include pattern:
+
+```bash
+./gradlew :jsonrpc-core:jmhQuick -PjmhQuickInclude=JsonRpcDispatcherBenchmark.dispatchSingle
+```
+
 ## Practical Tuning Checklist
 
 - Adjust `jsonrpc.max-request-bytes` to realistic payload limits.
