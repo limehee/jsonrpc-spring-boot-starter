@@ -4,6 +4,7 @@ import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcMethodHandler;
 import com.limehee.jsonrpc.core.JsonRpcParameterBinder;
+import com.limehee.jsonrpc.core.JsonRpcParam;
 import com.limehee.jsonrpc.core.JsonRpcResultWriter;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Objects;
 
 class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
@@ -70,7 +72,7 @@ class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
             return unaryHandler(method.getParameterTypes()[0], bean, method);
         }
 
-        return params -> resultWriter.write(invoke(bean, method, bindPositionalParams(method, params)));
+        return params -> resultWriter.write(invoke(bean, method, bindMethodParams(method, params)));
     }
 
     private Object invoke(Object bean, Method method, Object... args) {
@@ -93,6 +95,13 @@ class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
         return typedMethodHandlerFactory.unary((Class<T>) paramType, param -> invoke(bean, method, param));
     }
 
+    private Object[] bindMethodParams(Method method, com.fasterxml.jackson.databind.JsonNode params) {
+        if (params != null && params.isObject()) {
+            return bindNamedParams(method, params);
+        }
+        return bindPositionalParams(method, params);
+    }
+
     private Object[] bindPositionalParams(Method method, com.fasterxml.jackson.databind.JsonNode params) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (params == null || !params.isArray() || params.size() != parameterTypes.length) {
@@ -104,5 +113,32 @@ class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
             bound[i] = parameterBinder.bind(params.get(i), parameterTypes[i]);
         }
         return bound;
+    }
+
+    private Object[] bindNamedParams(Method method, com.fasterxml.jackson.databind.JsonNode params) {
+        Parameter[] parameters = method.getParameters();
+        Object[] bound = new Object[parameters.length];
+
+        for (int i = 0; i < parameters.length; i++) {
+            Parameter parameter = parameters[i];
+            String paramName = resolveParameterName(parameter);
+            com.fasterxml.jackson.databind.JsonNode valueNode = params.get(paramName);
+            if (valueNode == null) {
+                throw new IllegalArgumentException("Invalid params");
+            }
+            bound[i] = parameterBinder.bind(valueNode, parameter.getType());
+        }
+        return bound;
+    }
+
+    private String resolveParameterName(Parameter parameter) {
+        JsonRpcParam annotation = parameter.getAnnotation(JsonRpcParam.class);
+        if (annotation != null && !annotation.value().isBlank()) {
+            return annotation.value();
+        }
+        if (parameter.isNamePresent()) {
+            return parameter.getName();
+        }
+        throw new IllegalArgumentException("Invalid params");
     }
 }

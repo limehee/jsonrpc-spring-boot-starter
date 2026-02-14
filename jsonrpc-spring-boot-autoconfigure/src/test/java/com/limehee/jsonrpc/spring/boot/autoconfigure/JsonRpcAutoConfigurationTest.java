@@ -7,6 +7,7 @@ import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
+import com.limehee.jsonrpc.core.JsonRpcParam;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
@@ -101,6 +102,46 @@ class JsonRpcAutoConfigurationTest {
                             IntNode.valueOf(9),
                             "sum",
                             new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":2,\"right\":3}"),
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32602, response.error().code());
+                });
+    }
+
+    @Test
+    void registersAnnotatedMethodsWithNamedParamsObject() throws Exception {
+        contextRunner
+                .withUserConfiguration(AnnotatedNamedMethodConfig.class)
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    assertNotNull(dispatcher);
+
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(10),
+                            "concat",
+                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":\"a\",\"right\":\"b\"}"),
+                            true
+                    ));
+
+                    assertNotNull(response);
+                    assertEquals("ab", response.result().asText());
+                });
+    }
+
+    @Test
+    void namedAnnotatedMethodReturnsInvalidParamsWhenFieldMissing() throws Exception {
+        contextRunner
+                .withUserConfiguration(AnnotatedNamedMethodConfig.class)
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(12),
+                            "concat",
+                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":\"a\"}"),
                             true
                     ));
 
@@ -299,6 +340,14 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Configuration(proxyBeanMethods = false)
+    static class AnnotatedNamedMethodConfig {
+        @Bean
+        AnnotatedNamedHandler annotatedNamedHandler() {
+            return new AnnotatedNamedHandler();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
     static class InterceptorConfig {
         @Bean
         CountingInterceptor countingInterceptor() {
@@ -316,6 +365,13 @@ class JsonRpcAutoConfigurationTest {
     static class AnnotatedPositionalHandler {
         @JsonRpcMethod("sum")
         public int sum(int left, int right) {
+            return left + right;
+        }
+    }
+
+    static class AnnotatedNamedHandler {
+        @JsonRpcMethod("concat")
+        public String concat(@JsonRpcParam("left") String left, @JsonRpcParam("right") String right) {
             return left + right;
         }
     }
