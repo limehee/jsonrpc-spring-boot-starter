@@ -89,6 +89,34 @@ Example request:
 {"jsonrpc":"2.0","method":"greet","params":{"name":"codex"},"id":1}
 ```
 
+## Pure Java (No Spring)
+
+`jsonrpc-core` can be used standalone in plain Java applications.
+
+Maven:
+```xml
+<dependency>
+  <groupId>io.github.limehee</groupId>
+  <artifactId>jsonrpc-core</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+</dependency>
+```
+
+Example:
+```java
+ObjectMapper mapper = new ObjectMapper();
+JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+JsonRpcTypedMethodHandlerFactory factory = new DefaultJsonRpcTypedMethodHandlerFactory(
+        new JacksonJsonRpcParameterBinder(mapper),
+        new JacksonJsonRpcResultWriter(mapper));
+
+dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+dispatcher.register("upper", factory.unary(Input.class, in -> new Output(in.value.toUpperCase())));
+
+JsonNode payload = mapper.readTree("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}");
+JsonRpcDispatchResult result = dispatcher.dispatch(payload);
+```
+
 ## Advanced Usage
 
 Use explicit bean registration when you want full control:
