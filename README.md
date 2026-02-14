@@ -78,6 +78,8 @@ Request/response content type is `application/json`.
 - `jsonrpc.method-denylist` (default empty)
 - `jsonrpc.method-registration-conflict-policy` (default `REJECT`, or `REPLACE`)
 
+To execute notifications asynchronously, set `jsonrpc.notification-executor-enabled=true` and provide an `Executor` bean.
+
 Provide a custom `JsonRpcHttpStatusStrategy` bean to override HTTP status mapping (single, batch, notifications, parse errors, payload limit errors).
 
 ## Build
