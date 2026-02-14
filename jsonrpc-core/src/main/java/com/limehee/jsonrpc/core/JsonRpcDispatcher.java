@@ -17,6 +17,7 @@ public class JsonRpcDispatcher {
     private final JsonRpcResponseComposer responseComposer;
     private final int maxBatchSize;
     private final List<JsonRpcInterceptor> interceptors;
+    private final boolean hasInterceptors;
     private final JsonRpcNotificationExecutor notificationExecutor;
 
     public JsonRpcDispatcher() {
@@ -97,6 +98,7 @@ public class JsonRpcDispatcher {
         this.responseComposer = responseComposer;
         this.maxBatchSize = maxBatchSize;
         this.interceptors = List.copyOf(interceptors);
+        this.hasInterceptors = !this.interceptors.isEmpty();
         this.notificationExecutor = notificationExecutor;
     }
 
@@ -123,7 +125,7 @@ public class JsonRpcDispatcher {
                         "Batch size exceeds configured maximum")));
             }
 
-            List<JsonRpcResponse> responses = new ArrayList<>();
+            List<JsonRpcResponse> responses = new ArrayList<>(payload.size());
             for (JsonNode node : payload) {
                 dispatchSingleNode(node).ifPresent(responses::add);
             }
@@ -225,18 +227,36 @@ public class JsonRpcDispatcher {
     }
 
     private void runBeforeValidate(JsonNode node) {
-        interceptors.forEach(interceptor -> interceptor.beforeValidate(node));
+        if (!hasInterceptors) {
+            return;
+        }
+        for (JsonRpcInterceptor interceptor : interceptors) {
+            interceptor.beforeValidate(node);
+        }
     }
 
     private void runBeforeInvoke(JsonRpcRequest request) {
-        interceptors.forEach(interceptor -> interceptor.beforeInvoke(request));
+        if (!hasInterceptors) {
+            return;
+        }
+        for (JsonRpcInterceptor interceptor : interceptors) {
+            interceptor.beforeInvoke(request);
+        }
     }
 
     private void runAfterInvoke(JsonRpcRequest request, JsonNode result) {
-        interceptors.forEach(interceptor -> interceptor.afterInvoke(request, result));
+        if (!hasInterceptors) {
+            return;
+        }
+        for (JsonRpcInterceptor interceptor : interceptors) {
+            interceptor.afterInvoke(request, result);
+        }
     }
 
     private void runOnError(@Nullable JsonRpcRequest request, Throwable throwable, JsonRpcError error) {
+        if (!hasInterceptors) {
+            return;
+        }
         for (JsonRpcInterceptor interceptor : interceptors) {
             try {
                 interceptor.onError(request, throwable, error);

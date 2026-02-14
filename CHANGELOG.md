@@ -28,6 +28,10 @@ All notable changes to this project are documented in this file.
 - Spring configuration metadata now clarifies that `rpc.*` methods are always reserved.
 - README now includes a JSON-RPC 2.0 overview, specification links, and a Mermaid protocol flow diagram.
 - README dependency section now includes Maven and Gradle examples, and the Mermaid flow syntax was simplified for parser compatibility.
+- Runtime hot paths optimized: dispatcher now uses interceptor fast-path checks and pre-sized batch response buffers.
+- WebMVC endpoint now checks payload size before whitespace scan and reduces repeated batch response list access.
+- Auto-configuration internals reorganized into `com.limehee.jsonrpc.spring.boot.autoconfigure.support` package.
+- Metrics interceptor latency recording now avoids per-call `Timer.builder(...)` and `Duration` allocations.
 
 ### Fixed
 - Invalid id-less requests now correctly return JSON-RPC error responses while valid notifications remain no-response.

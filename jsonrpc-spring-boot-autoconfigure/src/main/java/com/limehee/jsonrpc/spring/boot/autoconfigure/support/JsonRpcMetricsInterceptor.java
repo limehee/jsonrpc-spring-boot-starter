@@ -1,15 +1,13 @@
-package com.limehee.jsonrpc.spring.boot.autoconfigure;
+package com.limehee.jsonrpc.spring.boot.autoconfigure.support;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.limehee.jsonrpc.core.JsonRpcError;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
+import java.util.concurrent.TimeUnit;
 
-import java.time.Duration;
-
-class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
+public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
 
     private static final String CALLS_METRIC = "jsonrpc.server.calls";
     private static final String LATENCY_METRIC = "jsonrpc.server.latency";
@@ -17,7 +15,7 @@ class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
     private final MeterRegistry meterRegistry;
     private final ThreadLocal<Long> startedAtNanos = new ThreadLocal<>();
 
-    JsonRpcMetricsInterceptor(MeterRegistry meterRegistry) {
+    public JsonRpcMetricsInterceptor(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
     }
 
@@ -51,11 +49,8 @@ class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         startedAtNanos.remove();
         if (startNanos != null) {
             long elapsedNanos = Math.max(0L, System.nanoTime() - startNanos);
-            Timer.builder(LATENCY_METRIC)
-                    .tag("method", method)
-                    .tag("outcome", outcome)
-                    .register(meterRegistry)
-                    .record(Duration.ofNanos(elapsedNanos));
+            meterRegistry.timer(LATENCY_METRIC, "method", method, "outcome", outcome)
+                    .record(elapsedNanos, TimeUnit.NANOSECONDS);
         }
     }
 }

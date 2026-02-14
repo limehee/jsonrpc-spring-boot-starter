@@ -153,6 +153,27 @@ class JsonRpcWebMvcEndpointTest {
     }
 
     @Test
+    void returnsInvalidRequestWhenWhitespacePayloadExceedsLimit() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
+                dispatcher,
+                OBJECT_MAPPER,
+                new DefaultJsonRpcHttpStatusStrategy(),
+                2
+        );
+        MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
+
+        MvcResult result = localMockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("   "))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
+    }
+
+    @Test
     void rejectsNonJsonContentType() throws Exception {
         mockMvc.perform(post("/jsonrpc")
                         .contentType(MediaType.TEXT_PLAIN)

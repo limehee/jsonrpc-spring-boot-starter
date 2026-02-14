@@ -1,4 +1,4 @@
-package com.limehee.jsonrpc.spring.boot.autoconfigure;
+package com.limehee.jsonrpc.spring.boot.autoconfigure.support;
 
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcConstants;
@@ -12,13 +12,16 @@ import com.limehee.jsonrpc.core.JsonRpcResultWriter;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
+public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
 
     private final ListableBeanFactory beanFactory;
     private final JsonRpcDispatcher dispatcher;
@@ -26,7 +29,7 @@ class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
     private final JsonRpcParameterBinder parameterBinder;
     private final JsonRpcResultWriter resultWriter;
 
-    JsonRpcAnnotatedMethodRegistrar(
+    public JsonRpcAnnotatedMethodRegistrar(
             ListableBeanFactory beanFactory,
             JsonRpcDispatcher dispatcher,
             JsonRpcTypedMethodHandlerFactory typedMethodHandlerFactory,
@@ -44,7 +47,13 @@ class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
     public void afterSingletonsInstantiated() {
         for (String beanName : beanFactory.getBeanDefinitionNames()) {
             Class<?> beanType = beanFactory.getType(beanName, false);
-            if (beanType == null || !hasAnnotatedMethod(beanType)) {
+            if (beanType == null) {
+                continue;
+            }
+
+            Class<?> userClass = ClassUtils.getUserClass(beanType);
+            List<Method> annotatedMethods = findAnnotatedMethods(userClass);
+            if (annotatedMethods.isEmpty()) {
                 continue;
             }
 
@@ -55,31 +64,31 @@ class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
                 continue;
             }
 
-            for (Method method : bean.getClass().getMethods()) {
+            for (Method method : annotatedMethods) {
                 JsonRpcMethod annotation = method.getAnnotation(JsonRpcMethod.class);
-                if (annotation == null) {
-                    continue;
-                }
-
                 String methodName = annotation.value().isBlank() ? method.getName() : annotation.value();
-                JsonRpcMethodHandler handler = buildHandler(bean, method);
+                Method invocableMethod = resolveInvocableMethod(bean.getClass(), method);
+                JsonRpcMethodHandler handler = buildHandler(bean, invocableMethod);
                 dispatcher.register(methodName, handler);
             }
         }
     }
 
-    private boolean hasAnnotatedMethod(Class<?> beanType) {
-        for (Method method : beanType.getMethods()) {
+    private List<Method> findAnnotatedMethods(Class<?> beanType) {
+        Method[] methods = beanType.getMethods();
+        List<Method> annotated = new ArrayList<>(methods.length);
+        for (Method method : methods) {
             if (method.isAnnotationPresent(JsonRpcMethod.class)) {
-                return true;
+                annotated.add(method);
             }
         }
-        return false;
+        return annotated;
     }
 
     private JsonRpcMethodHandler buildHandler(Object bean, Method method) {
         Objects.requireNonNull(bean, "bean");
         Objects.requireNonNull(method, "method");
+        makeInvocable(bean, method);
 
         int parameterCount = method.getParameterCount();
         if (parameterCount == 0) {
@@ -94,7 +103,6 @@ class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
 
     private Object invoke(Object bean, Method method, Object... args) {
         try {
-            method.setAccessible(true);
             return method.invoke(bean, args);
         } catch (IllegalAccessException ex) {
             throw new IllegalStateException("Cannot access @JsonRpcMethod method: " + method, ex);
@@ -161,5 +169,19 @@ class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
 
     private JsonRpcException invalidParamsException() {
         return new JsonRpcException(JsonRpcErrorCode.INVALID_PARAMS, JsonRpcConstants.MESSAGE_INVALID_PARAMS);
+    }
+
+    private Method resolveInvocableMethod(Class<?> beanClass, Method candidate) {
+        try {
+            return beanClass.getMethod(candidate.getName(), candidate.getParameterTypes());
+        } catch (NoSuchMethodException ignored) {
+            return candidate;
+        }
+    }
+
+    private void makeInvocable(Object bean, Method method) {
+        if (!method.canAccess(bean)) {
+            method.setAccessible(true);
+        }
     }
 }

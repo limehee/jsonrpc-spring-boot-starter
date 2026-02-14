@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 public class JsonRpcWebMvcEndpoint {
@@ -46,15 +47,15 @@ public class JsonRpcWebMvcEndpoint {
         if (body == null || body.length == 0) {
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
-        if (isJsonWhitespaceOnly(body)) {
-            return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
-        }
         if (body.length > maxRequestBytes) {
             JsonRpcResponse response = JsonRpcResponse.error(
                     null,
                     JsonRpcErrorCode.INVALID_REQUEST,
                     "Request payload too large");
             return singleErrorResponse(response, httpStatusStrategy.statusForRequestTooLarge());
+        }
+        if (isJsonWhitespaceOnly(body)) {
+            return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
 
         JsonNode payload;
@@ -75,9 +76,12 @@ public class JsonRpcWebMvcEndpoint {
         }
 
         if (result.isBatch()) {
+            List<JsonRpcResponse> responses = result.responses();
             ArrayNode arrayNode = objectMapper.createArrayNode();
-            result.responses().forEach(response -> arrayNode.add(objectMapper.valueToTree(response)));
-            return ResponseEntity.status(httpStatusStrategy.statusForBatch(result.responses())).body(arrayNode);
+            for (JsonRpcResponse response : responses) {
+                arrayNode.add(objectMapper.valueToTree(response));
+            }
+            return ResponseEntity.status(httpStatusStrategy.statusForBatch(responses)).body(arrayNode);
         }
 
         JsonRpcResponse single = result.singleResponse().orElseThrow();
