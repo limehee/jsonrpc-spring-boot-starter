@@ -30,4 +30,5 @@
 
 - Main README: [`../README.md`](../README.md)
 - Contribution guide: [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
+- Security policy: [`../SECURITY.md`](../SECURITY.md)
 - Changelog: [`../CHANGELOG.md`](../CHANGELOG.md)

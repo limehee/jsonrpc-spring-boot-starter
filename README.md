@@ -17,6 +17,7 @@ Production-oriented JSON-RPC 2.0 server library for Java and Spring Boot.
 - Java: 17+
 - Spring Boot baseline: 4.0.2
 - Build: Gradle (Version Catalog enabled)
+- CI matrix: Java 17, 21, 25
 
 ## Modules
 

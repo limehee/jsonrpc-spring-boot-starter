@@ -26,6 +26,7 @@ All notable changes to this project are documented in this file.
 - Added consumer smoke automation (`scripts/verify-consumer-smoke.sh` and `.github/workflows/consumer-smoke.yml`) to verify published artifacts from fresh Maven/Gradle consumer projects.
 
 ### Changed
+- Documentation references were refreshed for current CI matrix (Java 17/21/25), consumer smoke verification, and updated JMH coverage.
 - Rewrote `README.md` as a documentation entrypoint and expanded official-style documentation under `docs/` (getting started, architecture, protocol compliance, configuration reference, extension points, testing, performance, troubleshooting).
 - WebMVC endpoint now emits observer callbacks for parse errors, payload-size violations, batch aggregation, and notification-only calls.
 - Reduced runtime metrics overhead by caching Micrometer counters and replacing stack-trace scans with typed failure markers for access-control/interceptor paths.

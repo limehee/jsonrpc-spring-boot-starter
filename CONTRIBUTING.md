@@ -28,6 +28,7 @@ Common commands:
 ```bash
 ./gradlew test
 ./gradlew check
+./scripts/verify-consumer-smoke.sh
 ./gradlew -p samples/spring-boot-demo classes
 ```
 

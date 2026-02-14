@@ -17,6 +17,7 @@ Commands:
 ./gradlew integrationTest
 ./gradlew e2eTest
 ./gradlew check
+./scripts/verify-consumer-smoke.sh
 ```
 
 `check` depends on all three stages.
@@ -75,6 +76,7 @@ Binary compatibility checks are provided via JApiCmp:
 GitHub Actions runs matrix tests and compatibility checks (when release tag baseline exists):
 
 - `.github/workflows/ci.yml`
+  - Java matrix: 17 / 21 / 25
 - `.github/workflows/publish.yml`
 - `.github/workflows/consumer-smoke.yml` (publishes to `mavenLocal` and verifies Maven/Gradle consumer projects)
 

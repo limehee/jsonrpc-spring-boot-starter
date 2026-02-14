@@ -27,7 +27,7 @@ JMH benchmark exists in `jsonrpc-core`:
 ./gradlew :jsonrpc-core:jmh
 ```
 
-It includes dispatcher scenarios (single call and notification paths).
+It includes dispatcher scenarios for single success/error/invalid cases and large batch profiles (all-success, all-error, mixed, notification-only).
 
 Quick profile (short warmup/measurement):
 

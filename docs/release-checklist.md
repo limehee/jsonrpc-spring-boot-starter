@@ -16,7 +16,9 @@ Use this checklist before creating a release tag (`vX.Y.Z`).
 - Run API compatibility check against latest released version:
   - `./gradlew apiCompat -PapiBaselineVersion=<latest released version>`
 - Run benchmark smoke:
-  - `./gradlew :jsonrpc-core:jmh`
+  - `./gradlew :jsonrpc-core:jmhQuick`
+- Run consumer smoke verification:
+  - `./scripts/verify-consumer-smoke.sh`
 
 ## 3) Publication Preconditions
 
