@@ -185,3 +185,9 @@ Then run:
 GitHub Actions workflows:
 - `.github/workflows/ci.yml`: build and test on push/PR
 - `.github/workflows/publish.yml`: publish on tag push (`v*`) or manual dispatch
+
+## Contributing
+
+- Contribution guide: `CONTRIBUTING.md`
+- Issue templates: `.github/ISSUE_TEMPLATE/`
+- PR template: `.github/pull_request_template.md`

@@ -15,6 +15,7 @@ All notable changes to this project are documented in this file.
 - GitHub Actions workflows for CI and publish.
 - Expanded branch-focused tests for parser/validator/binder, dispatcher/interceptor errors, HTTP endpoint/status strategy, and autoconfiguration access-control behavior.
 - Runnable sample module at `samples/spring-boot-demo` with annotation-based JSON-RPC methods and curl examples.
+- Contribution assets: `CONTRIBUTING.md`, GitHub issue templates, and pull request template.
 
 ### Changed
 - JSON-RPC compliance handling for batch, notification, and invalid request edge cases.
