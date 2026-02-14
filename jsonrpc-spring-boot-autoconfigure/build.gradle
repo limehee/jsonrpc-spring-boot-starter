@@ -4,6 +4,8 @@ dependencies {
     api project(':jsonrpc-core')
     implementation project(':jsonrpc-spring-webmvc')
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    compileOnly 'io.micrometer:micrometer-core'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.micrometer:micrometer-core'
 }

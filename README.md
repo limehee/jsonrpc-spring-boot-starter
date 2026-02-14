@@ -63,6 +63,7 @@ Default endpoint is `POST /jsonrpc`.
 - `jsonrpc.method-namespace-policy` (default `DISALLOW_RPC_PREFIX`)
 - `jsonrpc.scan-annotated-methods` (default `true`)
 - `jsonrpc.include-error-data` (default `false`)
+- `jsonrpc.metrics-enabled` (default `true`, requires `MeterRegistry`)
 
 ## Build
 

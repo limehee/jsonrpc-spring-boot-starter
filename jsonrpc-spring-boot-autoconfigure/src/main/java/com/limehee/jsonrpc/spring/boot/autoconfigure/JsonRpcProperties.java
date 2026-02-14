@@ -13,6 +13,7 @@ public class JsonRpcProperties {
     private JsonRpcMethodNamespacePolicy methodNamespacePolicy = JsonRpcMethodNamespacePolicy.DISALLOW_RPC_PREFIX;
     private boolean scanAnnotatedMethods = true;
     private boolean includeErrorData = false;
+    private boolean metricsEnabled = true;
 
     public boolean isEnabled() {
         return enabled;
@@ -68,5 +69,13 @@ public class JsonRpcProperties {
 
     public void setIncludeErrorData(boolean includeErrorData) {
         this.includeErrorData = includeErrorData;
+    }
+
+    public boolean isMetricsEnabled() {
+        return metricsEnabled;
+    }
+
+    public void setMetricsEnabled(boolean metricsEnabled) {
+        this.metricsEnabled = metricsEnabled;
     }
 }

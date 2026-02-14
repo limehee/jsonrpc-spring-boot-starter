@@ -22,6 +22,7 @@ import com.limehee.jsonrpc.core.JsonRpcRequestValidator;
 import com.limehee.jsonrpc.core.JsonRpcResultWriter;
 import com.limehee.jsonrpc.core.JsonRpcResponseComposer;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import com.limehee.jsonrpc.spring.webmvc.DefaultJsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcEndpoint;
@@ -96,6 +97,15 @@ public class JsonRpcAutoConfiguration {
             JsonRpcResultWriter resultWriter
     ) {
         return new DefaultJsonRpcTypedMethodHandlerFactory(parameterBinder, resultWriter);
+    }
+
+    @Bean
+    @ConditionalOnClass(MeterRegistry.class)
+    @ConditionalOnBean(MeterRegistry.class)
+    @ConditionalOnMissingBean(name = "jsonRpcMetricsInterceptor")
+    @ConditionalOnProperty(prefix = "jsonrpc", name = "metrics-enabled", havingValue = "true", matchIfMissing = true)
+    public JsonRpcInterceptor jsonRpcMetricsInterceptor(MeterRegistry meterRegistry) {
+        return new JsonRpcMetricsInterceptor(meterRegistry);
     }
 
     @Bean
