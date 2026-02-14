@@ -3,6 +3,7 @@ package com.limehee.jsonrpc.spring.boot.autoconfigure;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
+import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
@@ -16,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonRpcAutoConfigurationTest {
 
@@ -62,11 +64,43 @@ class JsonRpcAutoConfigurationTest {
                 });
     }
 
+    @Test
+    void wiresInterceptorsIntoDispatcher() {
+        contextRunner
+                .withUserConfiguration(InterceptorConfig.class)
+                .withBean("ping", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    CountingInterceptor interceptor = context.getBean(CountingInterceptor.class);
+
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(1),
+                            "ping",
+                            null,
+                            true
+                    ));
+
+                    assertEquals("pong", response.result().asText());
+                    assertTrue(interceptor.beforeInvokeCount > 0);
+                    assertTrue(interceptor.afterInvokeCount > 0);
+                });
+    }
+
     @Configuration(proxyBeanMethods = false)
     static class AnnotatedMethodConfig {
         @Bean
         AnnotatedHandler annotatedHandler() {
             return new AnnotatedHandler();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class InterceptorConfig {
+        @Bean
+        CountingInterceptor countingInterceptor() {
+            return new CountingInterceptor();
         }
     }
 
@@ -78,5 +112,20 @@ class JsonRpcAutoConfigurationTest {
     }
 
     record NameParams(String name) {
+    }
+
+    static class CountingInterceptor implements JsonRpcInterceptor {
+        int beforeInvokeCount;
+        int afterInvokeCount;
+
+        @Override
+        public void beforeInvoke(JsonRpcRequest request) {
+            beforeInvokeCount++;
+        }
+
+        @Override
+        public void afterInvoke(JsonRpcRequest request, com.fasterxml.jackson.databind.JsonNode result) {
+            afterInvokeCount++;
+        }
     }
 }

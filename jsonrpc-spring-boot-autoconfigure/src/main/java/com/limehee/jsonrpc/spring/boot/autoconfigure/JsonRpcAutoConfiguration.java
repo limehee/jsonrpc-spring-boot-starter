@@ -16,6 +16,7 @@ import com.limehee.jsonrpc.core.JsonRpcMethodInvoker;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistry;
 import com.limehee.jsonrpc.core.JsonRpcParameterBinder;
+import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcRequestParser;
 import com.limehee.jsonrpc.core.JsonRpcRequestValidator;
 import com.limehee.jsonrpc.core.JsonRpcResultWriter;
@@ -117,7 +118,8 @@ public class JsonRpcAutoConfiguration {
             JsonRpcExceptionResolver exceptionResolver,
             JsonRpcResponseComposer responseComposer,
             JsonRpcProperties properties,
-            ObjectProvider<JsonRpcMethodRegistration> registrations
+            ObjectProvider<JsonRpcMethodRegistration> registrations,
+            ObjectProvider<JsonRpcInterceptor> interceptors
     ) {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
                 methodRegistry,
@@ -126,7 +128,8 @@ public class JsonRpcAutoConfiguration {
                 methodInvoker,
                 exceptionResolver,
                 responseComposer,
-                Math.max(1, properties.getMaxBatchSize())
+                Math.max(1, properties.getMaxBatchSize()),
+                interceptors.orderedStream().toList()
         );
         registrations.orderedStream().forEach(registration ->
                 dispatcher.register(registration.method(), registration.handler()));

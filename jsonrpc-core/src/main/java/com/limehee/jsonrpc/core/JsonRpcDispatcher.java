@@ -15,6 +15,7 @@ public class JsonRpcDispatcher {
     private final JsonRpcExceptionResolver exceptionResolver;
     private final JsonRpcResponseComposer responseComposer;
     private final int maxBatchSize;
+    private final List<JsonRpcInterceptor> interceptors;
 
     public JsonRpcDispatcher() {
         this(
@@ -24,7 +25,8 @@ public class JsonRpcDispatcher {
                 new DefaultJsonRpcMethodInvoker(),
                 new DefaultJsonRpcExceptionResolver(),
                 new DefaultJsonRpcResponseComposer(),
-                100
+                100,
+                List.of()
         );
     }
 
@@ -37,6 +39,28 @@ public class JsonRpcDispatcher {
             JsonRpcResponseComposer responseComposer,
             int maxBatchSize
     ) {
+        this(
+                methodRegistry,
+                requestParser,
+                requestValidator,
+                methodInvoker,
+                exceptionResolver,
+                responseComposer,
+                maxBatchSize,
+                List.of()
+        );
+    }
+
+    public JsonRpcDispatcher(
+            JsonRpcMethodRegistry methodRegistry,
+            JsonRpcRequestParser requestParser,
+            JsonRpcRequestValidator requestValidator,
+            JsonRpcMethodInvoker methodInvoker,
+            JsonRpcExceptionResolver exceptionResolver,
+            JsonRpcResponseComposer responseComposer,
+            int maxBatchSize,
+            List<JsonRpcInterceptor> interceptors
+    ) {
         this.methodRegistry = methodRegistry;
         this.requestParser = requestParser;
         this.requestValidator = requestValidator;
@@ -44,6 +68,7 @@ public class JsonRpcDispatcher {
         this.exceptionResolver = exceptionResolver;
         this.responseComposer = responseComposer;
         this.maxBatchSize = maxBatchSize;
+        this.interceptors = List.copyOf(interceptors);
     }
 
     public void register(String method, JsonRpcMethodHandler handler) {
@@ -80,7 +105,15 @@ public class JsonRpcDispatcher {
     }
 
     public JsonRpcResponse dispatch(JsonRpcRequest request) {
-        return dispatchSingleRequest(request).orElse(null);
+        try {
+            runBeforeInvoke(request);
+            return dispatchSingleRequest(request).orElse(null);
+        } catch (Throwable ex) {
+            if (request != null && request.isNotification()) {
+                return null;
+            }
+            return errorResponse(request == null ? null : request.id(), ex);
+        }
     }
 
     public JsonRpcResponse parseErrorResponse() {
@@ -97,39 +130,47 @@ public class JsonRpcDispatcher {
         }
 
         JsonNode errorId = extractIdForError(node);
+        JsonRpcRequest request = null;
 
         try {
-            JsonRpcRequest request = requestParser.parse(node);
+            runBeforeValidate(node);
+            request = requestParser.parse(node);
             requestValidator.validate(request);
+            runBeforeInvoke(request);
             return dispatchSingleRequest(request);
         } catch (Throwable ex) {
-            return Optional.of(errorResponse(errorId, ex));
+            return handleRequestError(errorId, request, ex);
         }
     }
 
-    private Optional<JsonRpcResponse> dispatchSingleRequest(JsonRpcRequest request) {
-        try {
-            JsonRpcMethodHandler handler = methodRegistry.find(request.method())
-                    .orElseThrow(() -> new JsonRpcException(
-                            JsonRpcErrorCode.METHOD_NOT_FOUND,
-                            JsonRpcConstants.MESSAGE_METHOD_NOT_FOUND));
+    private Optional<JsonRpcResponse> dispatchSingleRequest(JsonRpcRequest request) throws Exception {
+        JsonRpcMethodHandler handler = methodRegistry.find(request.method())
+                .orElseThrow(() -> new JsonRpcException(
+                        JsonRpcErrorCode.METHOD_NOT_FOUND,
+                        JsonRpcConstants.MESSAGE_METHOD_NOT_FOUND));
 
-            JsonNode result = methodInvoker.invoke(handler, request.params());
-            if (request.isNotification()) {
-                return Optional.empty();
-            }
-            return Optional.of(responseComposer.success(request.id(), result));
-        } catch (Throwable ex) {
-            if (request.isNotification()) {
-                return Optional.empty();
-            }
-            return Optional.of(errorResponse(request.id(), ex));
+        JsonNode result = methodInvoker.invoke(handler, request.params());
+        runAfterInvoke(request, result);
+        if (request.isNotification()) {
+            return Optional.empty();
         }
+        return Optional.of(responseComposer.success(request.id(), result));
     }
 
     private JsonRpcResponse errorResponse(JsonNode id, Throwable ex) {
         JsonRpcError error = exceptionResolver.resolve(ex);
+        runOnError(null, ex, error);
         return responseComposer.error(id, error);
+    }
+
+    private Optional<JsonRpcResponse> handleRequestError(JsonNode id, JsonRpcRequest request, Throwable ex) {
+        JsonRpcError error = exceptionResolver.resolve(ex);
+        runOnError(request, ex, error);
+
+        if (request != null && request.isNotification()) {
+            return Optional.empty();
+        }
+        return Optional.of(responseComposer.error(id, error));
     }
 
     private JsonNode extractIdForError(JsonNode node) {
@@ -138,5 +179,27 @@ public class JsonRpcDispatcher {
             return id;
         }
         return null;
+    }
+
+    private void runBeforeValidate(JsonNode node) {
+        interceptors.forEach(interceptor -> interceptor.beforeValidate(node));
+    }
+
+    private void runBeforeInvoke(JsonRpcRequest request) {
+        interceptors.forEach(interceptor -> interceptor.beforeInvoke(request));
+    }
+
+    private void runAfterInvoke(JsonRpcRequest request, JsonNode result) {
+        interceptors.forEach(interceptor -> interceptor.afterInvoke(request, result));
+    }
+
+    private void runOnError(JsonRpcRequest request, Throwable throwable, JsonRpcError error) {
+        for (JsonRpcInterceptor interceptor : interceptors) {
+            try {
+                interceptor.onError(request, throwable, error);
+            } catch (Exception ignored) {
+                // Avoid masking JSON-RPC error responses because of interceptor failures.
+            }
+        }
     }
 }

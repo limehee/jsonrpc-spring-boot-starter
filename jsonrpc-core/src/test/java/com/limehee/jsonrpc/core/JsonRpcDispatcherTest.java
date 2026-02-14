@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -165,5 +166,69 @@ class JsonRpcDispatcherTest {
 
         assertNotNull(response);
         assertEquals("pong", response.result().asText());
+    }
+
+    @Test
+    void interceptorCallbacksRunForSuccessfulRequest() throws Exception {
+        RecordingInterceptor interceptor = new RecordingInterceptor();
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+                new InMemoryJsonRpcMethodRegistry(),
+                new DefaultJsonRpcRequestParser(),
+                new DefaultJsonRpcRequestValidator(),
+                new DefaultJsonRpcMethodInvoker(),
+                new DefaultJsonRpcExceptionResolver(),
+                new DefaultJsonRpcResponseComposer(),
+                100,
+                List.of(interceptor)
+        );
+        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+
+        dispatcher.dispatch(OBJECT_MAPPER.readTree("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"));
+
+        assertEquals(List.of("beforeValidate", "beforeInvoke", "afterInvoke"), interceptor.events);
+    }
+
+    @Test
+    void interceptorOnErrorRunsForMethodErrors() throws Exception {
+        RecordingInterceptor interceptor = new RecordingInterceptor();
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+                new InMemoryJsonRpcMethodRegistry(),
+                new DefaultJsonRpcRequestParser(),
+                new DefaultJsonRpcRequestValidator(),
+                new DefaultJsonRpcMethodInvoker(),
+                new DefaultJsonRpcExceptionResolver(),
+                new DefaultJsonRpcResponseComposer(),
+                100,
+                List.of(interceptor)
+        );
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("{\"jsonrpc\":\"2.0\",\"method\":\"missing\",\"id\":1}"));
+
+        assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, result.singleResponse().orElseThrow().error().code());
+        assertTrue(interceptor.events.contains("onError:-32601"));
+    }
+
+    private static final class RecordingInterceptor implements JsonRpcInterceptor {
+        private final List<String> events = new ArrayList<>();
+
+        @Override
+        public void beforeValidate(com.fasterxml.jackson.databind.JsonNode rawRequest) {
+            events.add("beforeValidate");
+        }
+
+        @Override
+        public void beforeInvoke(JsonRpcRequest request) {
+            events.add("beforeInvoke");
+        }
+
+        @Override
+        public void afterInvoke(JsonRpcRequest request, com.fasterxml.jackson.databind.JsonNode result) {
+            events.add("afterInvoke");
+        }
+
+        @Override
+        public void onError(JsonRpcRequest request, Throwable throwable, JsonRpcError mappedError) {
+            events.add("onError:" + mappedError.code());
+        }
     }
 }
