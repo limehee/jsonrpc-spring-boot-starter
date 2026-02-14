@@ -221,6 +221,27 @@ class JsonRpcAutoConfigurationTest {
                 });
     }
 
+    @Test
+    void duplicateMethodRegistrationFailsByDefault() {
+        contextRunner
+                .withBean("ping1", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong1")))
+                .withBean("ping2", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong2")))
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void duplicateMethodRegistrationCanBeReplacedWhenConfigured() {
+        contextRunner
+                .withPropertyValues("jsonrpc.method-registration-conflict-policy=REPLACE")
+                .withBean("ping1", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong1")))
+                .withBean("ping2", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong2")))
+                .run(context -> assertNull(context.getStartupFailure()));
+    }
+
     @Configuration(proxyBeanMethods = false)
     static class AnnotatedMethodConfig {
         @Bean

@@ -49,7 +49,10 @@ public class JsonRpcAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcMethodRegistry jsonRpcMethodRegistry(JsonRpcProperties properties) {
-        return new InMemoryJsonRpcMethodRegistry(properties.getMethodNamespacePolicy());
+        return new InMemoryJsonRpcMethodRegistry(
+                properties.getMethodNamespacePolicy(),
+                properties.getMethodRegistrationConflictPolicy()
+        );
     }
 
     @Bean
