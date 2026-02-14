@@ -66,6 +66,20 @@ class JsonRpcDispatcherTest {
     }
 
     @Test
+    void dispatchInvalidRequestWithBooleanIdReturnsNullIdInErrorResponse() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","method":"ping","id":true}
+                """));
+
+        assertTrue(result.hasResponse());
+        JsonRpcResponse response = result.singleResponse().orElseThrow();
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
+        assertNull(response.id());
+    }
+
+    @Test
     void dispatchNotificationMethodNotFoundReturnsNoResponse() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 
@@ -190,6 +204,25 @@ class JsonRpcDispatcherTest {
         assertEquals(1, result.responses().size());
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, result.responses().get(0).error().code());
         assertNull(result.responses().get(0).id());
+    }
+
+    @Test
+    void dispatchBatchInvalidIdTypeUsesNullIdInErrorResponse() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                [
+                  {"jsonrpc":"2.0","method":"ping","id":{"x":1}},
+                  {"jsonrpc":"2.0","method":"ping","id":1}
+                ]
+                """));
+
+        assertTrue(result.isBatch());
+        assertEquals(2, result.responses().size());
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, result.responses().get(0).error().code());
+        assertNull(result.responses().get(0).id());
+        assertEquals("pong", result.responses().get(1).result().asText());
     }
 
     @Test
