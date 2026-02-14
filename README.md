@@ -186,6 +186,16 @@ Run it:
 ./gradlew test
 ```
 
+API compatibility check (against a released baseline version):
+```bash
+./gradlew apiCompat -PapiBaselineVersion=0.1.0
+```
+
+Benchmark (JMH):
+```bash
+./gradlew :jsonrpc-core:jmh
+```
+
 Dependencies are managed with Gradle Version Catalog at `gradle/libs.versions.toml`.
 Spring Boot configuration metadata hints are provided for IDE auto-completion.
 
@@ -209,5 +219,6 @@ GitHub Actions workflows:
 ## Contributing
 
 - Contribution guide: `CONTRIBUTING.md`
+- Release checklist: `docs/release-checklist.md`
 - Issue templates: `.github/ISSUE_TEMPLATE/`
 - PR template: `.github/pull_request_template.md`

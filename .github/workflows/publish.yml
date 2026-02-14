@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
 
       - name: Setup JDK
         uses: actions/setup-java@v5.2.0
@@ -25,6 +27,19 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5.0.1
+
+      - name: API Compatibility Check
+        shell: bash
+        run: |
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+          BASELINE_TAG=$(git tag --list 'v*' --sort=-v:refname | grep -Fxv "${CURRENT_TAG}" | head -n 1)
+          if [ -z "${BASELINE_TAG}" ]; then
+            echo "No previous release tag found. Skipping apiCompat."
+            exit 0
+          fi
+          BASELINE_VERSION="${BASELINE_TAG#v}"
+          echo "Comparing against baseline version: ${BASELINE_VERSION}"
+          ./gradlew --no-daemon --configuration-cache apiCompat -PapiBaselineVersion="${BASELINE_VERSION}"
 
       - name: Publish Artifacts
         env:

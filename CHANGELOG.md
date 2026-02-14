@@ -38,6 +38,10 @@ All notable changes to this project are documented in this file.
 - Notification executor selection is deterministic: explicit bean-name override, then single `Executor`, then `applicationTaskExecutor`, else direct execution.
 - Core default exception resolver now hides error `data` unless explicitly enabled.
 - `jsonrpc-core` now exports JSpecify as an API dependency so downstream consumers get nullness annotations transitively.
+- Added Gradle `apiCompat` verification task (JApiCmp) to check binary compatibility against a baseline release version.
+- CI/Publish workflows now run API compatibility checks automatically when baseline tags are available.
+- Added JMH benchmark support in `jsonrpc-core` with dispatcher benchmark scenarios.
+- Added `docs/release-checklist.md` for repeatable release execution.
 
 ### Fixed
 - Invalid id-less requests now correctly return JSON-RPC error responses while valid notifications remain no-response.

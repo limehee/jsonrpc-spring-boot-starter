@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
 
       - name: Setup JDK
         uses: actions/setup-java@v5.2.0
@@ -35,3 +37,16 @@ jobs:
 
       - name: Build and Test
         run: ./gradlew --no-daemon --configuration-cache check
+
+      - name: API Compatibility Check
+        if: matrix.java == '17'
+        shell: bash
+        run: |
+          BASELINE_TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+          if [ -z "${BASELINE_TAG}" ]; then
+            echo "No release tag found. Skipping apiCompat."
+            exit 0
+          fi
+          BASELINE_VERSION="${BASELINE_TAG#v}"
+          echo "Using baseline version: ${BASELINE_VERSION}"
+          ./gradlew --no-daemon --configuration-cache apiCompat -PapiBaselineVersion="${BASELINE_VERSION}"

@@ -1,5 +1,6 @@
 plugins {
     id 'base'
+    id 'me.champeau.gradle.japicmp' version '0.4.6' apply false
 }
 
 allprojects {
@@ -89,5 +90,52 @@ subprojects {
         }
         required = !version.toString().endsWith('SNAPSHOT')
         sign publishing.publications
+    }
+}
+
+def publishedApiModules = [
+        project(':jsonrpc-core'),
+        project(':jsonrpc-spring-webmvc'),
+        project(':jsonrpc-spring-boot-autoconfigure'),
+        project(':jsonrpc-spring-boot-starter')
+]
+def apiBaselineVersionProvider = providers.gradleProperty('apiBaselineVersion')
+
+configure(publishedApiModules) {
+    apply plugin: 'me.champeau.gradle.japicmp'
+
+    configurations {
+        apiCompatBaseline
+    }
+
+    if (apiBaselineVersionProvider.present) {
+        dependencies {
+            apiCompatBaseline "${project.group}:${project.name}:${apiBaselineVersionProvider.get()}"
+        }
+    }
+
+    tasks.register('apiCompatCheck', me.champeau.gradle.japicmp.JapicmpTask) {
+        group = 'verification'
+        description = "Checks binary API compatibility for ${project.path} against -PapiBaselineVersion"
+        dependsOn tasks.named('jar')
+        onlyIf { apiBaselineVersionProvider.present }
+        oldClasspath.from(configurations.apiCompatBaseline)
+        newClasspath.from(tasks.named('jar').flatMap { it.archiveFile })
+        onlyModified = true
+        onlyBinaryIncompatibleModified = true
+        ignoreMissingClasses = true
+        failOnModification = true
+        txtOutputFile = layout.buildDirectory.file("reports/japicmp/${project.name}.txt").get().asFile
+    }
+}
+
+tasks.register('apiCompat') {
+    group = 'verification'
+    description = 'Runs binary API compatibility checks for all published modules (requires -PapiBaselineVersion).'
+    dependsOn publishedApiModules.collect { it.tasks.named('apiCompatCheck') }
+    doFirst {
+        if (!apiBaselineVersionProvider.present) {
+            logger.lifecycle('Skipping apiCompat: set -PapiBaselineVersion=x.y.z to enable compatibility checks.')
+        }
     }
 }
