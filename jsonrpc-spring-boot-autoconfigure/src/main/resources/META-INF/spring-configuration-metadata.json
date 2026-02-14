@@ -28,7 +28,7 @@
       "name": "jsonrpc.method-namespace-policy",
       "type": "com.limehee.jsonrpc.core.JsonRpcMethodNamespacePolicy",
       "defaultValue": "DISALLOW_RPC_PREFIX",
-      "description": "Method namespace policy for registration."
+      "description": "Method namespace policy for registration. Reserved methods starting with 'rpc.' are always rejected."
     },
     {
       "name": "jsonrpc.scan-annotated-methods",
@@ -75,7 +75,6 @@
     {
       "name": "jsonrpc.method-namespace-policy",
       "values": [
-        { "value": "ALLOW_ALL" },
         { "value": "DISALLOW_RPC_PREFIX" }
       ]
     },

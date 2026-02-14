@@ -14,6 +14,7 @@ All notable changes to this project are documented in this file.
 - Spring configuration metadata for `jsonrpc.*` properties.
 - GitHub Actions workflows for CI and publish.
 - Expanded branch-focused tests for parser/validator/binder, dispatcher/interceptor errors, HTTP endpoint/status strategy, and autoconfiguration access-control behavior.
+- Runnable sample module at `samples/spring-boot-demo` with annotation-based JSON-RPC methods and curl examples.
 
 ### Changed
 - JSON-RPC compliance handling for batch, notification, and invalid request edge cases.
@@ -22,6 +23,8 @@ All notable changes to this project are documented in this file.
 - Core API nullability contracts now use JSpecify annotations.
 - GitHub Actions updated to latest major/patch releases and Gradle configuration cache enabled in CI/publish workflows.
 - Strict JSON-RPC alignment: reserved `rpc.*` methods are always rejected and parse-only-whitespace payloads now return `Parse error` (-32700).
+- README reorganized for better onboarding with basic vs advanced usage sections.
+- Spring configuration metadata now clarifies that `rpc.*` methods are always reserved.
 
 ### Fixed
 - Invalid id-less requests now correctly return JSON-RPC error responses while valid notifications remain no-response.
