@@ -24,16 +24,16 @@ JSON-RPC 2.0 is a lightweight remote procedure call protocol using JSON messages
 ```mermaid
 flowchart TD
     A["Client sends POST /jsonrpc"] --> B["Parse JSON payload"]
-    B -->|Invalid JSON| C["Return error: Parse error (-32700)"]
-    B --> D["Validate JSON-RPC request"]
-    D -->|Invalid structure| E["Return error: Invalid Request (-32600)"]
+    B -->|Invalid JSON| C["Error Parse error -32700"]
+    B --> D["Validate JSON RPC request"]
+    D -->|Invalid structure| E["Error Invalid Request -32600"]
     D --> F["Lookup method handler"]
-    F -->|Method missing| G["Return error: Method not found (-32601)"]
+    F -->|Method missing| G["Error Method not found -32601"]
     F --> H["Bind params and invoke handler"]
-    H -->|Binding failure| I["Return error: Invalid params (-32602)"]
-    H -->|Unhandled server error| J["Return error: Internal error (-32603)"]
-    H --> K["Build success response with result"]
-    D -->|Notification (no id)| N["Invoke only, no response body"]
+    H -->|Binding failure| I["Error Invalid params -32602"]
+    H -->|Unhandled server error| J["Error Internal error -32603"]
+    H --> K["Build success response result"]
+    D -->|Notification no id| N["Invoke only and return no response body"]
 ```
 
 ## Modules
@@ -47,12 +47,23 @@ flowchart TD
 
 Add starter dependency:
 
+Maven:
 ```xml
 <dependency>
   <groupId>io.github.limehee</groupId>
   <artifactId>jsonrpc-spring-boot-starter</artifactId>
   <version>0.1.0-SNAPSHOT</version>
 </dependency>
+```
+
+Gradle (Groovy DSL):
+```groovy
+implementation 'io.github.limehee:jsonrpc-spring-boot-starter:0.1.0-SNAPSHOT'
+```
+
+Gradle (Kotlin DSL):
+```kotlin
+implementation("io.github.limehee:jsonrpc-spring-boot-starter:0.1.0-SNAPSHOT")
 ```
 
 Use annotation-based registration (recommended for first use):

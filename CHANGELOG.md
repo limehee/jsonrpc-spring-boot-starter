@@ -27,6 +27,7 @@ All notable changes to this project are documented in this file.
 - README reorganized for better onboarding with basic vs advanced usage sections.
 - Spring configuration metadata now clarifies that `rpc.*` methods are always reserved.
 - README now includes a JSON-RPC 2.0 overview, specification links, and a Mermaid protocol flow diagram.
+- README dependency section now includes Maven and Gradle examples, and the Mermaid flow syntax was simplified for parser compatibility.
 
 ### Fixed
 - Invalid id-less requests now correctly return JSON-RPC error responses while valid notifications remain no-response.
