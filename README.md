@@ -5,6 +5,37 @@ Baseline: Spring Boot 4.0.2, Gradle 9.3.1.
 
 The library uses JSpecify annotations for nullness contracts on core APIs.
 
+## What Is JSON-RPC 2.0?
+
+JSON-RPC 2.0 is a lightweight remote procedure call protocol using JSON messages.
+
+- Request fields: `jsonrpc`, `method`, optional `params`, optional `id`
+- Response fields: `jsonrpc`, `id`, and exactly one of `result` or `error`
+- Notification: request without `id` (server must not return a response)
+- Batch: array of requests processed in one HTTP call
+
+## Specification References
+
+- JSON-RPC 2.0 Specification: [jsonrpc.org/specification](https://www.jsonrpc.org/specification)
+- JSON format standard (IETF): [RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)
+
+## JSON-RPC Flow
+
+```mermaid
+flowchart TD
+    A["Client sends POST /jsonrpc"] --> B["Parse JSON payload"]
+    B -->|Invalid JSON| C["Return error: Parse error (-32700)"]
+    B --> D["Validate JSON-RPC request"]
+    D -->|Invalid structure| E["Return error: Invalid Request (-32600)"]
+    D --> F["Lookup method handler"]
+    F -->|Method missing| G["Return error: Method not found (-32601)"]
+    F --> H["Bind params and invoke handler"]
+    H -->|Binding failure| I["Return error: Invalid params (-32602)"]
+    H -->|Unhandled server error| J["Return error: Internal error (-32603)"]
+    H --> K["Build success response with result"]
+    D -->|Notification (no id)| N["Invoke only, no response body"]
+```
+
 ## Modules
 
 - `jsonrpc-core`: JSON-RPC 2.0 protocol model and dispatch pipeline

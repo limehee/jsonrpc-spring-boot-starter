@@ -25,6 +25,7 @@ All notable changes to this project are documented in this file.
 - Strict JSON-RPC alignment: reserved `rpc.*` methods are always rejected and parse-only-whitespace payloads now return `Parse error` (-32700).
 - README reorganized for better onboarding with basic vs advanced usage sections.
 - Spring configuration metadata now clarifies that `rpc.*` methods are always reserved.
+- README now includes a JSON-RPC 2.0 overview, specification links, and a Mermaid protocol flow diagram.
 
 ### Fixed
 - Invalid id-less requests now correctly return JSON-RPC error responses while valid notifications remain no-response.
