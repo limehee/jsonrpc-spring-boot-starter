@@ -3,10 +3,10 @@ description = 'Spring Boot auto-configuration for JSON-RPC 2.0'
 dependencies {
     api project(':jsonrpc-core')
     implementation project(':jsonrpc-spring-webmvc')
-    implementation 'org.springframework.boot:spring-boot-autoconfigure'
-    compileOnly 'io.micrometer:micrometer-core'
+    implementation libs.spring.boot.autoconfigure
+    compileOnly libs.micrometer.core
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-web'
-    testImplementation 'io.micrometer:micrometer-core'
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.spring.boot.starter.web
+    testImplementation libs.micrometer.core
 }

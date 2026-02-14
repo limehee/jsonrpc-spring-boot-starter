@@ -1,5 +1,5 @@
 description = 'Core JSON-RPC 2.0 model and dispatcher'
 
 dependencies {
-    api 'com.fasterxml.jackson.core:jackson-databind'
+    api libs.jackson.databind
 }

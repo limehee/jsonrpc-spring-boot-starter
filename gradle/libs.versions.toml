@@ -1,0 +1,19 @@
+[versions]
+spring-boot = "4.0.2"
+jspecify = "1.0.0"
+
+[libraries]
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+spring-web = { module = "org.springframework:spring-web" }
+spring-test = { module = "org.springframework:spring-test" }
+spring-webmvc = { module = "org.springframework:spring-webmvc" }
+jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+micrometer-core = { module = "io.micrometer:micrometer-core" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }

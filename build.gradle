@@ -22,10 +22,11 @@ subprojects {
     }
 
     dependencies {
-        implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-        testImplementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-        testImplementation 'org.junit.jupiter:junit-jupiter'
-        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        implementation platform(libs.spring.boot.bom)
+        testImplementation platform(libs.spring.boot.bom)
+        testImplementation libs.junit.jupiter
+        testRuntimeOnly libs.junit.platform.launcher
+        compileOnly libs.jspecify
     }
 
     tasks.withType(JavaCompile).configureEach {
