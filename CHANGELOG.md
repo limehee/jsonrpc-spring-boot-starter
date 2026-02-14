@@ -23,6 +23,7 @@ All notable changes to this project are documented in this file.
 - Added pure Java (no Spring) integration/e2e tests in `jsonrpc-core` and standalone usage documentation in README.
 
 ### Changed
+- Rewrote `README.md` as a documentation entrypoint and expanded official-style documentation under `docs/` (getting started, architecture, protocol compliance, configuration reference, extension points, testing, performance, troubleshooting).
 - JSON-RPC compliance handling for batch, notification, and invalid request edge cases.
 - HTTP endpoint behavior: JSON content-type enforcement and request size limit handling.
 - Build now uses Gradle Version Catalog (`gradle/libs.versions.toml`).
