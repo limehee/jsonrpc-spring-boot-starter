@@ -1,0 +1,9 @@
+description = 'Spring Boot auto-configuration for JSON-RPC 2.0'
+
+dependencies {
+    api project(':jsonrpc-core')
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework:spring-web'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
