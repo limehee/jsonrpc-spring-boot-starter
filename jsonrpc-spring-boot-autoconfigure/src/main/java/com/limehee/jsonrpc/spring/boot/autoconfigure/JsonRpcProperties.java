@@ -11,6 +11,7 @@ public class JsonRpcProperties {
     private int maxBatchSize = 100;
     private int maxRequestBytes = 1_048_576;
     private JsonRpcMethodNamespacePolicy methodNamespacePolicy = JsonRpcMethodNamespacePolicy.DISALLOW_RPC_PREFIX;
+    private boolean scanAnnotatedMethods = true;
 
     public boolean isEnabled() {
         return enabled;
@@ -50,5 +51,13 @@ public class JsonRpcProperties {
 
     public void setMethodNamespacePolicy(JsonRpcMethodNamespacePolicy methodNamespacePolicy) {
         this.methodNamespacePolicy = methodNamespacePolicy;
+    }
+
+    public boolean isScanAnnotatedMethods() {
+        return scanAnnotatedMethods;
+    }
+
+    public void setScanAnnotatedMethods(boolean scanAnnotatedMethods) {
+        this.scanAnnotatedMethods = scanAnnotatedMethods;
     }
 }

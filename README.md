@@ -42,6 +42,17 @@ JsonRpcMethodRegistration greet(JsonRpcTypedMethodHandlerFactory factory) {
 }
 ```
 
+Or annotate bean methods for auto-registration:
+
+```java
+class GreetingService {
+    @JsonRpcMethod("greet")
+    public String greet(GreetParams params) {
+        return "hello " + params.name();
+    }
+}
+```
+
 Default endpoint is `POST /jsonrpc`.
 
 ## Build

@@ -24,6 +24,7 @@ import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import com.limehee.jsonrpc.spring.webmvc.DefaultJsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcEndpoint;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -94,6 +95,16 @@ public class JsonRpcAutoConfiguration {
             JsonRpcResultWriter resultWriter
     ) {
         return new DefaultJsonRpcTypedMethodHandlerFactory(parameterBinder, resultWriter);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "jsonrpc", name = "scan-annotated-methods", havingValue = "true", matchIfMissing = true)
+    public JsonRpcAnnotatedMethodRegistrar jsonRpcAnnotatedMethodRegistrar(
+            ListableBeanFactory beanFactory,
+            JsonRpcDispatcher dispatcher,
+            JsonRpcTypedMethodHandlerFactory typedMethodHandlerFactory
+    ) {
+        return new JsonRpcAnnotatedMethodRegistrar(beanFactory, dispatcher, typedMethodHandlerFactory);
     }
 
     @Bean
