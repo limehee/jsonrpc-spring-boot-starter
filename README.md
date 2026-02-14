@@ -53,6 +53,11 @@ class GreetingService {
 }
 ```
 
+`@JsonRpcMethod` supports:
+- no params
+- one typed param (`params` object/array mapped via Jackson)
+- multiple params (`params` must be an array with positional arguments)
+
 Default endpoint is `POST /jsonrpc`.
 
 ## Configuration

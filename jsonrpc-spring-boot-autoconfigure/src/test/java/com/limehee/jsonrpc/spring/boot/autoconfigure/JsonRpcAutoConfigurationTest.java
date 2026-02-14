@@ -70,6 +70,27 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void registersAnnotatedMethodsWithPositionalParams() throws Exception {
+        contextRunner
+                .withUserConfiguration(AnnotatedPositionalMethodConfig.class)
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    assertNotNull(dispatcher);
+
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(8),
+                            "sum",
+                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("[2,3]"),
+                            true
+                    ));
+
+                    assertNotNull(response);
+                    assertEquals(5, response.result().asInt());
+                });
+    }
+
+    @Test
     void wiresInterceptorsIntoDispatcher() {
         contextRunner
                 .withUserConfiguration(InterceptorConfig.class)
@@ -251,6 +272,14 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Configuration(proxyBeanMethods = false)
+    static class AnnotatedPositionalMethodConfig {
+        @Bean
+        AnnotatedPositionalHandler annotatedPositionalHandler() {
+            return new AnnotatedPositionalHandler();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
     static class InterceptorConfig {
         @Bean
         CountingInterceptor countingInterceptor() {
@@ -262,6 +291,13 @@ class JsonRpcAutoConfigurationTest {
         @JsonRpcMethod("hello")
         public String hello(NameParams params) {
             return "hello " + params.name();
+        }
+    }
+
+    static class AnnotatedPositionalHandler {
+        @JsonRpcMethod("sum")
+        public int sum(int left, int right) {
+            return left + right;
         }
     }
 

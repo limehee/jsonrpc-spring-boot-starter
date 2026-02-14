@@ -129,9 +129,17 @@ public class JsonRpcAutoConfiguration {
     public JsonRpcAnnotatedMethodRegistrar jsonRpcAnnotatedMethodRegistrar(
             ListableBeanFactory beanFactory,
             JsonRpcDispatcher dispatcher,
-            JsonRpcTypedMethodHandlerFactory typedMethodHandlerFactory
+            JsonRpcTypedMethodHandlerFactory typedMethodHandlerFactory,
+            JsonRpcParameterBinder parameterBinder,
+            JsonRpcResultWriter resultWriter
     ) {
-        return new JsonRpcAnnotatedMethodRegistrar(beanFactory, dispatcher, typedMethodHandlerFactory);
+        return new JsonRpcAnnotatedMethodRegistrar(
+                beanFactory,
+                dispatcher,
+                typedMethodHandlerFactory,
+                parameterBinder,
+                resultWriter
+        );
     }
 
     @Bean
