@@ -71,6 +71,27 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void doesNotRegisterAnnotatedMethodsWhenScanDisabled() throws Exception {
+        contextRunner
+                .withPropertyValues("jsonrpc.scan-annotated-methods=false")
+                .withUserConfiguration(AnnotatedMethodConfig.class)
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(70),
+                            "hello",
+                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"name\":\"codex\"}"),
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32601, response.error().code());
+                });
+    }
+
+    @Test
     void registersAnnotatedMethodsWithPositionalParams() throws Exception {
         contextRunner
                 .withUserConfiguration(AnnotatedPositionalMethodConfig.class)

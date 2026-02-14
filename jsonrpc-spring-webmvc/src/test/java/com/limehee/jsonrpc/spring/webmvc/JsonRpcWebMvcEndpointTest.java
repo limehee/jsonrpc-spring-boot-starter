@@ -137,7 +137,7 @@ class JsonRpcWebMvcEndpointTest {
 
             @Override
             public org.springframework.http.HttpStatus statusForRequestTooLarge() {
-                return org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE;
+                return org.springframework.http.HttpStatus.valueOf(413);
             }
         };
 
@@ -157,6 +157,6 @@ class JsonRpcWebMvcEndpointTest {
         localMockMvc.perform(post("/jsonrpc")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
-                .andExpect(status().isPayloadTooLarge());
+                .andExpect(result -> assertEquals(413, result.getResponse().getStatus()));
     }
 }

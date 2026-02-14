@@ -78,7 +78,7 @@ class JsonRpcWebAutoConfigurationTest {
 
                 @Override
                 public HttpStatus statusForRequestTooLarge() {
-                    return HttpStatus.PAYLOAD_TOO_LARGE;
+                    return HttpStatus.valueOf(413);
                 }
             };
         }
