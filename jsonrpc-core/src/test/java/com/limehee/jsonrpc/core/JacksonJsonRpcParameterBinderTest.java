@@ -46,9 +46,10 @@ class JacksonJsonRpcParameterBinderTest {
 
     @Test
     void bindThrowsInvalidParamsWhenConversionFails() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        JsonRpcException ex = assertThrows(JsonRpcException.class,
                 () -> binder.bind(TextNode.valueOf("bad"), PingParams.class));
 
+        assertEquals(JsonRpcErrorCode.INVALID_PARAMS, ex.getCode());
         assertEquals(JsonRpcConstants.MESSAGE_INVALID_PARAMS, ex.getMessage());
     }
 

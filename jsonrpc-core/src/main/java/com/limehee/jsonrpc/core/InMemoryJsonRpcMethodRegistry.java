@@ -37,8 +37,7 @@ public class InMemoryJsonRpcMethodRegistry implements JsonRpcMethodRegistry {
         if (handler == null) {
             throw new IllegalArgumentException("handler must not be null");
         }
-        if (namespacePolicy == JsonRpcMethodNamespacePolicy.DISALLOW_RPC_PREFIX
-                && method.startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX)) {
+        if (method.startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX)) {
             throw new IllegalArgumentException("methods starting with rpc. are reserved");
         }
         if (conflictPolicy == JsonRpcMethodRegistrationConflictPolicy.REJECT) {

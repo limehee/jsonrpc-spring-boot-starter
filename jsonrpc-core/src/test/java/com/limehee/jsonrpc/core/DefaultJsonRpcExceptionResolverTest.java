@@ -27,4 +27,14 @@ class DefaultJsonRpcExceptionResolverTest {
         assertEquals(-32000, error.code());
         assertNull(error.data());
     }
+
+    @Test
+    void mapsNonJsonRpcExceptionsToInternalError() {
+        DefaultJsonRpcExceptionResolver resolver = new DefaultJsonRpcExceptionResolver(false);
+
+        JsonRpcError error = resolver.resolve(new IllegalArgumentException("bad"));
+
+        assertEquals(JsonRpcErrorCode.INTERNAL_ERROR, error.code());
+        assertEquals(JsonRpcConstants.MESSAGE_INTERNAL_ERROR, error.message());
+    }
 }

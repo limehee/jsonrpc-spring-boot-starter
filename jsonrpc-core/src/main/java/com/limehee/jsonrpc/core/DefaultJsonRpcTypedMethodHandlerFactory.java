@@ -43,6 +43,6 @@ public class DefaultJsonRpcTypedMethodHandlerFactory implements JsonRpcTypedMeth
         if (params.isObject() && params.isEmpty()) {
             return;
         }
-        throw new IllegalArgumentException(JsonRpcConstants.MESSAGE_INVALID_PARAMS);
+        throw new JsonRpcException(JsonRpcErrorCode.INVALID_PARAMS, JsonRpcConstants.MESSAGE_INVALID_PARAMS);
     }
 }

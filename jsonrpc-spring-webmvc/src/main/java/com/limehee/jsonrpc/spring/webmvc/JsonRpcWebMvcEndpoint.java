@@ -46,6 +46,9 @@ public class JsonRpcWebMvcEndpoint {
         if (body == null || body.length == 0) {
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
+        if (isJsonWhitespaceOnly(body)) {
+            return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
+        }
         if (body.length > maxRequestBytes) {
             JsonRpcResponse response = JsonRpcResponse.error(
                     null,
@@ -60,6 +63,9 @@ public class JsonRpcWebMvcEndpoint {
         } catch (JsonProcessingException ex) {
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         } catch (IOException ex) {
+            return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
+        }
+        if (payload == null) {
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
 
@@ -80,5 +86,14 @@ public class JsonRpcWebMvcEndpoint {
 
     private ResponseEntity<JsonNode> singleErrorResponse(JsonRpcResponse response, HttpStatus status) {
         return ResponseEntity.status(status).body(objectMapper.valueToTree(response));
+    }
+
+    private boolean isJsonWhitespaceOnly(byte[] body) {
+        for (byte value : body) {
+            if (value != ' ' && value != '\t' && value != '\n' && value != '\r') {
+                return false;
+            }
+        }
+        return true;
     }
 }

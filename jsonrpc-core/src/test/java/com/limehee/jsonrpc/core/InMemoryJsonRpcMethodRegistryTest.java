@@ -29,4 +29,15 @@ class InMemoryJsonRpcMethodRegistryTest {
 
         assertEquals("pong2", registry.find("ping").orElseThrow().handle(null).asText());
     }
+
+    @Test
+    void alwaysRejectsReservedRpcPrefixEvenWhenAllowAllConfigured() {
+        InMemoryJsonRpcMethodRegistry registry = new InMemoryJsonRpcMethodRegistry(
+                JsonRpcMethodNamespacePolicy.ALLOW_ALL,
+                JsonRpcMethodRegistrationConflictPolicy.REPLACE
+        );
+
+        assertThrows(IllegalArgumentException.class,
+                () -> registry.register("rpc.system", params -> TextNode.valueOf("ok")));
+    }
 }

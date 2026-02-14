@@ -21,6 +21,8 @@ All notable changes to this project are documented in this file.
 - Build now uses Gradle Version Catalog (`gradle/libs.versions.toml`).
 - Core API nullability contracts now use JSpecify annotations.
 - GitHub Actions updated to latest major/patch releases and Gradle configuration cache enabled in CI/publish workflows.
+- Strict JSON-RPC alignment: reserved `rpc.*` methods are always rejected and parse-only-whitespace payloads now return `Parse error` (-32700).
 
 ### Fixed
 - Invalid id-less requests now correctly return JSON-RPC error responses while valid notifications remain no-response.
+- Error mapping tightened so only explicit `JsonRpcException(-32602)` paths produce `Invalid params`; generic runtime exceptions now map to `Internal error` (-32603).

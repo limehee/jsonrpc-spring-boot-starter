@@ -21,10 +21,6 @@ public class DefaultJsonRpcExceptionResolver implements JsonRpcExceptionResolver
                     includeErrorData ? jsonRpcException.getData() : null
             );
         }
-        if (throwable instanceof IllegalArgumentException ex) {
-            String message = ex.getMessage() == null ? JsonRpcConstants.MESSAGE_INVALID_PARAMS : ex.getMessage();
-            return JsonRpcError.of(JsonRpcErrorCode.INVALID_PARAMS, message);
-        }
         return JsonRpcError.of(JsonRpcErrorCode.INTERNAL_ERROR, JsonRpcConstants.MESSAGE_INTERNAL_ERROR);
     }
 }

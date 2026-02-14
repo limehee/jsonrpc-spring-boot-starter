@@ -28,7 +28,12 @@ public class JacksonJsonRpcParameterBinder implements JsonRpcParameterBinder {
             }
             return objectMapper.treeToValue(params, targetType);
         } catch (JsonProcessingException | IllegalArgumentException ex) {
-            throw new IllegalArgumentException(JsonRpcConstants.MESSAGE_INVALID_PARAMS, ex);
+            throw new JsonRpcException(
+                    JsonRpcErrorCode.INVALID_PARAMS,
+                    JsonRpcConstants.MESSAGE_INVALID_PARAMS,
+                    null,
+                    ex
+            );
         }
     }
 }

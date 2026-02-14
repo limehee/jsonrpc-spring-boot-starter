@@ -64,6 +64,18 @@ class JsonRpcWebMvcEndpointTest {
     }
 
     @Test
+    void returnsParseErrorForWhitespaceOnlyBody() throws Exception {
+        MvcResult result = mockMvc.perform(post("/jsonrpc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("   "))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        assertEquals(JsonRpcErrorCode.PARSE_ERROR, response.error().code());
+    }
+
+    @Test
     void returnsSingleSuccessResponseForRequest() throws Exception {
         MvcResult result = mockMvc.perform(post("/jsonrpc")
                         .contentType(MediaType.APPLICATION_JSON)

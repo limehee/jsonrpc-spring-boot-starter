@@ -28,7 +28,8 @@ class JsonRpcTypedMethodHandlerFactoryTest {
     void noParamsRejectsUnexpectedParams() {
         JsonRpcMethodHandler handler = factory.noParams(() -> "pong");
 
-        assertThrows(IllegalArgumentException.class, () -> handler.handle(TextNode.valueOf("bad")));
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> handler.handle(TextNode.valueOf("bad")));
+        assertEquals(JsonRpcErrorCode.INVALID_PARAMS, ex.getCode());
     }
 
     @Test
@@ -42,8 +43,9 @@ class JsonRpcTypedMethodHandlerFactoryTest {
     void unaryBindingFailureThrowsInvalidParams() {
         JsonRpcMethodHandler handler = factory.unary(PingParams.class, params -> "hello " + params.name());
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        JsonRpcException ex = assertThrows(JsonRpcException.class,
                 () -> handler.handle(TextNode.valueOf("bad")));
+        assertEquals(JsonRpcErrorCode.INVALID_PARAMS, ex.getCode());
         assertEquals(JsonRpcConstants.MESSAGE_INVALID_PARAMS, ex.getMessage());
     }
 
