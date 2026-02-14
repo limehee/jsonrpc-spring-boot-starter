@@ -37,6 +37,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 @AutoConfiguration
 @EnableConfigurationProperties(JsonRpcProperties.class)
 @ConditionalOnClass(JsonRpcDispatcher.class)
@@ -97,6 +101,15 @@ public class JsonRpcAutoConfiguration {
             JsonRpcResultWriter resultWriter
     ) {
         return new DefaultJsonRpcTypedMethodHandlerFactory(parameterBinder, resultWriter);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(name = "jsonRpcMethodAccessInterceptor")
+    public JsonRpcInterceptor jsonRpcMethodAccessInterceptor(JsonRpcProperties properties) {
+        return new JsonRpcMethodAccessInterceptor(
+                normalizeMethodSet(properties.getMethodAllowlist()),
+                normalizeMethodSet(properties.getMethodDenylist())
+        );
     }
 
     @Bean
@@ -170,5 +183,22 @@ public class JsonRpcAutoConfiguration {
                 httpStatusStrategy,
                 Math.max(1, properties.getMaxRequestBytes())
         );
+    }
+
+    private Set<String> normalizeMethodSet(List<String> methods) {
+        Set<String> normalized = new LinkedHashSet<>();
+        if (methods == null) {
+            return normalized;
+        }
+        for (String method : methods) {
+            if (method == null) {
+                continue;
+            }
+            String value = method.trim();
+            if (!value.isEmpty()) {
+                normalized.add(value);
+            }
+        }
+        return normalized;
     }
 }

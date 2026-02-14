@@ -3,6 +3,9 @@ package com.limehee.jsonrpc.spring.boot.autoconfigure;
 import com.limehee.jsonrpc.core.JsonRpcMethodNamespacePolicy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @ConfigurationProperties(prefix = "jsonrpc")
 public class JsonRpcProperties {
 
@@ -14,6 +17,8 @@ public class JsonRpcProperties {
     private boolean scanAnnotatedMethods = true;
     private boolean includeErrorData = false;
     private boolean metricsEnabled = true;
+    private List<String> methodAllowlist = new ArrayList<>();
+    private List<String> methodDenylist = new ArrayList<>();
 
     public boolean isEnabled() {
         return enabled;
@@ -77,5 +82,21 @@ public class JsonRpcProperties {
 
     public void setMetricsEnabled(boolean metricsEnabled) {
         this.metricsEnabled = metricsEnabled;
+    }
+
+    public List<String> getMethodAllowlist() {
+        return methodAllowlist;
+    }
+
+    public void setMethodAllowlist(List<String> methodAllowlist) {
+        this.methodAllowlist = methodAllowlist;
+    }
+
+    public List<String> getMethodDenylist() {
+        return methodDenylist;
+    }
+
+    public void setMethodDenylist(List<String> methodDenylist) {
+        this.methodDenylist = methodDenylist;
     }
 }

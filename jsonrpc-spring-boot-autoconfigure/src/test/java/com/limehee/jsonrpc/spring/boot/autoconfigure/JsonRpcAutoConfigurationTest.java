@@ -177,6 +177,50 @@ class JsonRpcAutoConfigurationTest {
                 .run(context -> assertFalse(context.containsBean("jsonRpcMetricsInterceptor")));
     }
 
+    @Test
+    void blocksMethodsNotInAllowlist() {
+        contextRunner
+                .withPropertyValues("jsonrpc.method-allowlist[0]=ping")
+                .withBean("pong", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("pong", params -> TextNode.valueOf("pong")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(31),
+                            "pong",
+                            null,
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32601, response.error().code());
+                });
+    }
+
+    @Test
+    void blocksMethodsInDenylist() {
+        contextRunner
+                .withPropertyValues("jsonrpc.method-denylist[0]=ping")
+                .withBean("ping", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(32),
+                            "ping",
+                            null,
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32601, response.error().code());
+                });
+    }
+
     @Configuration(proxyBeanMethods = false)
     static class AnnotatedMethodConfig {
         @Bean
