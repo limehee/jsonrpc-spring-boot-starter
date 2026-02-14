@@ -4,7 +4,6 @@ dependencies {
     api project(':jsonrpc-core')
     implementation project(':jsonrpc-spring-webmvc')
     implementation libs.spring.boot.autoconfigure
-    compileOnly libs.jakarta.validation.api
     compileOnly libs.micrometer.core
     annotationProcessor libs.spring.boot.configuration.processor
 

@@ -1,32 +1,21 @@
 package com.limehee.jsonrpc.core;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryJsonRpcMethodRegistry implements JsonRpcMethodRegistry {
 
     private final Map<String, JsonRpcMethodHandler> handlers = new ConcurrentHashMap<>();
-    private final JsonRpcMethodNamespacePolicy namespacePolicy;
     private final JsonRpcMethodRegistrationConflictPolicy conflictPolicy;
 
     public InMemoryJsonRpcMethodRegistry() {
-        this(
-                JsonRpcMethodNamespacePolicy.DISALLOW_RPC_PREFIX,
-                JsonRpcMethodRegistrationConflictPolicy.REJECT
-        );
+        this(JsonRpcMethodRegistrationConflictPolicy.REJECT);
     }
 
-    public InMemoryJsonRpcMethodRegistry(JsonRpcMethodNamespacePolicy namespacePolicy) {
-        this(namespacePolicy, JsonRpcMethodRegistrationConflictPolicy.REJECT);
-    }
-
-    public InMemoryJsonRpcMethodRegistry(
-            JsonRpcMethodNamespacePolicy namespacePolicy,
-            JsonRpcMethodRegistrationConflictPolicy conflictPolicy
-    ) {
-        this.namespacePolicy = namespacePolicy;
-        this.conflictPolicy = conflictPolicy;
+    public InMemoryJsonRpcMethodRegistry(JsonRpcMethodRegistrationConflictPolicy conflictPolicy) {
+        this.conflictPolicy = Objects.requireNonNull(conflictPolicy, "conflictPolicy");
     }
 
     @Override

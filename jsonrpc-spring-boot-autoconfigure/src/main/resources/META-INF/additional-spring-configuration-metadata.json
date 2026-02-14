@@ -25,12 +25,6 @@
       "description": "Maximum accepted raw request payload size in bytes. Must be greater than 0."
     },
     {
-      "name": "jsonrpc.method-namespace-policy",
-      "type": "com.limehee.jsonrpc.core.JsonRpcMethodNamespacePolicy",
-      "defaultValue": "DISALLOW_RPC_PREFIX",
-      "description": "Method namespace policy for registration. Reserved methods starting with 'rpc.' are always rejected."
-    },
-    {
       "name": "jsonrpc.scan-annotated-methods",
       "type": "java.lang.Boolean",
       "defaultValue": true,
@@ -77,12 +71,6 @@
       "values": [
         { "value": "/jsonrpc" },
         { "value": "/api/jsonrpc" }
-      ]
-    },
-    {
-      "name": "jsonrpc.method-namespace-policy",
-      "values": [
-        { "value": "DISALLOW_RPC_PREFIX" }
       ]
     },
     {

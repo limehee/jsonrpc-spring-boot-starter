@@ -61,7 +61,7 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
             try {
                 bean = beanFactory.getBean(beanName);
             } catch (Exception ex) {
-                continue;
+                throw new IllegalStateException("Failed to initialize bean for @JsonRpcMethod scanning: " + beanName, ex);
             }
 
             for (Method method : annotatedMethods) {

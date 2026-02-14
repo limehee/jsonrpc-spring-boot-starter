@@ -121,7 +121,6 @@ Support two registration styles:
 - `max-batch-size` (default `100`)
 - `max-request-bytes` (default `1MB`)
 - `notification-executor-enabled`
-- `method-namespace-policy` (`ALLOW_ALL`, `DISALLOW_RPC_PREFIX`)
 - `include-error-data` (sensitive data exposure control)
 
 ## 8) Cross-cutting Extension Points

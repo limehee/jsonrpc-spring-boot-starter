@@ -20,7 +20,6 @@ class InMemoryJsonRpcMethodRegistryTest {
     @Test
     void replacesRegistrationWhenConfigured() {
         InMemoryJsonRpcMethodRegistry registry = new InMemoryJsonRpcMethodRegistry(
-                JsonRpcMethodNamespacePolicy.DISALLOW_RPC_PREFIX,
                 JsonRpcMethodRegistrationConflictPolicy.REPLACE
         );
 
@@ -31,13 +30,17 @@ class InMemoryJsonRpcMethodRegistryTest {
     }
 
     @Test
-    void alwaysRejectsReservedRpcPrefixEvenWhenAllowAllConfigured() {
+    void alwaysRejectsReservedRpcPrefix() {
         InMemoryJsonRpcMethodRegistry registry = new InMemoryJsonRpcMethodRegistry(
-                JsonRpcMethodNamespacePolicy.ALLOW_ALL,
                 JsonRpcMethodRegistrationConflictPolicy.REPLACE
         );
 
         assertThrows(IllegalArgumentException.class,
                 () -> registry.register("rpc.system", params -> TextNode.valueOf("ok")));
+    }
+
+    @Test
+    void rejectsNullConflictPolicy() {
+        assertThrows(NullPointerException.class, () -> new InMemoryJsonRpcMethodRegistry(null));
     }
 }

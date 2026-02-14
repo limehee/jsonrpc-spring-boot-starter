@@ -56,10 +56,7 @@ public class JsonRpcAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcMethodRegistry jsonRpcMethodRegistry(JsonRpcProperties properties) {
-        return new InMemoryJsonRpcMethodRegistry(
-                properties.getMethodNamespacePolicy(),
-                properties.getMethodRegistrationConflictPolicy()
-        );
+        return new InMemoryJsonRpcMethodRegistry(properties.getMethodRegistrationConflictPolicy());
     }
 
     @Bean
@@ -250,9 +247,6 @@ public class JsonRpcAutoConfiguration {
         }
         if (properties.getMaxRequestBytes() <= 0) {
             throw new IllegalArgumentException("jsonrpc.max-request-bytes must be greater than 0");
-        }
-        if (properties.getMethodNamespacePolicy() == null) {
-            throw new IllegalArgumentException("jsonrpc.method-namespace-policy must not be null");
         }
         if (properties.getMethodRegistrationConflictPolicy() == null) {
             throw new IllegalArgumentException("jsonrpc.method-registration-conflict-policy must not be null");

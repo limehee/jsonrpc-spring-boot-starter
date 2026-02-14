@@ -1,7 +1,6 @@
 [versions]
 spring-boot = "4.0.2"
 jspecify = "1.0.0"
-jakarta-validation = "3.1.1"
 
 [libraries]
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
@@ -18,5 +17,4 @@ spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-star
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 micrometer-core = { module = "io.micrometer:micrometer-core" }
-jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
