@@ -284,6 +284,28 @@ class JsonRpcDispatcherTest {
     }
 
     @Test
+    void legacyDispatchInvalidRequestWithoutIdReturnsInvalidRequestError() {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        JsonRpcRequest request = new JsonRpcRequest("1.0", null, "ping", null, false);
+        JsonRpcResponse response = dispatcher.dispatch(request);
+
+        assertNotNull(response);
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
+        assertNull(response.id());
+    }
+
+    @Test
+    void legacyDispatchValidNotificationMethodNotFoundReturnsNull() {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        JsonRpcRequest request = new JsonRpcRequest("2.0", null, "missing", null, false);
+        JsonRpcResponse response = dispatcher.dispatch(request);
+
+        assertNull(response);
+    }
+
+    @Test
     void interceptorCallbacksRunForSuccessfulRequest() throws Exception {
         RecordingInterceptor interceptor = new RecordingInterceptor();
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
