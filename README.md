@@ -157,6 +157,13 @@ JsonRpcInterceptor auditInterceptor() {
 Notes:
 - Reserved methods starting with `rpc.` are always blocked for JSON-RPC compliance.
 - If both allowlist and denylist include the same method, denylist wins.
+- Invalid configuration now fails fast at startup (for example: non-positive `max-batch-size`, non-positive `max-request-bytes`, blank method list entries, invalid path format).
+
+Validation rules:
+- `jsonrpc.path`: must start with `/` and contain no whitespace
+- `jsonrpc.max-batch-size`: must be greater than `0`
+- `jsonrpc.max-request-bytes`: must be greater than `0`
+- `jsonrpc.method-allowlist` / `jsonrpc.method-denylist`: entries must not be blank
 
 To execute notifications asynchronously, set `jsonrpc.notification-executor-enabled=true` and provide an `Executor` bean.
 
@@ -179,6 +186,7 @@ Run it:
 ```
 
 Dependencies are managed with Gradle Version Catalog at `gradle/libs.versions.toml`.
+Spring Boot configuration metadata hints are provided for IDE auto-completion.
 
 ## Publish
 

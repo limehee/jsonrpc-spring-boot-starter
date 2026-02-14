@@ -32,6 +32,8 @@ All notable changes to this project are documented in this file.
 - WebMVC endpoint now checks payload size before whitespace scan and reduces repeated batch response list access.
 - Auto-configuration internals reorganized into `com.limehee.jsonrpc.spring.boot.autoconfigure.support` package.
 - Metrics interceptor latency recording now avoids per-call `Timer.builder(...)` and `Duration` allocations.
+- Configuration handling now fails fast for invalid values (`path`, `max-batch-size`, `max-request-bytes`, method list entries) to prevent silent misconfiguration.
+- Spring Boot configuration metadata generation is now enabled via configuration processor, with additional IDE hints in `additional-spring-configuration-metadata.json`.
 
 ### Fixed
 - Invalid id-less requests now correctly return JSON-RPC error responses while valid notifications remain no-response.

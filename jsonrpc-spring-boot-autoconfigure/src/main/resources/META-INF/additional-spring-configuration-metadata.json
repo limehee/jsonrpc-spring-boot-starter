@@ -10,19 +10,19 @@
       "name": "jsonrpc.path",
       "type": "java.lang.String",
       "defaultValue": "/jsonrpc",
-      "description": "HTTP endpoint path for JSON-RPC requests."
+      "description": "HTTP endpoint path for JSON-RPC requests. Must start with '/'."
     },
     {
       "name": "jsonrpc.max-batch-size",
       "type": "java.lang.Integer",
       "defaultValue": 100,
-      "description": "Maximum number of calls allowed in a batch request."
+      "description": "Maximum number of calls allowed in a batch request. Must be greater than 0."
     },
     {
       "name": "jsonrpc.max-request-bytes",
       "type": "java.lang.Integer",
       "defaultValue": 1048576,
-      "description": "Maximum accepted raw request payload size in bytes."
+      "description": "Maximum accepted raw request payload size in bytes. Must be greater than 0."
     },
     {
       "name": "jsonrpc.method-namespace-policy",
@@ -63,15 +63,22 @@
     {
       "name": "jsonrpc.method-allowlist",
       "type": "java.util.List<java.lang.String>",
-      "description": "Allowed JSON-RPC method names. Empty list means allow all."
+      "description": "Allowed JSON-RPC method names. Empty list means allow all. Blank entries are invalid."
     },
     {
       "name": "jsonrpc.method-denylist",
       "type": "java.util.List<java.lang.String>",
-      "description": "Denied JSON-RPC method names. Denylist takes precedence over allowlist membership."
+      "description": "Denied JSON-RPC method names. Denylist takes precedence over allowlist membership. Blank entries are invalid."
     }
   ],
   "hints": [
+    {
+      "name": "jsonrpc.path",
+      "values": [
+        { "value": "/jsonrpc" },
+        { "value": "/api/jsonrpc" }
+      ]
+    },
     {
       "name": "jsonrpc.method-namespace-policy",
       "values": [

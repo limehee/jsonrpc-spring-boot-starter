@@ -2,7 +2,6 @@ package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
@@ -372,12 +371,10 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
-    void normalizesAllowAndDenyListsByTrimmingAndIgnoringBlankValues() {
+    void normalizesAllowlistValuesByTrimmingWhitespace() {
         contextRunner
                 .withPropertyValues(
-                        "jsonrpc.method-allowlist[0]=  ping  ",
-                        "jsonrpc.method-allowlist[1]=   ",
-                        "jsonrpc.method-denylist[0]=   "
+                        "jsonrpc.method-allowlist[0]=  ping  "
                 )
                 .withBean("ping", JsonRpcMethodRegistration.class,
                         () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
@@ -397,24 +394,29 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
-    void clampsMaxBatchSizeToAtLeastOne() throws Exception {
+    void rejectsBlankMethodEntriesInAllowAndDenyLists() {
+        contextRunner
+                .withPropertyValues(
+                        "jsonrpc.method-allowlist[0]=   ",
+                        "jsonrpc.method-denylist[0]=   "
+                )
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void rejectsMaxBatchSizeLessThanOne() {
         contextRunner
                 .withPropertyValues("jsonrpc.max-batch-size=0")
                 .withBean("ping", JsonRpcMethodRegistration.class,
                         () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
-                .run(context -> {
-                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
 
-                    JsonRpcDispatchResult result = dispatcher.dispatch(new com.fasterxml.jackson.databind.ObjectMapper().readTree("""
-                            [
-                              {"jsonrpc":"2.0","method":"ping","id":1}
-                            ]
-                            """));
-
-                    assertTrue(result.isBatch());
-                    assertEquals(1, result.responses().size());
-                    assertEquals("pong", result.responses().get(0).result().asText());
-                });
+    @Test
+    void rejectsInvalidPathThatDoesNotStartWithSlash() {
+        contextRunner
+                .withPropertyValues("jsonrpc.path=jsonrpc")
+                .run(context -> assertNotNull(context.getStartupFailure()));
     }
 
     @Test

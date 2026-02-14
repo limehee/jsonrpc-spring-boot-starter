@@ -24,6 +24,7 @@ subprojects {
     dependencies {
         implementation platform(libs.spring.boot.bom)
         testImplementation platform(libs.spring.boot.bom)
+        annotationProcessor platform(libs.spring.boot.bom)
         testImplementation libs.junit.jupiter
         testRuntimeOnly libs.junit.platform.launcher
         compileOnly libs.jspecify

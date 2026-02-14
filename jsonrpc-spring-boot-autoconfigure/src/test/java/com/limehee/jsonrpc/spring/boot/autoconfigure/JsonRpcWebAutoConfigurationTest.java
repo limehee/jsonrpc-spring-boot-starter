@@ -1,8 +1,5 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.limehee.jsonrpc.core.JsonRpcErrorCode;
-import com.limehee.jsonrpc.core.JsonRpcResponse;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcEndpoint;
 import org.junit.jupiter.api.Test;
@@ -17,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonRpcWebAutoConfigurationTest {
@@ -55,18 +53,10 @@ class JsonRpcWebAutoConfigurationTest {
     }
 
     @Test
-    void clampsMaxRequestBytesToAtLeastOne() {
+    void rejectsMaxRequestBytesLessThanOne() {
         webContextRunner
                 .withPropertyValues("jsonrpc.max-request-bytes=0")
-                .run(context -> {
-                    JsonRpcWebMvcEndpoint endpoint = context.getBean(JsonRpcWebMvcEndpoint.class);
-                    JsonRpcResponse response = new ObjectMapper().convertValue(
-                            endpoint.invoke("[".getBytes(StandardCharsets.UTF_8)).getBody(),
-                            JsonRpcResponse.class
-                    );
-
-                    assertEquals(JsonRpcErrorCode.PARSE_ERROR, response.error().code());
-                });
+                .run(context -> assertNotNull(context.getStartupFailure()));
     }
 
     @Configuration(proxyBeanMethods = false)

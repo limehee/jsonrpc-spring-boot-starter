@@ -178,6 +178,7 @@ public class JsonRpcAutoConfiguration {
             ObjectProvider<JsonRpcMethodRegistration> registrations,
             ObjectProvider<JsonRpcInterceptor> interceptors
     ) {
+        validateProperties(properties);
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
                 methodRegistry,
                 requestParser,
@@ -185,7 +186,7 @@ public class JsonRpcAutoConfiguration {
                 methodInvoker,
                 exceptionResolver,
                 responseComposer,
-                Math.max(1, properties.getMaxBatchSize()),
+                properties.getMaxBatchSize(),
                 interceptors.orderedStream().toList(),
                 notificationExecutor
         );
@@ -216,7 +217,7 @@ public class JsonRpcAutoConfiguration {
                 dispatcher,
                 objectMapper,
                 httpStatusStrategy,
-                Math.max(1, properties.getMaxRequestBytes())
+                properties.getMaxRequestBytes()
         );
     }
 
@@ -235,5 +236,49 @@ public class JsonRpcAutoConfiguration {
             }
         }
         return normalized;
+    }
+
+    private void validateProperties(JsonRpcProperties properties) {
+        if (properties.getPath() == null || properties.getPath().isBlank()) {
+            throw new IllegalArgumentException("jsonrpc.path must not be blank");
+        }
+        if (!properties.getPath().startsWith("/") || containsWhitespace(properties.getPath())) {
+            throw new IllegalArgumentException("jsonrpc.path must start with '/' and must not contain whitespace");
+        }
+        if (properties.getMaxBatchSize() <= 0) {
+            throw new IllegalArgumentException("jsonrpc.max-batch-size must be greater than 0");
+        }
+        if (properties.getMaxRequestBytes() <= 0) {
+            throw new IllegalArgumentException("jsonrpc.max-request-bytes must be greater than 0");
+        }
+        if (properties.getMethodNamespacePolicy() == null) {
+            throw new IllegalArgumentException("jsonrpc.method-namespace-policy must not be null");
+        }
+        if (properties.getMethodRegistrationConflictPolicy() == null) {
+            throw new IllegalArgumentException("jsonrpc.method-registration-conflict-policy must not be null");
+        }
+
+        validateMethodList("jsonrpc.method-allowlist", properties.getMethodAllowlist());
+        validateMethodList("jsonrpc.method-denylist", properties.getMethodDenylist());
+    }
+
+    private boolean containsWhitespace(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            if (Character.isWhitespace(value.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void validateMethodList(String propertyName, List<String> methods) {
+        if (methods == null) {
+            throw new IllegalArgumentException(propertyName + " must not be null");
+        }
+        for (String method : methods) {
+            if (method == null || method.isBlank()) {
+                throw new IllegalArgumentException(propertyName + " entries must not be blank");
+            }
+        }
     }
 }
