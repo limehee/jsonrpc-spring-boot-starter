@@ -1,0 +1,90 @@
+{
+  "properties": [
+    {
+      "name": "jsonrpc.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Enable JSON-RPC web endpoint auto-configuration."
+    },
+    {
+      "name": "jsonrpc.path",
+      "type": "java.lang.String",
+      "defaultValue": "/jsonrpc",
+      "description": "HTTP endpoint path for JSON-RPC requests."
+    },
+    {
+      "name": "jsonrpc.max-batch-size",
+      "type": "java.lang.Integer",
+      "defaultValue": 100,
+      "description": "Maximum number of calls allowed in a batch request."
+    },
+    {
+      "name": "jsonrpc.max-request-bytes",
+      "type": "java.lang.Integer",
+      "defaultValue": 1048576,
+      "description": "Maximum accepted raw request payload size in bytes."
+    },
+    {
+      "name": "jsonrpc.method-namespace-policy",
+      "type": "com.limehee.jsonrpc.core.JsonRpcMethodNamespacePolicy",
+      "defaultValue": "DISALLOW_RPC_PREFIX",
+      "description": "Method namespace policy for registration."
+    },
+    {
+      "name": "jsonrpc.scan-annotated-methods",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Scan beans for @JsonRpcMethod and register discovered handlers."
+    },
+    {
+      "name": "jsonrpc.include-error-data",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Include JsonRpcException data payload in error responses."
+    },
+    {
+      "name": "jsonrpc.metrics-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Enable Micrometer metrics interceptor when MeterRegistry is present."
+    },
+    {
+      "name": "jsonrpc.notification-executor-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Dispatch notifications through a Spring Executor bean when available."
+    },
+    {
+      "name": "jsonrpc.method-registration-conflict-policy",
+      "type": "com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy",
+      "defaultValue": "REJECT",
+      "description": "Policy used when a method name is registered more than once."
+    },
+    {
+      "name": "jsonrpc.method-allowlist",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Allowed JSON-RPC method names. Empty list means allow all."
+    },
+    {
+      "name": "jsonrpc.method-denylist",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Denied JSON-RPC method names. Denylist takes precedence over allowlist membership."
+    }
+  ],
+  "hints": [
+    {
+      "name": "jsonrpc.method-namespace-policy",
+      "values": [
+        { "value": "ALLOW_ALL" },
+        { "value": "DISALLOW_RPC_PREFIX" }
+      ]
+    },
+    {
+      "name": "jsonrpc.method-registration-conflict-policy",
+      "values": [
+        { "value": "REJECT" },
+        { "value": "REPLACE" }
+      ]
+    }
+  ]
+}
