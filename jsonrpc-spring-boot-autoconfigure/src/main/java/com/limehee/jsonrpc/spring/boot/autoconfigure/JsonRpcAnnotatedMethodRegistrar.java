@@ -40,6 +40,11 @@ class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
     @Override
     public void afterSingletonsInstantiated() {
         for (String beanName : beanFactory.getBeanDefinitionNames()) {
+            Class<?> beanType = beanFactory.getType(beanName, false);
+            if (beanType == null || !hasAnnotatedMethod(beanType)) {
+                continue;
+            }
+
             Object bean;
             try {
                 bean = beanFactory.getBean(beanName);
@@ -58,6 +63,15 @@ class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingSingleton {
                 dispatcher.register(methodName, handler);
             }
         }
+    }
+
+    private boolean hasAnnotatedMethod(Class<?> beanType) {
+        for (Method method : beanType.getMethods()) {
+            if (method.isAnnotationPresent(JsonRpcMethod.class)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private JsonRpcMethodHandler buildHandler(Object bean, Method method) {
