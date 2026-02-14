@@ -50,6 +50,21 @@ class JsonRpcDispatcherTest {
     }
 
     @Test
+    void dispatchRequestWithExplicitNullIdReturnsResponse() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","method":"ping","id":null}
+                """));
+
+        assertTrue(result.hasResponse());
+        JsonRpcResponse response = result.singleResponse().orElseThrow();
+        assertTrue(response.id().isNull());
+        assertEquals("pong", response.result().asText());
+    }
+
+    @Test
     void dispatchMethodNotFoundReturnsError() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 
