@@ -85,6 +85,14 @@ subprojects {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
                 pom {
                     name = project.name
                     description = 'JSON-RPC 2.0 library and Spring Boot starter'

@@ -76,6 +76,7 @@ GitHub Actions runs matrix tests and compatibility checks (when release tag base
 
 - `.github/workflows/ci.yml`
 - `.github/workflows/publish.yml`
+- `.github/workflows/consumer-smoke.yml` (publishes to `mavenLocal` and verifies Maven/Gradle consumer projects)
 
 ## Quality Expectations for Contributions
 

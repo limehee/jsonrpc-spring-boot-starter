@@ -58,3 +58,4 @@ Before opening a PR, make sure:
 
 Do not open public issues for sensitive security vulnerabilities.
 Share details privately with maintainers first.
+See `SECURITY.md` for policy details.

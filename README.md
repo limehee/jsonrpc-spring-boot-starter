@@ -126,6 +126,7 @@ flowchart TD
 ./gradlew apiCompat -PapiBaselineVersion=<released-version>
 ./gradlew :jsonrpc-core:jmh
 ./gradlew :jsonrpc-core:jmhQuick
+./scripts/verify-consumer-smoke.sh
 ```
 
 ## Sample Application
@@ -140,5 +141,6 @@ flowchart TD
 ## Contributing and Release
 
 - Contributing guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- Security policy: [`SECURITY.md`](SECURITY.md)
 - Release checklist: [`docs/release-checklist.md`](docs/release-checklist.md)
 - Changelog: [`CHANGELOG.md`](CHANGELOG.md)

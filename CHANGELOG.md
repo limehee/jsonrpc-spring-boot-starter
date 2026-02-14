@@ -22,6 +22,8 @@ All notable changes to this project are documented in this file.
 - Added library integration/e2e scenarios that validate all primary registration styles (`@JsonRpcMethod`, explicit `JsonRpcMethodRegistration`, and `JsonRpcTypedMethodHandlerFactory`) with class/record/collection parameter and return payloads.
 - Added pure Java (no Spring) integration/e2e tests in `jsonrpc-core` and standalone usage documentation in README.
 - Expanded metrics coverage with transport/batch/notification instrumentation and configurable latency histogram/percentiles/method-tag cardinality limits.
+- Added `SECURITY.md` with vulnerability reporting policy.
+- Added consumer smoke automation (`scripts/verify-consumer-smoke.sh` and `.github/workflows/consumer-smoke.yml`) to verify published artifacts from fresh Maven/Gradle consumer projects.
 
 ### Changed
 - Rewrote `README.md` as a documentation entrypoint and expanded official-style documentation under `docs/` (getting started, architecture, protocol compliance, configuration reference, extension points, testing, performance, troubleshooting).
@@ -29,6 +31,7 @@ All notable changes to this project are documented in this file.
 - Reduced runtime metrics overhead by caching Micrometer counters and replacing stack-trace scans with typed failure markers for access-control/interceptor paths.
 - Expanded JMH dispatcher benchmark scenarios to cover success, invalid request/params, method-not-found, and large batch profiles.
 - Added `:jsonrpc-core:jmhQuick` task for short JMH smoke profiling, with optional include filter (`-PjmhQuickInclude=...`).
+- Publishing metadata now uses resolved dependency versions (`versionMapping`) so Gradle/Maven consumers can resolve released artifacts without missing-version failures.
 - JSON-RPC compliance handling for batch, notification, and invalid request edge cases.
 - HTTP endpoint behavior: JSON content-type enforcement and request size limit handling.
 - Build now uses Gradle Version Catalog (`gradle/libs.versions.toml`).
