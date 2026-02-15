@@ -10,14 +10,14 @@ Maven:
 <dependency>
   <groupId>io.github.limehee</groupId>
   <artifactId>jsonrpc-core</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
 Gradle (Kotlin DSL):
 
 ```kotlin
-implementation("io.github.limehee:jsonrpc-core:0.1.0-SNAPSHOT")
+implementation("io.github.limehee:jsonrpc-core:0.1.0")
 ```
 
 ## 2. Minimal Dispatcher
