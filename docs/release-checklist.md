@@ -45,3 +45,6 @@ Use this checklist before creating a release tag (`vX.Y.Z`).
 - Bump `gradle.properties` version to next snapshot (for example `X.Y.(Z+1)-SNAPSHOT`).
 - Add release notes entry (GitHub release and changelog link).
 - Smoke test the sample project with the published version.
+- Verify Central Portal deployment visibility:
+  - `Publish` workflow should call the `manual/upload/defaultRepository/<namespace>` finalize API.
+  - Confirm `central.sonatype.com/publishing/deployments` shows the component and reaches `Published`.

@@ -48,3 +48,30 @@ jobs:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         run: ./gradlew --no-daemon --configuration-cache publish
+
+      - name: Finalize Deployment In Central Portal
+        shell: bash
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        run: |
+          NAMESPACE=$(grep '^group=' gradle.properties | cut -d= -f2)
+          if [ -z "${NAMESPACE}" ]; then
+            echo "Unable to resolve namespace from gradle.properties group."
+            exit 1
+          fi
+
+          RESPONSE=$(curl -sS -w '\n%{http_code}' \
+            -u "${OSSRH_USERNAME}:${OSSRH_PASSWORD}" \
+            -X POST \
+            "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${NAMESPACE}?publishing_type=automatic")
+          BODY=$(echo "${RESPONSE}" | sed '$d')
+          STATUS=$(echo "${RESPONSE}" | tail -n 1)
+
+          echo "Central finalize HTTP status: ${STATUS}"
+          echo "${BODY}"
+
+          if [ "${STATUS}" -lt 200 ] || [ "${STATUS}" -ge 300 ]; then
+            echo "Failed to finalize deployment in Central Portal."
+            exit 1
+          fi
