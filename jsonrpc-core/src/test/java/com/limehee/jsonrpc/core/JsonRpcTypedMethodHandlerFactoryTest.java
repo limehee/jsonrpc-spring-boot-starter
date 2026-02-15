@@ -1,7 +1,8 @@
 package com.limehee.jsonrpc.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.StringNode;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -9,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JsonRpcTypedMethodHandlerFactoryTest {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final JsonRpcTypedMethodHandlerFactory factory = new DefaultJsonRpcTypedMethodHandlerFactory(
             new JacksonJsonRpcParameterBinder(OBJECT_MAPPER),
@@ -28,7 +29,7 @@ class JsonRpcTypedMethodHandlerFactoryTest {
     void noParamsRejectsUnexpectedParams() {
         JsonRpcMethodHandler handler = factory.noParams(() -> "pong");
 
-        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> handler.handle(TextNode.valueOf("bad")));
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> handler.handle(StringNode.valueOf("bad")));
         assertEquals(JsonRpcErrorCode.INVALID_PARAMS, ex.getCode());
     }
 
@@ -44,7 +45,7 @@ class JsonRpcTypedMethodHandlerFactoryTest {
         JsonRpcMethodHandler handler = factory.unary(PingParams.class, params -> "hello " + params.name());
 
         JsonRpcException ex = assertThrows(JsonRpcException.class,
-                () -> handler.handle(TextNode.valueOf("bad")));
+                () -> handler.handle(StringNode.valueOf("bad")));
         assertEquals(JsonRpcErrorCode.INVALID_PARAMS, ex.getCode());
         assertEquals(JsonRpcConstants.MESSAGE_INVALID_PARAMS, ex.getMessage());
     }

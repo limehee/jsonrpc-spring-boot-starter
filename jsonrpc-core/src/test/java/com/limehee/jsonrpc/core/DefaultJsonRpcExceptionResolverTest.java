@@ -1,6 +1,6 @@
 package com.limehee.jsonrpc.core;
 
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.node.StringNode;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,7 +12,7 @@ class DefaultJsonRpcExceptionResolverTest {
     void defaultConstructorHidesErrorData() {
         DefaultJsonRpcExceptionResolver resolver = new DefaultJsonRpcExceptionResolver();
 
-        JsonRpcError error = resolver.resolve(new JsonRpcException(-32000, "domain", TextNode.valueOf("secret")));
+        JsonRpcError error = resolver.resolve(new JsonRpcException(-32000, "domain", StringNode.valueOf("secret")));
 
         assertEquals(-32000, error.code());
         assertNull(error.data());
@@ -22,7 +22,7 @@ class DefaultJsonRpcExceptionResolverTest {
     void includesErrorDataWhenEnabled() {
         DefaultJsonRpcExceptionResolver resolver = new DefaultJsonRpcExceptionResolver(true);
 
-        JsonRpcError error = resolver.resolve(new JsonRpcException(-32000, "domain", TextNode.valueOf("secret")));
+        JsonRpcError error = resolver.resolve(new JsonRpcException(-32000, "domain", StringNode.valueOf("secret")));
 
         assertEquals(-32000, error.code());
         assertEquals("secret", error.data().asText());
@@ -32,7 +32,7 @@ class DefaultJsonRpcExceptionResolverTest {
     void hidesErrorDataWhenDisabled() {
         DefaultJsonRpcExceptionResolver resolver = new DefaultJsonRpcExceptionResolver(false);
 
-        JsonRpcError error = resolver.resolve(new JsonRpcException(-32000, "domain", TextNode.valueOf("secret")));
+        JsonRpcError error = resolver.resolve(new JsonRpcException(-32000, "domain", StringNode.valueOf("secret")));
 
         assertEquals(-32000, error.code());
         assertNull(error.data());

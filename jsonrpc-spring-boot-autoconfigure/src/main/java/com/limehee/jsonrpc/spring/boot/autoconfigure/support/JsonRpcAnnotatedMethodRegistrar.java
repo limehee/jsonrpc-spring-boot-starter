@@ -120,14 +120,14 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
         return typedMethodHandlerFactory.unary((Class<T>) paramType, param -> invoke(bean, method, param));
     }
 
-    private Object[] bindMethodParams(Method method, com.fasterxml.jackson.databind.JsonNode params) {
+    private Object[] bindMethodParams(Method method, tools.jackson.databind.JsonNode params) {
         if (params != null && params.isObject()) {
             return bindNamedParams(method, params);
         }
         return bindPositionalParams(method, params);
     }
 
-    private Object[] bindPositionalParams(Method method, com.fasterxml.jackson.databind.JsonNode params) {
+    private Object[] bindPositionalParams(Method method, tools.jackson.databind.JsonNode params) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (params == null || !params.isArray() || params.size() != parameterTypes.length) {
             throw invalidParamsException();
@@ -140,14 +140,14 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
         return bound;
     }
 
-    private Object[] bindNamedParams(Method method, com.fasterxml.jackson.databind.JsonNode params) {
+    private Object[] bindNamedParams(Method method, tools.jackson.databind.JsonNode params) {
         Parameter[] parameters = method.getParameters();
         Object[] bound = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
             String paramName = resolveParameterName(parameter);
-            com.fasterxml.jackson.databind.JsonNode valueNode = params.get(paramName);
+            tools.jackson.databind.JsonNode valueNode = params.get(paramName);
             if (valueNode == null) {
                 throw invalidParamsException();
             }

@@ -1,8 +1,8 @@
 package com.limehee.jsonrpc.core;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.jspecify.annotations.Nullable;
 
 public class JacksonJsonRpcParameterBinder implements JsonRpcParameterBinder {
@@ -27,7 +27,7 @@ public class JacksonJsonRpcParameterBinder implements JsonRpcParameterBinder {
                 return objectMapper.convertValue(null, targetType);
             }
             return objectMapper.treeToValue(params, targetType);
-        } catch (JsonProcessingException | IllegalArgumentException ex) {
+        } catch (JacksonException | IllegalArgumentException ex) {
             throw new JsonRpcException(
                     JsonRpcErrorCode.INVALID_PARAMS,
                     JsonRpcConstants.MESSAGE_INVALID_PARAMS,

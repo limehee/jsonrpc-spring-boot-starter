@@ -1,11 +1,12 @@
 package com.limehee.jsonrpc.spring.webmvc;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.node.StringNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -22,14 +23,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class JsonRpcWebMvcEndpointTest {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
-        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
                 dispatcher,
@@ -135,7 +136,7 @@ class JsonRpcWebMvcEndpointTest {
     @Test
     void returnsInvalidRequestWhenPayloadTooLarge() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
-        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
         JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
                 dispatcher,
                 OBJECT_MAPPER,
@@ -186,7 +187,7 @@ class JsonRpcWebMvcEndpointTest {
     @Test
     void usesCustomStatusStrategyForParseErrorAndPayloadLimit() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
-        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
         JsonRpcHttpStatusStrategy strategy = new JsonRpcHttpStatusStrategy() {
             @Override
             public org.springframework.http.HttpStatus statusForSingle(JsonRpcResponse response) {
@@ -236,7 +237,7 @@ class JsonRpcWebMvcEndpointTest {
     @Test
     void notifiesObserverForParseErrorsRequestTooLargeAndNotificationOnly() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
-        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
         RecordingObserver observer = new RecordingObserver();
         JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
                 dispatcher,
@@ -271,7 +272,7 @@ class JsonRpcWebMvcEndpointTest {
     @Test
     void notifiesObserverForSingleAndBatchResponses() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
-        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
         RecordingObserver observer = new RecordingObserver();
         JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
                 dispatcher,

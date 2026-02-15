@@ -1,13 +1,13 @@
 package com.limehee.jsonrpc.core;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.StringNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +25,7 @@ class JsonRpcPureJavaE2ETest {
                 new JacksonJsonRpcResultWriter(PureJavaJsonRpcServer.OBJECT_MAPPER)
         );
 
-        dispatcher.register("manual.ping", params -> TextNode.valueOf("pong"));
+        dispatcher.register("manual.ping", params -> StringNode.valueOf("pong"));
         dispatcher.register("typed.upper", typedFactory.unary(UpperInput.class,
                 input -> new UpperOutput(input.value == null ? "" : input.value.toUpperCase())));
         dispatcher.register("typed.tags", typedFactory.noParams(() -> List.of("alpha", "beta")));
@@ -71,7 +71,7 @@ class JsonRpcPureJavaE2ETest {
         assertEquals(-32700, parseError.get("error").get("code").asInt());
     }
 
-    private JsonNode parse(String json) throws JsonProcessingException {
+    private JsonNode parse(String json) throws JacksonException {
         return PureJavaJsonRpcServer.OBJECT_MAPPER.readTree(json);
     }
 
@@ -88,7 +88,7 @@ class JsonRpcPureJavaE2ETest {
     }
 
     static class PureJavaJsonRpcServer {
-        private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+        private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
         private final JsonRpcDispatcher dispatcher;
 
@@ -96,12 +96,12 @@ class JsonRpcPureJavaE2ETest {
             this.dispatcher = dispatcher;
         }
 
-        String handle(String rawJson) throws JsonProcessingException {
+        String handle(String rawJson) throws JacksonException {
             JsonRpcDispatchResult dispatchResult;
             try {
                 JsonNode payload = OBJECT_MAPPER.readTree(rawJson);
                 dispatchResult = dispatcher.dispatch(payload);
-            } catch (IOException ex) {
+            } catch (JacksonException ex) {
                 return OBJECT_MAPPER.writeValueAsString(dispatcher.parseErrorResponse());
             }
 

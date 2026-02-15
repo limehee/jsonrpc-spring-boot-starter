@@ -1,8 +1,9 @@
 package com.limehee.jsonrpc.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.StringNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonRpcPureJavaIntegrationTest {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private JsonRpcDispatcher dispatcher;
 
@@ -26,7 +27,7 @@ class JsonRpcPureJavaIntegrationTest {
                 new JacksonJsonRpcResultWriter(OBJECT_MAPPER)
         );
 
-        dispatcher.register("manual.ping", params -> TextNode.valueOf("pong"));
+        dispatcher.register("manual.ping", params -> StringNode.valueOf("pong"));
         dispatcher.register("typed.user", typedFactory.unary(UserRequest.class,
                 request -> new UserResponse(request.id, "user-" + request.id)));
         dispatcher.register("typed.tags", typedFactory.noParams(() -> List.of("alpha", "beta")));

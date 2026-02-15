@@ -1,7 +1,7 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
-import com.fasterxml.jackson.databind.node.IntNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.node.IntNode;
+import tools.jackson.databind.node.StringNode;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
 import com.limehee.jsonrpc.spring.boot.autoconfigure.support.JsonRpcWebMvcMetricsObserver;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -28,7 +28,7 @@ class JsonRpcWebMvcMetricsObserverTest {
         observer.onNotificationOnly(false, 1);
         observer.onNotificationOnly(true, 2);
         observer.onBatchResponse(3, List.of(
-                JsonRpcResponse.success(IntNode.valueOf(1), TextNode.valueOf("ok")),
+                JsonRpcResponse.success(IntNode.valueOf(1), StringNode.valueOf("ok")),
                 JsonRpcResponse.error(IntNode.valueOf(2), -32601, "Method not found")
         ));
 

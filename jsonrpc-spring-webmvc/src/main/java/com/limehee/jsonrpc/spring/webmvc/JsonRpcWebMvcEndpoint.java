@@ -1,8 +1,8 @@
 package com.limehee.jsonrpc.spring.webmvc;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -81,10 +80,7 @@ public class JsonRpcWebMvcEndpoint {
         JsonNode payload;
         try {
             payload = objectMapper.readTree(body);
-        } catch (JsonProcessingException ex) {
-            observer.onParseError();
-            return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
-        } catch (IOException ex) {
+        } catch (JacksonException ex) {
             observer.onParseError();
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
@@ -124,7 +120,7 @@ public class JsonRpcWebMvcEndpoint {
     private String toJson(Object payload) {
         try {
             return objectMapper.writeValueAsString(payload);
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             throw new IllegalStateException("Failed to serialize JSON-RPC response payload", ex);
         }
     }

@@ -1,7 +1,7 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
-import com.fasterxml.jackson.databind.node.IntNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.node.IntNode;
+import tools.jackson.databind.node.StringNode;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
@@ -39,7 +39,7 @@ class JsonRpcAutoConfigurationTest {
     void createsDispatcherAndRegistersMethods() {
         contextRunner
                 .withBean("ping", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     assertNotNull(dispatcher);
@@ -66,7 +66,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(7),
                             "hello",
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"name\":\"developer\"}"),
+                            new tools.jackson.databind.ObjectMapper().readTree("{\"name\":\"developer\"}"),
                             true
                     ));
 
@@ -87,7 +87,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(70),
                             "hello",
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"name\":\"developer\"}"),
+                            new tools.jackson.databind.ObjectMapper().readTree("{\"name\":\"developer\"}"),
                             true
                     ));
 
@@ -108,7 +108,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(8),
                             "sum",
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("[2,3]"),
+                            new tools.jackson.databind.ObjectMapper().readTree("[2,3]"),
                             true
                     ));
 
@@ -127,7 +127,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(9),
                             "sum",
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":2}"),
+                            new tools.jackson.databind.ObjectMapper().readTree("{\"left\":2}"),
                             true
                     ));
 
@@ -148,7 +148,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(10),
                             "concat",
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":\"a\",\"right\":\"b\"}"),
+                            new tools.jackson.databind.ObjectMapper().readTree("{\"left\":\"a\",\"right\":\"b\"}"),
                             true
                     ));
 
@@ -167,7 +167,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(12),
                             "concat",
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":\"a\"}"),
+                            new tools.jackson.databind.ObjectMapper().readTree("{\"left\":\"a\"}"),
                             true
                     ));
 
@@ -186,7 +186,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(13),
                             "join",
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"left\":\"x\",\"right\":\"y\"}"),
+                            new tools.jackson.databind.ObjectMapper().readTree("{\"left\":\"x\",\"right\":\"y\"}"),
                             true
                     ));
 
@@ -200,7 +200,7 @@ class JsonRpcAutoConfigurationTest {
         contextRunner
                 .withUserConfiguration(InterceptorConfig.class)
                 .withBean("ping", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     CountingInterceptor interceptor = context.getBean(CountingInterceptor.class);
@@ -224,7 +224,7 @@ class JsonRpcAutoConfigurationTest {
         contextRunner
                 .withBean("boom", JsonRpcMethodRegistration.class,
                         () -> JsonRpcMethodRegistration.of("boom", params -> {
-                            throw new JsonRpcException(-32001, "domain", TextNode.valueOf("secret"));
+                            throw new JsonRpcException(-32001, "domain", StringNode.valueOf("secret"));
                         }))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
@@ -249,7 +249,7 @@ class JsonRpcAutoConfigurationTest {
                 .withPropertyValues("jsonrpc.include-error-data=true")
                 .withBean("boom", JsonRpcMethodRegistration.class,
                         () -> JsonRpcMethodRegistration.of("boom", params -> {
-                            throw new JsonRpcException(-32001, "domain", TextNode.valueOf("secret"));
+                            throw new JsonRpcException(-32001, "domain", StringNode.valueOf("secret"));
                         }))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
@@ -272,7 +272,7 @@ class JsonRpcAutoConfigurationTest {
         contextRunner
                 .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
                 .withBean("ping", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
@@ -335,7 +335,7 @@ class JsonRpcAutoConfigurationTest {
                 .withPropertyValues("jsonrpc.method-denylist[0]=ping")
                 .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
                 .withBean("ping", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
@@ -363,7 +363,7 @@ class JsonRpcAutoConfigurationTest {
                 .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
                 .withUserConfiguration(ThrowingInterceptorConfig.class)
                 .withBean("ping", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
@@ -393,9 +393,9 @@ class JsonRpcAutoConfigurationTest {
                 .withPropertyValues("jsonrpc.metrics-max-method-tag-values=1")
                 .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
                 .withBean("a", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("method.a", params -> TextNode.valueOf("a")))
+                        () -> JsonRpcMethodRegistration.of("method.a", params -> StringNode.valueOf("a")))
                 .withBean("b", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("method.b", params -> TextNode.valueOf("b")))
+                        () -> JsonRpcMethodRegistration.of("method.b", params -> StringNode.valueOf("b")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
@@ -427,7 +427,7 @@ class JsonRpcAutoConfigurationTest {
                 .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
                 .withUserConfiguration(AsyncNotificationExecutorConfig.class)
                 .withBean("notify", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("notify", params -> TextNode.valueOf("ok")))
+                        () -> JsonRpcMethodRegistration.of("notify", params -> StringNode.valueOf("ok")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
@@ -472,7 +472,7 @@ class JsonRpcAutoConfigurationTest {
         contextRunner
                 .withPropertyValues("jsonrpc.method-allowlist[0]=ping")
                 .withBean("pong", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("pong", params -> TextNode.valueOf("pong")))
+                        () -> JsonRpcMethodRegistration.of("pong", params -> StringNode.valueOf("pong")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
 
@@ -494,7 +494,7 @@ class JsonRpcAutoConfigurationTest {
         contextRunner
                 .withPropertyValues("jsonrpc.method-denylist[0]=ping")
                 .withBean("ping", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
 
@@ -519,7 +519,7 @@ class JsonRpcAutoConfigurationTest {
                         "jsonrpc.method-denylist[0]=ping"
                 )
                 .withBean("ping", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
 
@@ -543,7 +543,7 @@ class JsonRpcAutoConfigurationTest {
                         "jsonrpc.method-allowlist[0]=  ping  "
                 )
                 .withBean("ping", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
 
@@ -574,7 +574,7 @@ class JsonRpcAutoConfigurationTest {
         contextRunner
                 .withPropertyValues("jsonrpc.max-batch-size=0")
                 .withBean("ping", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
                 .run(context -> assertNotNull(context.getStartupFailure()));
     }
 
@@ -603,9 +603,9 @@ class JsonRpcAutoConfigurationTest {
     void duplicateMethodRegistrationFailsByDefault() {
         contextRunner
                 .withBean("ping1", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong1")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong1")))
                 .withBean("ping2", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong2")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong2")))
                 .run(context -> assertNotNull(context.getStartupFailure()));
     }
 
@@ -614,9 +614,9 @@ class JsonRpcAutoConfigurationTest {
         contextRunner
                 .withPropertyValues("jsonrpc.method-registration-conflict-policy=REPLACE")
                 .withBean("ping1", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong1")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong1")))
                 .withBean("ping2", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong2")))
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong2")))
                 .run(context -> assertNull(context.getStartupFailure()));
     }
 
@@ -626,7 +626,7 @@ class JsonRpcAutoConfigurationTest {
                 .withPropertyValues("jsonrpc.notification-executor-enabled=true")
                 .withUserConfiguration(NotificationExecutorConfig.class)
                 .withBean("notify", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("notify", params -> TextNode.valueOf("ok")))
+                        () -> JsonRpcMethodRegistration.of("notify", params -> StringNode.valueOf("ok")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     CountingExecutor executor = context.getBean(CountingExecutor.class);
@@ -649,7 +649,7 @@ class JsonRpcAutoConfigurationTest {
                 .withPropertyValues("jsonrpc.notification-executor-enabled=false")
                 .withUserConfiguration(NotificationExecutorConfig.class)
                 .withBean("notify", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("notify", params -> TextNode.valueOf("ok")))
+                        () -> JsonRpcMethodRegistration.of("notify", params -> StringNode.valueOf("ok")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     CountingExecutor executor = context.getBean(CountingExecutor.class);
@@ -672,7 +672,7 @@ class JsonRpcAutoConfigurationTest {
                 .withPropertyValues("jsonrpc.notification-executor-enabled=true")
                 .withUserConfiguration(MultipleNotificationExecutorConfig.class)
                 .withBean("notify", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("notify", params -> TextNode.valueOf("ok")))
+                        () -> JsonRpcMethodRegistration.of("notify", params -> StringNode.valueOf("ok")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     CountingExecutor firstExecutor = (CountingExecutor) context.getBean("firstExecutor");
@@ -700,7 +700,7 @@ class JsonRpcAutoConfigurationTest {
                 )
                 .withUserConfiguration(MultipleNotificationExecutorConfig.class)
                 .withBean("notify", JsonRpcMethodRegistration.class,
-                        () -> JsonRpcMethodRegistration.of("notify", params -> TextNode.valueOf("ok")))
+                        () -> JsonRpcMethodRegistration.of("notify", params -> StringNode.valueOf("ok")))
                 .run(context -> {
                     JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
                     CountingExecutor firstExecutor = (CountingExecutor) context.getBean("firstExecutor");
@@ -853,7 +853,7 @@ class JsonRpcAutoConfigurationTest {
         }
 
         @Override
-        public void afterInvoke(JsonRpcRequest request, com.fasterxml.jackson.databind.JsonNode result) {
+        public void afterInvoke(JsonRpcRequest request, tools.jackson.databind.JsonNode result) {
             afterInvokeCount++;
         }
     }

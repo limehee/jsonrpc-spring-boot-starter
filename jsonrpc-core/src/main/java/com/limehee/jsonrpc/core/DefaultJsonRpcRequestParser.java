@@ -1,6 +1,6 @@
 package com.limehee.jsonrpc.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 public class DefaultJsonRpcRequestParser implements JsonRpcRequestParser {
 

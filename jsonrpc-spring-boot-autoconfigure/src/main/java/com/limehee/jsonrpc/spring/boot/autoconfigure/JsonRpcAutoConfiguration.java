@@ -1,6 +1,7 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.limehee.jsonrpc.core.DefaultJsonRpcExceptionResolver;
 import com.limehee.jsonrpc.core.DefaultJsonRpcMethodInvoker;
 import com.limehee.jsonrpc.core.DefaultJsonRpcRequestParser;
@@ -96,13 +97,13 @@ public class JsonRpcAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcParameterBinder jsonRpcParameterBinder(ObjectProvider<ObjectMapper> objectMapperProvider) {
-        return new JacksonJsonRpcParameterBinder(objectMapperProvider.getIfAvailable(ObjectMapper::new));
+        return new JacksonJsonRpcParameterBinder(objectMapperProvider.getIfAvailable(() -> JsonMapper.builder().build()));
     }
 
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcResultWriter jsonRpcResultWriter(ObjectProvider<ObjectMapper> objectMapperProvider) {
-        return new JacksonJsonRpcResultWriter(objectMapperProvider.getIfAvailable(ObjectMapper::new));
+        return new JacksonJsonRpcResultWriter(objectMapperProvider.getIfAvailable(() -> JsonMapper.builder().build()));
     }
 
     @Bean
@@ -262,7 +263,7 @@ public class JsonRpcAutoConfiguration {
             JsonRpcWebMvcObserver webMvcObserver,
             JsonRpcProperties properties
     ) {
-        ObjectMapper objectMapper = objectMapperProvider.getIfAvailable(ObjectMapper::new);
+        ObjectMapper objectMapper = objectMapperProvider.getIfAvailable(() -> JsonMapper.builder().build());
         return new JsonRpcWebMvcEndpoint(
                 dispatcher,
                 objectMapper,

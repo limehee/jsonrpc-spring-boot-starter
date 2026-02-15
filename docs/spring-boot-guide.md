@@ -68,7 +68,7 @@ class GreetingRpcService {
 ### B. Explicit registration bean (`JsonRpcMethodRegistration`)
 
 ```java
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.node.StringNode;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -78,7 +78,7 @@ class RpcRegistrationConfig {
 
     @Bean
     JsonRpcMethodRegistration pingRegistration() {
-        return JsonRpcMethodRegistration.of("manual.ping", params -> TextNode.valueOf("pong-manual"));
+        return JsonRpcMethodRegistration.of("manual.ping", params -> StringNode.valueOf("pong-manual"));
     }
 }
 ```

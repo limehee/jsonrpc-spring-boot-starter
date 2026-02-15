@@ -1,6 +1,6 @@
 package com.limehee.jsonrpc.sample;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

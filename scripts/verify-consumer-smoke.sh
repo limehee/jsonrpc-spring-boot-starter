@@ -61,9 +61,9 @@ EOF
 cat > "${MAVEN_DIR}/src/test/java/com/example/CoreConsumerSmokeTest.java" <<'EOF'
 package com.example;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.StringNode;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import org.junit.jupiter.api.Test;
@@ -74,9 +74,9 @@ class CoreConsumerSmokeTest {
 
     @Test
     void dispatchesPingFromPublishedArtifact() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = tools.jackson.databind.json.JsonMapper.builder().build();
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
-        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonNode payload = mapper.readTree("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}");
         JsonRpcDispatchResult result = dispatcher.dispatch(payload);
@@ -152,7 +152,7 @@ EOF
 cat > "${GRADLE_DIR}/src/test/java/com/example/StarterConsumerSmokeTest.java" <<'EOF'
 package com.example;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import org.junit.jupiter.api.Test;
@@ -169,7 +169,7 @@ class StarterConsumerSmokeTest {
 
     @Test
     void invokesRegisteredMethodFromPublishedStarter() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = tools.jackson.databind.json.JsonMapper.builder().build();
         JsonRpcDispatchResult result = dispatcher.dispatch(mapper.readTree(
                 "{\"jsonrpc\":\"2.0\",\"method\":\"greet\",\"params\":{\"name\":\"developer\"},\"id\":1}"));
         assertEquals("hello developer", result.singleResponse().orElseThrow().result().asText());

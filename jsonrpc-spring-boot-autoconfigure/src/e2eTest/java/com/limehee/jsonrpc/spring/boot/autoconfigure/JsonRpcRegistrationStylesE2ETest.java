@@ -1,8 +1,9 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.StringNode;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
@@ -35,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 )
 class JsonRpcRegistrationStylesE2ETest {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     @LocalServerPort
     private int port;
@@ -102,7 +103,7 @@ class JsonRpcRegistrationStylesE2ETest {
 
         @Bean
         JsonRpcMethodRegistration manualPingRegistration() {
-            return JsonRpcMethodRegistration.of("manual.ping", params -> TextNode.valueOf("pong-manual"));
+            return JsonRpcMethodRegistration.of("manual.ping", params -> StringNode.valueOf("pong-manual"));
         }
 
         @Bean

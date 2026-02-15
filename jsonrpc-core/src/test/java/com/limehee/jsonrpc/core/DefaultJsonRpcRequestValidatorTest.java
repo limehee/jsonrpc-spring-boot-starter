@@ -1,9 +1,10 @@
 package com.limehee.jsonrpc.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.IntNode;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.IntNode;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.StringNode;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DefaultJsonRpcRequestValidatorTest {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final DefaultJsonRpcRequestValidator validator = new DefaultJsonRpcRequestValidator();
 
@@ -64,7 +65,7 @@ class DefaultJsonRpcRequestValidatorTest {
     @Test
     void validateAllowsTextOrNumberOrNullId() {
         assertDoesNotThrow(() -> validator.validate(
-                new JsonRpcRequest("2.0", TextNode.valueOf("abc"), "ping", null, true)));
+                new JsonRpcRequest("2.0", StringNode.valueOf("abc"), "ping", null, true)));
         assertDoesNotThrow(() -> validator.validate(
                 new JsonRpcRequest("2.0", IntNode.valueOf(7), "ping", null, true)));
         assertDoesNotThrow(() -> validator.validate(

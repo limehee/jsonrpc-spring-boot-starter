@@ -1,7 +1,7 @@
 package com.limehee.jsonrpc.spring.webmvc;
 
-import com.fasterxml.jackson.databind.node.IntNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.node.IntNode;
+import tools.jackson.databind.node.StringNode;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ class DefaultJsonRpcHttpStatusStrategyTest {
 
     @Test
     void statusForSingleAlwaysReturnsOk() {
-        JsonRpcResponse success = JsonRpcResponse.success(IntNode.valueOf(1), TextNode.valueOf("pong"));
+        JsonRpcResponse success = JsonRpcResponse.success(IntNode.valueOf(1), StringNode.valueOf("pong"));
         JsonRpcResponse error = JsonRpcResponse.error(IntNode.valueOf(1), JsonRpcErrorCode.INVALID_REQUEST, "invalid");
 
         assertEquals(HttpStatus.OK, strategy.statusForSingle(success));
@@ -27,7 +27,7 @@ class DefaultJsonRpcHttpStatusStrategyTest {
     @Test
     void statusForBatchReturnsOk() {
         List<JsonRpcResponse> responses = List.of(
-                JsonRpcResponse.success(IntNode.valueOf(1), TextNode.valueOf("ok")),
+                JsonRpcResponse.success(IntNode.valueOf(1), StringNode.valueOf("ok")),
                 JsonRpcResponse.error(IntNode.valueOf(2), JsonRpcErrorCode.METHOD_NOT_FOUND, "not found")
         );
 

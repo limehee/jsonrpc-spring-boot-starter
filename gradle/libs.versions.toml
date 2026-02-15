@@ -6,7 +6,7 @@ jspecify = "1.0.0"
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+jackson-databind = { module = "tools.jackson.core:jackson-databind" }
 spring-web = { module = "org.springframework:spring-web" }
 spring-test = { module = "org.springframework:spring-test" }
 spring-webmvc = { module = "org.springframework:spring-webmvc" }

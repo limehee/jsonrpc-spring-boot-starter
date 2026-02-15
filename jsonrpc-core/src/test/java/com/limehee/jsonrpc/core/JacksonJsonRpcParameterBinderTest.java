@@ -1,8 +1,9 @@
 package com.limehee.jsonrpc.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.StringNode;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JacksonJsonRpcParameterBinderTest {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final JacksonJsonRpcParameterBinder binder = new JacksonJsonRpcParameterBinder(OBJECT_MAPPER);
 
@@ -25,10 +26,10 @@ class JacksonJsonRpcParameterBinderTest {
 
     @Test
     void bindReturnsJsonNodeWithoutConversion() {
-        TextNode node = TextNode.valueOf("value");
+        StringNode node = StringNode.valueOf("value");
 
-        assertSame(node, binder.bind(node, com.fasterxml.jackson.databind.JsonNode.class));
-        assertSame(NullNode.getInstance(), binder.bind(NullNode.getInstance(), com.fasterxml.jackson.databind.JsonNode.class));
+        assertSame(node, binder.bind(node, tools.jackson.databind.JsonNode.class));
+        assertSame(NullNode.getInstance(), binder.bind(NullNode.getInstance(), tools.jackson.databind.JsonNode.class));
     }
 
     @Test
@@ -47,7 +48,7 @@ class JacksonJsonRpcParameterBinderTest {
     @Test
     void bindThrowsInvalidParamsWhenConversionFails() {
         JsonRpcException ex = assertThrows(JsonRpcException.class,
-                () -> binder.bind(TextNode.valueOf("bad"), PingParams.class));
+                () -> binder.bind(StringNode.valueOf("bad"), PingParams.class));
 
         assertEquals(JsonRpcErrorCode.INVALID_PARAMS, ex.getCode());
         assertEquals(JsonRpcConstants.MESSAGE_INVALID_PARAMS, ex.getMessage());

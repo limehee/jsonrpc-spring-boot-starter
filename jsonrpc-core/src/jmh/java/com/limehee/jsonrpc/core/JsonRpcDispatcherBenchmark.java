@@ -1,10 +1,11 @@
 package com.limehee.jsonrpc.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Scope;
@@ -15,7 +16,7 @@ import org.openjdk.jmh.annotations.State;
 public class JsonRpcDispatcherBenchmark {
 
     private static final int LARGE_BATCH_SIZE = 64;
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private JsonRpcDispatcher dispatcher;
     private JsonNode singlePayload;
@@ -32,12 +33,12 @@ public class JsonRpcDispatcherBenchmark {
     @Setup(Level.Trial)
     public void setUp() throws Exception {
         dispatcher = new JsonRpcDispatcher();
-        dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
         dispatcher.register("strict.object", params -> {
             if (params == null || !params.isObject()) {
                 throw new JsonRpcException(JsonRpcErrorCode.INVALID_PARAMS, JsonRpcConstants.MESSAGE_INVALID_PARAMS);
             }
-            return TextNode.valueOf("ok");
+            return StringNode.valueOf("ok");
         });
 
         singlePayload = OBJECT_MAPPER.readTree("""

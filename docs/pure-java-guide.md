@@ -23,16 +23,16 @@ implementation("io.github.limehee:jsonrpc-core:0.1.0-SNAPSHOT")
 ## 2. Minimal Dispatcher
 
 ```java
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.StringNode;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 
-ObjectMapper mapper = new ObjectMapper();
+ObjectMapper mapper = tools.jackson.databind.json.JsonMapper.builder().build();
 JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 
-dispatcher.register("ping", params -> TextNode.valueOf("pong"));
+dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
 JsonNode request = mapper.readTree("""
 {"jsonrpc":"2.0","method":"ping","id":1}

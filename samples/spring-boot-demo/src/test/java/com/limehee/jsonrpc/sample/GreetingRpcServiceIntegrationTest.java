@@ -1,13 +1,13 @@
 package com.limehee.jsonrpc.sample;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.node.StringNode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -212,7 +212,7 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
         @Bean
         JsonRpcMethodRegistration boomMethod() {
             return JsonRpcMethodRegistration.of("boom", params -> {
-                throw new JsonRpcException(-32001, "domain", TextNode.valueOf("secret"));
+                throw new JsonRpcException(-32001, "domain", StringNode.valueOf("secret"));
             });
         }
     }

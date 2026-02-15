@@ -1,6 +1,6 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure.support;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcError;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;

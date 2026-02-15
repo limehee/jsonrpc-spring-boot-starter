@@ -32,7 +32,7 @@ Method name resolution:
 ```java
 @Bean
 JsonRpcMethodRegistration ping() {
-    return JsonRpcMethodRegistration.of("ping", params -> TextNode.valueOf("pong"));
+    return JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong"));
 }
 ```
 
