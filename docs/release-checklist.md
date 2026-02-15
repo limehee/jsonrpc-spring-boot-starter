@@ -22,8 +22,9 @@ Use this checklist before creating a release tag (`vX.Y.Z`).
 
 ## 3) Publication Preconditions
 
-- Confirm OSSRH credentials are available:
+- Confirm Sonatype Central Portal user token credentials are available:
   - `OSSRH_USERNAME`, `OSSRH_PASSWORD`
+  - These env var names are kept for workflow compatibility, but values must be Central Portal user token username/password.
 - Confirm signing credentials are available:
   - `SIGNING_KEY`, `SIGNING_PASSWORD`
 - Validate generated artifacts:
