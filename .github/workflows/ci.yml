@@ -42,7 +42,8 @@ jobs:
         if: matrix.java == '17'
         shell: bash
         run: |
-          BASELINE_TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+          PROJECT_VERSION=$(grep '^version=' gradle.properties | cut -d= -f2)
+          BASELINE_TAG=$(git tag --list 'v*' --sort=-v:refname | grep -Fxv "v${PROJECT_VERSION}" | head -n 1 || true)
           if [ -z "${BASELINE_TAG}" ]; then
             echo "No release tag found. Skipping apiCompat."
             exit 0

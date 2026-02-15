@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: |
           CURRENT_TAG="${GITHUB_REF_NAME}"
-          BASELINE_TAG=$(git tag --list 'v*' --sort=-v:refname | grep -Fxv "${CURRENT_TAG}" | head -n 1)
+          BASELINE_TAG=$(git tag --list 'v*' --sort=-v:refname | grep -Fxv "${CURRENT_TAG}" | head -n 1 || true)
           if [ -z "${BASELINE_TAG}" ]; then
             echo "No previous release tag found. Skipping apiCompat."
             exit 0

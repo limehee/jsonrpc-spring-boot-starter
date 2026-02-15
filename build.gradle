@@ -172,7 +172,9 @@ configure(publishedApiModules) {
 
     if (apiBaselineVersionProvider.present) {
         dependencies {
-            apiCompatBaseline "${project.group}:${project.name}:${apiBaselineVersionProvider.get()}"
+            apiCompatBaseline("${project.group}:${project.name}:${apiBaselineVersionProvider.get()}") {
+                transitive = false
+            }
         }
     }
 
@@ -180,6 +182,7 @@ configure(publishedApiModules) {
         group = 'verification'
         description = "Checks binary API compatibility for ${project.path} against -PapiBaselineVersion"
         dependsOn tasks.named('jar')
+        dependsOn publishedApiModules.collect { it.tasks.named('jar') }
         onlyIf { apiBaselineVersionProvider.present }
         oldClasspath.from(configurations.apiCompatBaseline)
         newClasspath.from(tasks.named('jar').flatMap { it.archiveFile })
