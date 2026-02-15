@@ -150,7 +150,11 @@ subprojects {
         if (signingKey && signingPassword) {
             useInMemoryPgpKeys(signingKey, signingPassword)
         }
-        required = !version.toString().endsWith('SNAPSHOT')
+        def publishRequested = gradle.startParameter.taskNames.any { taskName ->
+            def lower = taskName.toLowerCase()
+            lower.contains('publish') && !lower.contains('mavenlocal')
+        }
+        required = !version.toString().endsWith('SNAPSHOT') && publishRequested
         sign publishing.publications
     }
 }
