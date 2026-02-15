@@ -1,12 +1,14 @@
 [versions]
 spring-boot = "4.0.2"
 jspecify = "1.0.0"
+jackson = "3.0.4"
+junit = "6.0.2"
 
 [libraries]
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
-jackson-databind = { module = "tools.jackson.core:jackson-databind" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
+jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson" }
 spring-web = { module = "org.springframework:spring-web" }
 spring-test = { module = "org.springframework:spring-test" }
 spring-webmvc = { module = "org.springframework:spring-webmvc" }
