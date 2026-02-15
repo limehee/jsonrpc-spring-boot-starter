@@ -47,4 +47,5 @@ Use this checklist before creating a release tag (`vX.Y.Z`).
 - Smoke test the sample project with the published version.
 - Verify Central Portal deployment visibility:
   - `Publish` workflow should call the `manual/upload/defaultRepository/<namespace>` finalize API.
+  - `Publish` workflow should poll deployment status and complete only when state reaches `PUBLISHED`.
   - Confirm `central.sonatype.com/publishing/deployments` shows the component and reaches `Published`.
