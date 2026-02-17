@@ -1,16 +1,21 @@
 # Getting Started
 
-This guide gets a JSON-RPC 2.0 endpoint running quickly and points to deeper references.
+This guide gets a working JSON-RPC endpoint up quickly and provides the shortest path to deeper docs.
 
 ## 1. Prerequisites
 
-- JDK 17 or newer
-- For Spring Boot usage: Spring Boot application (baseline tested with 4.0.2)
-- JSON payloads sent as `application/json`
+- JDK 17+
+- JSON request body (`application/json`)
+- Optional for Spring Boot path: Boot 4.x application
 
-## 2. Choose Dependency
+## 2. Choose a Runtime Style
 
-### Spring Boot Starter
+- Spring Boot + WebMVC endpoint: use `jsonrpc-spring-boot-starter`
+- Pure Java/custom transport: use `jsonrpc-core`
+
+## 3. Dependency Setup
+
+### 3.1 Spring Boot starter
 
 Maven:
 
@@ -34,7 +39,7 @@ Gradle (Groovy DSL):
 implementation 'io.github.limehee:jsonrpc-spring-boot-starter:0.1.0'
 ```
 
-### Core Only (Plain Java)
+### 3.2 Core only (pure Java)
 
 Maven:
 
@@ -58,24 +63,29 @@ Gradle (Groovy DSL):
 implementation 'io.github.limehee:jsonrpc-core:0.1.0'
 ```
 
-## 3. Spring Boot Minimum Example
+## 4. Spring Boot Minimal Example
+
+Service registration with annotation:
 
 ```java
 import com.limehee.jsonrpc.core.JsonRpcMethod;
+import com.limehee.jsonrpc.core.JsonRpcParam;
 import org.springframework.stereotype.Service;
 
 @Service
 class GreetingRpcService {
-    @JsonRpcMethod("greet")
-    public String greet(GreetParams params) {
-        return "hello " + params.name();
-    }
 
-    record GreetParams(String name) {}
+    @JsonRpcMethod("greet")
+    public String greet(@JsonRpcParam("name") String name) {
+        return "hello " + name;
+    }
 }
 ```
 
-Default endpoint: `POST /jsonrpc`
+Default endpoint:
+
+- HTTP method: `POST`
+- path: `/jsonrpc`
 
 Request:
 
@@ -89,29 +99,30 @@ Response:
 {"jsonrpc":"2.0","id":1,"result":"hello developer"}
 ```
 
-## 4. Core-Only Minimum Example (No Spring)
+## 5. Pure Java Minimal Example
 
 ```java
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.StringNode;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 
-ObjectMapper mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+ObjectMapper mapper = JsonMapper.builder().build();
 JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 
 dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
-JsonNode payload = mapper.readTree("""
+JsonNode request = mapper.readTree("""
 {"jsonrpc":"2.0","method":"ping","id":1}
 """);
 
-JsonRpcDispatchResult result = dispatcher.dispatch(payload);
-System.out.println(result.singleResponse().orElseThrow());
+JsonRpcDispatchResult result = dispatcher.dispatch(request);
+System.out.println(mapper.writeValueAsString(result.singleResponse().orElseThrow()));
 ```
 
-## 5. Verify with cURL
+## 6. Verify with cURL
 
 ```bash
 curl -sS -X POST http://localhost:8080/jsonrpc \
@@ -119,8 +130,9 @@ curl -sS -X POST http://localhost:8080/jsonrpc \
   -d '{"jsonrpc":"2.0","method":"greet","params":{"name":"rpc"},"id":1}'
 ```
 
-## 6. Next Steps
+## 7. What to Read Next
 
-- Spring customization: [`spring-boot-guide.md`](spring-boot-guide.md)
-- Protocol details and RFC alignment: [`protocol-and-compliance.md`](protocol-and-compliance.md)
-- Property and validation rules: [`configuration-reference.md`](configuration-reference.md)
+- Full Spring setup, registration styles, and operational options: [`spring-boot-guide.md`](spring-boot-guide.md)
+- Pure Java advanced composition and custom transport patterns: [`pure-java-guide.md`](pure-java-guide.md)
+- Registration priority and parameter binding rules: [`registration-and-binding.md`](registration-and-binding.md)
+- Property semantics, validation, and precedence: [`configuration-reference.md`](configuration-reference.md)

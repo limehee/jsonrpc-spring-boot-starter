@@ -3,6 +3,10 @@ spring-boot = "4.0.2"
 jspecify = "1.0.0"
 jackson = "3.0.4"
 junit = "6.0.2"
+japicmp-plugin = "0.4.6"
+jmh-plugin = "0.7.2"
+spring-dependency-management-plugin = "1.1.7"
+jsonrpc-starter = "0.1.0"
 
 [libraries]
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
@@ -20,3 +24,10 @@ spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-start
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 micrometer-core = { module = "io.micrometer:micrometer-core" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+jsonrpc-spring-boot-starter = { module = "io.github.limehee:jsonrpc-spring-boot-starter", version.ref = "jsonrpc-starter" }
+
+[plugins]
+japicmp = { id = "me.champeau.gradle.japicmp", version.ref = "japicmp-plugin" }
+jmh = { id = "me.champeau.jmh", version.ref = "jmh-plugin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management-plugin" }

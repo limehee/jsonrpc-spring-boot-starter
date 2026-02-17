@@ -1,5 +1,16 @@
 rootProject.name = "jsonrpc-spring-boot-demo"
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    versionCatalogs {
+        libs {
+            from(files("../../gradle/libs.versions.toml"))
+        }
+    }
+}
+
 includeBuild("../..") {
     dependencySubstitution {
         substitute(module("io.github.limehee:jsonrpc-spring-boot-starter"))

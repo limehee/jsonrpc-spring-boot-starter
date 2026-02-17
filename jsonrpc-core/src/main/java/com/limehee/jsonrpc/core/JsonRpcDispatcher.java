@@ -278,7 +278,6 @@ public class JsonRpcDispatcher {
             try {
                 interceptor.onError(request, throwable, error);
             } catch (Exception ignored) {
-                // Avoid masking JSON-RPC error responses because of interceptor failures.
             }
         }
     }

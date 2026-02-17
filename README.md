@@ -1,34 +1,41 @@
 # jsonrpc-spring-boot-starter
 
-Production-oriented JSON-RPC 2.0 server library for Java and Spring Boot.
+Production-oriented JSON-RPC 2.0 server library for Java, with optional Spring WebMVC and Spring Boot integration.
 
-- JSON-RPC 2.0 compliant request/response/error model
-- Transport-agnostic core (`jsonrpc-core`) usable in plain Java
-- Spring WebMVC adapter + Spring Boot auto-configuration/starter
-- Extension points for registration, interceptors, metrics, access control, and notification execution
+## Why this library
+
+- JSON-RPC 2.0 compliant core request/response/error handling
+- Pure Java support (`jsonrpc-core`) for custom transports
+- Spring WebMVC transport adapter and Spring Boot auto-configuration
+- Multiple registration styles (annotation/manual/typed)
+- Explicit extension points (parser/validator/invoker/exception mapping/interceptors/metrics)
+- Focused dependency surface (no direct Guava, Commons Lang3, or Jakarta Validation dependency)
 
 ## Specification
 
 - JSON-RPC 2.0: <https://www.jsonrpc.org/specification>
-- JSON (RFC 8259): <https://www.rfc-editor.org/rfc/rfc8259>
+- RFC 8259 (JSON): <https://www.rfc-editor.org/rfc/rfc8259>
 
-## Version Baseline
+## Baseline
 
 - Java: 17+
 - Spring Boot baseline: 4.0.2
-- Build: Gradle (Version Catalog enabled)
+- Jackson baseline: 3.0.x
+- Build: Gradle with Version Catalog
 - CI matrix: Java 17, 21, 25
 
 ## Modules
 
-- `jsonrpc-core`: protocol model, parser/validator/dispatcher, method registry, typed binding adapters
-- `jsonrpc-spring-webmvc`: HTTP endpoint adapter and status strategy
-- `jsonrpc-spring-boot-autoconfigure`: property binding, bean wiring, annotation scanning, optional metrics/access policies
-- `jsonrpc-spring-boot-starter`: dependency bundle for Spring Boot apps
+| Module | Purpose |
+|---|---|
+| `jsonrpc-core` | Protocol model, parser/validator, dispatcher, method registry, typed binding |
+| `jsonrpc-spring-webmvc` | HTTP endpoint adapter and HTTP status strategy |
+| `jsonrpc-spring-boot-autoconfigure` | Property binding, bean wiring, method scanning, metrics/access integration |
+| `jsonrpc-spring-boot-starter` | Starter dependency bundle for Spring Boot applications |
 
-## Quick Start
+## Install
 
-### 1) Add dependency
+### Spring Boot starter
 
 Maven:
 
@@ -52,26 +59,48 @@ Gradle (Groovy DSL):
 implementation 'io.github.limehee:jsonrpc-spring-boot-starter:0.1.0'
 ```
 
-### 2) Expose a method
+### Core only (pure Java)
+
+Maven:
+
+```xml
+<dependency>
+  <groupId>io.github.limehee</groupId>
+  <artifactId>jsonrpc-core</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
+
+Gradle (Kotlin DSL):
+
+```kotlin
+implementation("io.github.limehee:jsonrpc-core:0.1.0")
+```
+
+Gradle (Groovy DSL):
+
+```groovy
+implementation 'io.github.limehee:jsonrpc-core:0.1.0'
+```
+
+## Quick Start (Spring Boot)
 
 ```java
 import com.limehee.jsonrpc.core.JsonRpcMethod;
+import com.limehee.jsonrpc.core.JsonRpcParam;
 import org.springframework.stereotype.Service;
 
 @Service
 class GreetingRpcService {
-    @JsonRpcMethod("greet")
-    public String greet(GreetParams params) {
-        return "hello " + params.name();
-    }
 
-    record GreetParams(String name) {}
+    @JsonRpcMethod("greet")
+    public String greet(@JsonRpcParam("name") String name) {
+        return "hello " + name;
+    }
 }
 ```
 
-### 3) Call endpoint
-
-Default endpoint is `POST /jsonrpc` with `application/json`.
+Default endpoint: `POST /jsonrpc`
 
 Request:
 
@@ -85,63 +114,98 @@ Response:
 {"jsonrpc":"2.0","id":1,"result":"hello developer"}
 ```
 
-## Documentation
+## Quick Start (Pure Java)
 
-Full documentation entrypoint: [`docs/index.md`](docs/index.md).
+```java
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.StringNode;
+import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
+import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 
-- Documentation Home: [`docs/index.md`](docs/index.md)
-- Getting Started: [`docs/getting-started.md`](docs/getting-started.md)
-- Spring Boot Guide: [`docs/spring-boot-guide.md`](docs/spring-boot-guide.md)
-- Pure Java Guide: [`docs/pure-java-guide.md`](docs/pure-java-guide.md)
-- Protocol Compliance: [`docs/protocol-and-compliance.md`](docs/protocol-and-compliance.md)
-- Registration and Binding: [`docs/registration-and-binding.md`](docs/registration-and-binding.md)
-- Configuration Reference: [`docs/configuration-reference.md`](docs/configuration-reference.md)
-- Extension Points: [`docs/extension-points.md`](docs/extension-points.md)
-- Testing and Quality: [`docs/testing-and-quality.md`](docs/testing-and-quality.md)
-- Performance: [`docs/performance.md`](docs/performance.md)
-- Troubleshooting: [`docs/troubleshooting.md`](docs/troubleshooting.md)
+ObjectMapper mapper = JsonMapper.builder().build();
+JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 
-## JSON-RPC Flow
+dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
-```mermaid
-flowchart TD
-    A["Client sends HTTP POST /jsonrpc"] --> B["Read raw request body"]
-    B -->|"Invalid JSON"| C["Return error -32700 Parse error"]
-    B --> D["Parse JSON-RPC payload"]
-    D --> E["Validate request structure"]
-    E -->|"Invalid request"| F["Return error -32600 Invalid Request"]
-    E --> G["Resolve method handler"]
-    G -->|"Not found"| H["Return error -32601 Method not found"]
-    G --> I["Bind params and invoke"]
-    I -->|"Param binding failed"| J["Return error -32602 Invalid params"]
-    I -->|"Unhandled exception"| K["Return error -32603 Internal error"]
-    I --> L["Return success result"]
-    E -->|"Notification request (no id)"| M["Invoke method and return no response body"]
+JsonNode payload = mapper.readTree("""
+{"jsonrpc":"2.0","method":"ping","id":1}
+""");
+
+JsonRpcDispatchResult result = dispatcher.dispatch(payload);
+System.out.println(mapper.writeValueAsString(result.singleResponse().orElseThrow()));
 ```
 
-## Build and Test
+## Registration Styles and Priority
+
+Supported styles:
+
+1. `@JsonRpcMethod` on Spring beans
+2. `JsonRpcMethodRegistration` beans (manual)
+3. `JsonRpcTypedMethodHandlerFactory` (typed adapter used by manual or custom registration)
+
+Registration order in Spring Boot runtime:
+
+1. `JsonRpcMethodRegistration` beans are registered first (`orderedStream()`; `@Order` applies).
+2. `@JsonRpcMethod` scanning runs after singleton initialization and registers annotated methods.
+
+Conflict behavior for duplicate method names is controlled by `jsonrpc.method-registration-conflict-policy`:
+
+- `REJECT` (default): throws and fails startup/runtime registration.
+- `REPLACE`: later registration replaces earlier one.
+
+Practical implication with `REPLACE`: annotated methods can override manual registrations for the same name because annotation scanning executes later.
+
+## Mapping and Binding Summary
+
+- `@JsonRpcMethod("name")`: explicit JSON-RPC name.
+- `@JsonRpcMethod` without value: Java method name is used.
+- Multi-parameter binding mode:
+  - `params` object -> named binding (`@JsonRpcParam` first, then Java parameter names with `-parameters`)
+  - `params` array -> positional binding (exact argument count required)
+- Single parameter -> entire `params` node mapped to declared type.
+- Return values are serialized via Jackson (`ObjectMapper.valueToTree` by default).
+
+## Build and Verify
 
 ```bash
 ./gradlew check
-./gradlew test integrationTest e2eTest
 ./gradlew apiCompat -PapiBaselineVersion=<released-version>
 ./gradlew :jsonrpc-core:jmh
 ./gradlew :jsonrpc-core:jmhQuick
 ./scripts/verify-consumer-smoke.sh
 ```
 
-## Sample Application
+## Documentation
 
-- Sample app: [`samples/spring-boot-demo`](samples/spring-boot-demo)
-- Run sample:
+Detailed docs are under [`docs/`](docs/):
+
+- [`docs/index.md`](docs/index.md)
+- [`docs/getting-started.md`](docs/getting-started.md)
+- [`docs/spring-boot-guide.md`](docs/spring-boot-guide.md)
+- [`docs/pure-java-guide.md`](docs/pure-java-guide.md)
+- [`docs/registration-and-binding.md`](docs/registration-and-binding.md)
+- [`docs/configuration-reference.md`](docs/configuration-reference.md)
+- [`docs/extension-points.md`](docs/extension-points.md)
+- [`docs/protocol-and-compliance.md`](docs/protocol-and-compliance.md)
+- [`docs/testing-and-quality.md`](docs/testing-and-quality.md)
+- [`docs/performance.md`](docs/performance.md)
+- [`docs/troubleshooting.md`](docs/troubleshooting.md)
+
+## Sample
+
+- Spring Boot sample app: [`samples/spring-boot-demo`](samples/spring-boot-demo)
+
+Run:
 
 ```bash
 ./gradlew -p samples/spring-boot-demo bootRun
 ```
 
-## Contributing and Release
+## Project Docs
 
-- Contributing guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
-- Security policy: [`SECURITY.md`](SECURITY.md)
+- Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- Security: [`SECURITY.md`](SECURITY.md)
 - Release checklist: [`docs/release-checklist.md`](docs/release-checklist.md)
 - Changelog: [`CHANGELOG.md`](CHANGELOG.md)

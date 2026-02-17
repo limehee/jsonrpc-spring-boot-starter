@@ -1,34 +1,34 @@
-# Documentation
+# Documentation Index
 
-`jsonrpc-spring-boot-starter` documentation is organized by task and depth.
+`jsonrpc-spring-boot-starter` documentation is split by onboarding, implementation, reference, and operations.
 
-## Start Here
+## 1. Onboarding
 
-- New user: [`getting-started.md`](getting-started.md)
-- Spring Boot user: [`spring-boot-guide.md`](spring-boot-guide.md)
-- Plain Java user: [`pure-java-guide.md`](pure-java-guide.md)
+- Quick setup: [`getting-started.md`](getting-started.md)
+- Spring Boot usage: [`spring-boot-guide.md`](spring-boot-guide.md)
+- Pure Java usage: [`pure-java-guide.md`](pure-java-guide.md)
 
-## Reference
+## 2. Core Reference
 
-- Protocol rules and compliance: [`protocol-and-compliance.md`](protocol-and-compliance.md)
-- Registration and parameter binding: [`registration-and-binding.md`](registration-and-binding.md)
-- Configuration properties and validation: [`configuration-reference.md`](configuration-reference.md)
-- Extension points (interceptor/metrics/access): [`extension-points.md`](extension-points.md)
+- Protocol behavior and JSON-RPC compliance: [`protocol-and-compliance.md`](protocol-and-compliance.md)
+- Registration styles and parameter binding rules: [`registration-and-binding.md`](registration-and-binding.md)
+- Configuration keys, defaults, constraints, and precedence: [`configuration-reference.md`](configuration-reference.md)
+- Extension interfaces and override points: [`extension-points.md`](extension-points.md)
 
-## Quality and Operations
+## 3. System Design
 
-- Testing strategy and test stages: [`testing-and-quality.md`](testing-and-quality.md)
-- Performance and benchmark notes: [`performance.md`](performance.md)
-- Troubleshooting: [`troubleshooting.md`](troubleshooting.md)
-- Release process: [`release-checklist.md`](release-checklist.md)
+- Module and runtime architecture: [`architecture.md`](architecture.md)
 
-## Project Architecture
+## 4. Quality and Operations
 
-- Architecture overview: [`architecture.md`](architecture.md)
+- Test strategy (unit/integration/e2e/smoke/api compatibility): [`testing-and-quality.md`](testing-and-quality.md)
+- Performance guidance and JMH usage: [`performance.md`](performance.md)
+- Failure diagnosis and fixes: [`troubleshooting.md`](troubleshooting.md)
+- Release and publish flow: [`release-checklist.md`](release-checklist.md)
 
-## Related Project Docs
+## 5. Repository-Level Docs
 
-- Main README: [`../README.md`](../README.md)
-- Contribution guide: [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
+- Project overview: [`../README.md`](../README.md)
+- Contribution workflow: [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 - Security policy: [`../SECURITY.md`](../SECURITY.md)
-- Changelog: [`../CHANGELOG.md`](../CHANGELOG.md)
+- Release notes: [`../CHANGELOG.md`](../CHANGELOG.md)

@@ -1,5 +1,5 @@
 plugins {
-    id 'me.champeau.jmh' version '0.7.2'
+    alias(libs.plugins.jmh)
 }
 
 description = 'Core JSON-RPC 2.0 model and dispatcher'

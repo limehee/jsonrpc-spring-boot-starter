@@ -1,6 +1,6 @@
 # Spring Boot Guide
 
-This guide covers practical usage in Spring Boot applications.
+This guide covers production-style Spring Boot usage, including registration strategies, conflict handling, and runtime customization.
 
 ## 1. Dependency
 
@@ -28,22 +28,23 @@ implementation 'io.github.limehee:jsonrpc-spring-boot-starter:0.1.0'
 
 ## 2. Endpoint Exposure
 
-Auto-configured endpoint:
+When `jsonrpc.enabled=true` (default), the starter auto-registers a WebMVC endpoint:
 
-- Method: `POST`
-- Path: `jsonrpc.path` (default `/jsonrpc`)
-- Content type: `application/json`
+- `POST ${jsonrpc.path}`
+- default path: `/jsonrpc`
+- content type: `application/json`
 
-Minimal app properties:
+Example:
 
 ```yaml
 jsonrpc:
+  enabled: true
   path: /jsonrpc
 ```
 
-## 3. Method Registration Approaches
+## 3. Registration Styles
 
-### A. Annotation-based (`@JsonRpcMethod`)
+### 3.1 Annotation style (`@JsonRpcMethod`)
 
 ```java
 import com.limehee.jsonrpc.core.JsonRpcMethod;
@@ -51,21 +52,26 @@ import com.limehee.jsonrpc.core.JsonRpcParam;
 import org.springframework.stereotype.Service;
 
 @Service
-class GreetingRpcService {
+class MathRpcService {
 
-    @JsonRpcMethod("ping")
-    public String ping() {
-        return "pong";
-    }
-
-    @JsonRpcMethod("sum")
+    @JsonRpcMethod("math.sum")
     public int sum(@JsonRpcParam("left") int left, @JsonRpcParam("right") int right) {
         return left + right;
+    }
+
+    @JsonRpcMethod
+    public String ping() {
+        return "pong";
     }
 }
 ```
 
-### B. Explicit registration bean (`JsonRpcMethodRegistration`)
+Name rule:
+
+- `@JsonRpcMethod("math.sum")` -> explicit method name
+- `@JsonRpcMethod` (empty value) -> Java method name (`ping`)
+
+### 3.2 Manual style (`JsonRpcMethodRegistration` bean)
 
 ```java
 import tools.jackson.databind.node.StringNode;
@@ -74,16 +80,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-class RpcRegistrationConfig {
+class ManualRpcConfig {
 
     @Bean
-    JsonRpcMethodRegistration pingRegistration() {
+    JsonRpcMethodRegistration manualPingRegistration() {
         return JsonRpcMethodRegistration.of("manual.ping", params -> StringNode.valueOf("pong-manual"));
     }
 }
 ```
 
-### C. Typed factory (`JsonRpcTypedMethodHandlerFactory`)
+Use this when you need deterministic explicit registration without method scanning.
+
+### 3.3 Typed style (`JsonRpcTypedMethodHandlerFactory`)
 
 ```java
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
@@ -98,7 +106,7 @@ class TypedRpcConfig {
     record UpperOut(String value) {}
 
     @Bean
-    JsonRpcMethodRegistration upperRegistration(JsonRpcTypedMethodHandlerFactory factory) {
+    JsonRpcMethodRegistration typedUpperRegistration(JsonRpcTypedMethodHandlerFactory factory) {
         return JsonRpcMethodRegistration.of(
                 "typed.upper",
                 factory.unary(UpperIn.class, in -> new UpperOut(in.value().toUpperCase()))
@@ -107,9 +115,178 @@ class TypedRpcConfig {
 }
 ```
 
-## 4. Customization via Bean Override
+Use this when you want compile-time DTO types and reuse the standard binder/writer pipeline.
 
-Auto-configuration uses `@ConditionalOnMissingBean` on core components. You can override:
+## 4. Registration Priority and Conflict Policy
+
+Two registration phases exist in auto-configuration:
+
+1. `JsonRpcMethodRegistration` beans are applied while creating `JsonRpcDispatcher`.
+2. `@JsonRpcMethod` scanner (`JsonRpcAnnotatedMethodRegistrar`) runs after singleton initialization and registers annotated handlers.
+
+Within manual registrations, `orderedStream()` is used, so `@Order` / `Ordered` can control order.
+
+Duplicate method names are governed by `jsonrpc.method-registration-conflict-policy`:
+
+- `REJECT` (default): throws on duplicate registration.
+- `REPLACE`: later registration replaces earlier registration.
+
+Implications:
+
+- With `REPLACE`, annotation phase can override previously registered manual handlers with the same name.
+- With `REJECT`, duplication between manual and annotation styles fails fast.
+
+Configuration:
+
+```yaml
+jsonrpc:
+  method-registration-conflict-policy: REJECT
+```
+
+## 5. Parameter Mapping Semantics
+
+### 5.1 Single parameter methods
+
+`params` is mapped as a whole to the single declared parameter type.
+
+```java
+@JsonRpcMethod("greet")
+public String greet(GreetParams params) {
+    return "hello " + params.name();
+}
+
+record GreetParams(String name) {}
+```
+
+### 5.2 Multi parameter methods
+
+Binding mode is selected by request `params` shape:
+
+1. `params` is object -> named binding
+2. otherwise -> positional array binding
+
+Named binding name resolution order:
+
+1. `@JsonRpcParam("...")`
+2. Java reflection parameter name (`-parameters` required; already enabled in this project)
+
+Example:
+
+```java
+@JsonRpcMethod("sum")
+public int sum(@JsonRpcParam("left") int left, @JsonRpcParam("right") int right) {
+    return left + right;
+}
+```
+
+Request:
+
+```json
+{"jsonrpc":"2.0","method":"sum","params":{"left":1,"right":2},"id":1}
+```
+
+Positional example:
+
+```java
+@JsonRpcMethod("sum")
+public int sum(int left, int right) {
+    return left + right;
+}
+```
+
+Request:
+
+```json
+{"jsonrpc":"2.0","method":"sum","params":[1,2],"id":1}
+```
+
+### 5.3 Return mapping
+
+Return values are serialized through `JsonRpcResultWriter` (default uses Jackson `valueToTree`).
+
+Supported practical types include:
+
+- primitives/wrappers
+- records/POJOs
+- `Map`, `List`, collection types
+- `JsonNode`
+
+## 6. Control Scanning Scope
+
+Disable annotation scanning when you only want explicit registrations:
+
+```yaml
+jsonrpc:
+  scan-annotated-methods: false
+```
+
+## 7. Access Policy
+
+Properties:
+
+```yaml
+jsonrpc:
+  method-allowlist: [math.sum, ping]
+  method-denylist: [admin.reset]
+```
+
+Rules:
+
+1. Empty allowlist means all methods are allowed unless denied.
+2. Non-empty allowlist means only listed methods are allowed.
+3. Denylist always wins over allowlist.
+4. `rpc.*` methods are blocked by registry regardless of allow/deny lists.
+
+## 8. Notification Execution Strategy
+
+Default is direct execution in the request thread.
+
+Enable executor mode:
+
+```yaml
+jsonrpc:
+  notification-executor-enabled: true
+  notification-executor-bean-name: applicationTaskExecutor
+```
+
+Resolution order in executor mode:
+
+1. Explicit `notification-executor-bean-name`
+2. Single `Executor` bean in context
+3. `applicationTaskExecutor`
+4. Fallback to direct executor
+
+If the configured bean name is missing, startup fails with an explicit error.
+
+## 9. Metrics
+
+If Micrometer `MeterRegistry` exists and `jsonrpc.metrics-enabled=true` (default), metrics interceptor/observer are enabled.
+
+Key metrics:
+
+- `jsonrpc.server.calls`
+- `jsonrpc.server.latency`
+- `jsonrpc.server.stage.events`
+- `jsonrpc.server.failures`
+- `jsonrpc.server.transport.errors`
+- `jsonrpc.server.batch.*`
+- `jsonrpc.server.notification.*`
+
+Configuration:
+
+```yaml
+jsonrpc:
+  metrics-enabled: true
+  metrics-latency-histogram-enabled: true
+  metrics-latency-percentiles: [0.9, 0.95, 0.99]
+  metrics-max-method-tag-values: 100
+```
+
+## 10. Override Core Components
+
+Auto-configuration uses `@ConditionalOnMissingBean`, so you can replace any component by defining your own bean.
+
+Common override points:
 
 - `JsonRpcRequestParser`
 - `JsonRpcRequestValidator`
@@ -120,7 +297,7 @@ Auto-configuration uses `@ConditionalOnMissingBean` on core components. You can 
 - `JsonRpcNotificationExecutor`
 - `JsonRpcHttpStatusStrategy`
 
-Example: custom HTTP status strategy.
+Example HTTP status strategy:
 
 ```java
 import com.limehee.jsonrpc.core.JsonRpcResponse;
@@ -147,83 +324,8 @@ class RpcHttpConfig {
 }
 ```
 
-## 5. Annotation Scan Control
+## 11. Next References
 
-`jsonrpc.scan-annotated-methods=true` (default) enables scanning for `@JsonRpcMethod` on beans.
-
-Disable when you want only explicit registrations:
-
-```yaml
-jsonrpc:
-  scan-annotated-methods: false
-```
-
-## 6. Access Policy and Metrics
-
-Access policy:
-
-```yaml
-jsonrpc:
-  method-allowlist: [ping, greet]
-  method-denylist: [admin.reset]
-```
-
-- If a method exists in both allowlist and denylist, denylist wins.
-- Reserved `rpc.*` method names are always blocked at registration time.
-
-Metrics (Micrometer) are enabled by default when `MeterRegistry` is present:
-
-- `jsonrpc.server.calls`
-- `jsonrpc.server.latency`
-- `jsonrpc.server.stage.events`
-- `jsonrpc.server.failures`
-- `jsonrpc.server.transport.errors`
-- `jsonrpc.server.batch.requests`
-- `jsonrpc.server.batch.entries`
-- `jsonrpc.server.batch.size`
-- `jsonrpc.server.notification.queue.delay`
-- `jsonrpc.server.notification.execution`
-- `jsonrpc.server.notification.submitted`
-- `jsonrpc.server.notification.failed`
-
-Tune metrics behavior:
-
-```yaml
-jsonrpc:
-  metrics-enabled: true
-  metrics-latency-histogram-enabled: true
-  metrics-latency-percentiles: [0.9, 0.95, 0.99]
-  metrics-max-method-tag-values: 100
-```
-
-Disable metrics:
-
-```yaml
-jsonrpc:
-  metrics-enabled: false
-```
-
-## 7. Notification Execution Strategy
-
-Default notification execution is direct (same thread).
-
-Enable executor-based dispatch:
-
-```yaml
-jsonrpc:
-  notification-executor-enabled: true
-  notification-executor-bean-name: applicationTaskExecutor
-```
-
-Resolution order when enabled:
-
-1. Named executor from `notification-executor-bean-name`
-2. Only one `Executor` bean available
-3. `applicationTaskExecutor` bean
-4. Fallback to direct execution
-
-## 8. Where Next
-
-- Property table and validation: [`configuration-reference.md`](configuration-reference.md)
-- Parameter binding rules: [`registration-and-binding.md`](registration-and-binding.md)
-- Extension points: [`extension-points.md`](extension-points.md)
+- Registration and binding deep dive: [`registration-and-binding.md`](registration-and-binding.md)
+- Full property table and validation rules: [`configuration-reference.md`](configuration-reference.md)
+- Extension design: [`extension-points.md`](extension-points.md)

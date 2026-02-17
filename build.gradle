@@ -1,6 +1,6 @@
 plugins {
     id 'base'
-    id 'me.champeau.gradle.japicmp' version '0.4.6' apply false
+    alias(libs.plugins.japicmp) apply false
 }
 
 allprojects {

@@ -37,7 +37,6 @@ JsonRpcInterceptor auditInterceptor() {
     return new JsonRpcInterceptor() {
         @Override
         public void beforeInvoke(JsonRpcRequest request) {
-            // audit log
         }
     };
 }

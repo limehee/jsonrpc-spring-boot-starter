@@ -1,96 +1,170 @@
 # Registration and Binding
 
-This document explains all supported method registration styles and parameter binding rules.
+This document explains every supported method registration style, how conflicts are resolved, and how parameters/results are bound.
 
-## Registration Styles
+## 1. Registration Styles
 
-### 1. Annotation Style: `@JsonRpcMethod`
+## 1.1 Annotation style: `@JsonRpcMethod`
 
-Use on Spring-managed beans when annotation scanning is enabled.
+Use on Spring-managed beans when `jsonrpc.scan-annotated-methods=true`.
 
 ```java
+import com.limehee.jsonrpc.core.JsonRpcMethod;
+import com.limehee.jsonrpc.core.JsonRpcParam;
+import org.springframework.stereotype.Service;
+
 @Service
 class UserRpcService {
 
     @JsonRpcMethod("user.find")
-    public UserDto find(UserFindParams params) {
-        return new UserDto(params.id(), "lime");
+    public UserDto find(@JsonRpcParam("id") long id) {
+        return new UserDto(id, "lime");
     }
 
-    record UserFindParams(long id) {}
+    @JsonRpcMethod
+    public String ping() {
+        return "pong";
+    }
+
     record UserDto(long id, String name) {}
 }
 ```
 
-Method name resolution:
+Method name rule:
 
-- `@JsonRpcMethod("custom.name")`: explicit name
-- `@JsonRpcMethod` with empty value: Java method name is used
+- explicit annotation value -> used as-is
+- empty annotation value -> Java method name
 
-### 2. Manual Style: `JsonRpcMethodRegistration`
+## 1.2 Manual style: `JsonRpcMethodRegistration`
 
 ```java
-@Bean
-JsonRpcMethodRegistration ping() {
-    return JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong"));
+import tools.jackson.databind.node.StringNode;
+import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+class RpcRegistrationConfig {
+
+    @Bean
+    JsonRpcMethodRegistration pingRegistration() {
+        return JsonRpcMethodRegistration.of("manual.ping", params -> StringNode.valueOf("pong-manual"));
+    }
 }
 ```
 
-Use this style for strict/manual registration control.
+This style is explicit and works well for modular composition.
 
-### 3. Typed Adapter Style: `JsonRpcTypedMethodHandlerFactory`
+## 1.3 Typed adapter style: `JsonRpcTypedMethodHandlerFactory`
 
 ```java
-@Bean
-JsonRpcMethodRegistration upper(JsonRpcTypedMethodHandlerFactory factory) {
-    return JsonRpcMethodRegistration.of(
-        "upper",
-        factory.unary(Input.class, in -> new Output(in.value().toUpperCase()))
-    );
+import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
+import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+class TypedRegistrationConfig {
+
+    record UpperIn(String value) {}
+    record UpperOut(String value) {}
+
+    @Bean
+    JsonRpcMethodRegistration upperRegistration(JsonRpcTypedMethodHandlerFactory factory) {
+        return JsonRpcMethodRegistration.of(
+                "typed.upper",
+                factory.unary(UpperIn.class, in -> new UpperOut(in.value().toUpperCase()))
+        );
+    }
 }
 ```
 
-## Parameter Binding Rules (`@JsonRpcMethod`)
+Use this style when you want strict DTO-based mapping while still registering manually.
 
-### Zero parameters
+## 2. Registration Order and Priority
 
-- Accepts `params` omitted, `null`, `{}`, or `[]` for typed no-arg adapters.
-- Non-empty `params` produces `-32602`.
+In Spring Boot auto-configuration, registration happens in two phases:
 
-### Single parameter
+1. During `JsonRpcDispatcher` bean creation:
+   - all `JsonRpcMethodRegistration` beans are registered
+   - registration uses `ObjectProvider.orderedStream()`
+   - `@Order` / `Ordered` affects order in this phase
+2. After singletons are instantiated:
+   - `JsonRpcAnnotatedMethodRegistrar` scans beans for `@JsonRpcMethod`
+   - annotated methods are registered
 
-- Entire `params` node is converted to parameter type via `JsonRpcParameterBinder`.
-- Request-level validation allows `params` only as object/array (or omitted/null).
-- Within that constraint, conversion follows Jackson mapping rules.
+Priority summary:
 
-### Multiple parameters
+- manual registration phase runs first
+- annotation phase runs second
 
-Two modes are supported:
+## 3. Conflict Policy
 
-1. Positional array binding
-2. Named object binding
+Duplicate method names are controlled by `jsonrpc.method-registration-conflict-policy`.
 
-### Positional array
+### 3.1 `REJECT` (default)
+
+- duplicate registration throws
+- startup/runtime registration fails fast
+
+### 3.2 `REPLACE`
+
+- later registration replaces earlier one
+- because annotation phase runs later, annotation can override manual registration for the same method name
+
+Configuration:
+
+```yaml
+jsonrpc:
+  method-registration-conflict-policy: REJECT
+```
+
+## 4. Parameter Binding Rules (`@JsonRpcMethod`)
+
+## 4.1 Zero-parameter methods
+
+Accepted request shapes include:
+
+- `params` omitted
+- `params: null`
+- `params: {}`
+- `params: []` (for typed no-arg adapters)
+
+Non-empty parameters for no-arg methods produce `-32602`.
+
+## 4.2 Single-parameter methods
+
+- entire `params` node is converted to the parameter type
+- conversion uses `JsonRpcParameterBinder` (default Jackson-based)
+
+Example:
 
 ```java
-@JsonRpcMethod("sum")
-public int sum(int left, int right) {
-    return left + right;
+@JsonRpcMethod("greet")
+public String greet(GreetParams params) {
+    return "hello " + params.name();
 }
+
+record GreetParams(String name) {}
 ```
 
-Request:
+## 4.3 Multi-parameter methods
 
-```json
-{"jsonrpc":"2.0","method":"sum","params":[1,2],"id":1}
-```
+Mode is chosen by request `params` shape:
 
-Rules:
+1. Object -> named binding
+2. Non-object -> positional binding (array expected)
 
-- `params` must be array
-- array size must match parameter count exactly
+### Named binding
 
-### Named object binding
+Parameter name resolution order:
+
+1. `@JsonRpcParam("name")`
+2. reflection parameter name (requires `-parameters`)
+
+Missing key for any argument -> `-32602`.
+
+Example:
 
 ```java
 @JsonRpcMethod("sum")
@@ -105,34 +179,63 @@ Request:
 {"jsonrpc":"2.0","method":"sum","params":{"left":1,"right":2},"id":1}
 ```
 
+### Positional binding
+
 Rules:
 
-- Parameter names are resolved in order:
-  1. `@JsonRpcParam("name")`
-  2. Java reflection parameter name (`-parameters` required)
-- Missing named value triggers `-32602`.
+- `params` must be an array
+- array size must exactly match method argument count
 
-## Supported Payload Types
+Example:
 
-Binding/writing is Jackson-based, so practical support includes:
+```java
+@JsonRpcMethod("sum")
+public int sum(int left, int right) {
+    return left + right;
+}
+```
 
-- Primitive/wrapper types
+Request:
+
+```json
+{"jsonrpc":"2.0","method":"sum","params":[1,2],"id":1}
+```
+
+## 5. Supported Input and Output Shapes
+
+Since binding/writing is Jackson-based, commonly supported types include:
+
+- primitives and wrappers
 - Java records
-- POJOs
-- `Map` / `List` / collection types (when used as declared method parameter/return type)
+- POJOs/classes
+- enums
+- `List`, `Set`, `Map`, nested collections
 - `JsonNode`
 
-## Return Value Rules
+Examples:
 
-- Method return value is serialized via `JsonRpcResultWriter`.
-- Default implementation uses `ObjectMapper.valueToTree`.
-- Returning `null` is valid and serialized as JSON `null` in `result`.
+- parameter: `List<String> tags`
+- parameter: `Map<String, Integer> counters`
+- return: `List<MyDto>`
+- return: `Map<String, Object>`
 
-## Conflict Policy
+## 6. Return Semantics
 
-If the same method name is registered more than once, behavior is controlled by:
+- Return values are serialized via `JsonRpcResultWriter`.
+- Default writer uses `ObjectMapper.valueToTree`.
+- Returning `null` is valid and results in `"result": null`.
 
-- `REJECT` (default): startup/runtime registration fails
-- `REPLACE`: last registration replaces previous one
+## 7. Access Control vs Registration
 
-Property: `jsonrpc.method-registration-conflict-policy`
+Method registration and method access are separate concerns:
+
+- registration phase stores handlers
+- access policy interceptor checks allowlist/denylist at call time
+- denied methods map to `-32601 Method not found` for non-disclosure behavior
+
+## 8. Recommendations
+
+1. Use annotation style for simple service classes.
+2. Use manual/typed registration for reusable modules and deterministic wiring.
+3. Keep duplicate names disabled (`REJECT`) unless you intentionally build layered overrides.
+4. Prefer `@JsonRpcParam` for public APIs to avoid parameter-name compiler dependency issues.
