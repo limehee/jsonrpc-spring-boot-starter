@@ -1,5 +1,6 @@
 package com.limehee.jsonrpc.core;
 
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
@@ -440,7 +441,7 @@ class JsonRpcDispatcherTest {
         private final List<String> events = new ArrayList<>();
 
         @Override
-        public void beforeValidate(tools.jackson.databind.JsonNode rawRequest) {
+        public void beforeValidate(JsonNode rawRequest) {
             events.add("beforeValidate");
         }
 
@@ -450,7 +451,7 @@ class JsonRpcDispatcherTest {
         }
 
         @Override
-        public void afterInvoke(JsonRpcRequest request, tools.jackson.databind.JsonNode result) {
+        public void afterInvoke(JsonRpcRequest request, JsonNode result) {
             events.add("afterInvoke");
         }
 

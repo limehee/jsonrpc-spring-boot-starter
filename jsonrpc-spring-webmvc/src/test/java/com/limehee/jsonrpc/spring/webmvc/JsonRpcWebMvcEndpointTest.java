@@ -1,5 +1,6 @@
 package com.limehee.jsonrpc.spring.webmvc;
 
+import org.springframework.http.HttpStatus;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -190,28 +191,28 @@ class JsonRpcWebMvcEndpointTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
         JsonRpcHttpStatusStrategy strategy = new JsonRpcHttpStatusStrategy() {
             @Override
-            public org.springframework.http.HttpStatus statusForSingle(JsonRpcResponse response) {
-                return org.springframework.http.HttpStatus.OK;
+            public HttpStatus statusForSingle(JsonRpcResponse response) {
+                return HttpStatus.OK;
             }
 
             @Override
-            public org.springframework.http.HttpStatus statusForBatch(java.util.List<JsonRpcResponse> responses) {
-                return org.springframework.http.HttpStatus.OK;
+            public HttpStatus statusForBatch(List<JsonRpcResponse> responses) {
+                return HttpStatus.OK;
             }
 
             @Override
-            public org.springframework.http.HttpStatus statusForNotificationOnly() {
-                return org.springframework.http.HttpStatus.NO_CONTENT;
+            public HttpStatus statusForNotificationOnly() {
+                return HttpStatus.NO_CONTENT;
             }
 
             @Override
-            public org.springframework.http.HttpStatus statusForParseError() {
-                return org.springframework.http.HttpStatus.BAD_REQUEST;
+            public HttpStatus statusForParseError() {
+                return HttpStatus.BAD_REQUEST;
             }
 
             @Override
-            public org.springframework.http.HttpStatus statusForRequestTooLarge() {
-                return org.springframework.http.HttpStatus.valueOf(413);
+            public HttpStatus statusForRequestTooLarge() {
+                return HttpStatus.valueOf(413);
             }
         };
 

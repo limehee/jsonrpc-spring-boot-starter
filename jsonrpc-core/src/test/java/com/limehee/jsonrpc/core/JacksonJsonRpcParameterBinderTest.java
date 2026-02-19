@@ -1,5 +1,6 @@
 package com.limehee.jsonrpc.core;
 
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.NullNode;
@@ -28,8 +29,8 @@ class JacksonJsonRpcParameterBinderTest {
     void bindReturnsJsonNodeWithoutConversion() {
         StringNode node = StringNode.valueOf("value");
 
-        assertSame(node, binder.bind(node, tools.jackson.databind.JsonNode.class));
-        assertSame(NullNode.getInstance(), binder.bind(NullNode.getInstance(), tools.jackson.databind.JsonNode.class));
+        assertSame(node, binder.bind(node, JsonNode.class));
+        assertSame(NullNode.getInstance(), binder.bind(NullNode.getInstance(), JsonNode.class));
     }
 
     @Test

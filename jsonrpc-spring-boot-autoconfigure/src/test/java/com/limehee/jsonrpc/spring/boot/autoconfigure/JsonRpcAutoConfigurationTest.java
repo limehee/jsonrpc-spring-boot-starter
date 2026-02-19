@@ -1,5 +1,7 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.IntNode;
 import tools.jackson.databind.node.StringNode;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
@@ -66,7 +68,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(7),
                             "hello",
-                            new tools.jackson.databind.ObjectMapper().readTree("{\"name\":\"developer\"}"),
+                            new ObjectMapper().readTree("{\"name\":\"developer\"}"),
                             true
                     ));
 
@@ -87,7 +89,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(70),
                             "hello",
-                            new tools.jackson.databind.ObjectMapper().readTree("{\"name\":\"developer\"}"),
+                            new ObjectMapper().readTree("{\"name\":\"developer\"}"),
                             true
                     ));
 
@@ -108,7 +110,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(8),
                             "sum",
-                            new tools.jackson.databind.ObjectMapper().readTree("[2,3]"),
+                            new ObjectMapper().readTree("[2,3]"),
                             true
                     ));
 
@@ -127,7 +129,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(9),
                             "sum",
-                            new tools.jackson.databind.ObjectMapper().readTree("{\"left\":2}"),
+                            new ObjectMapper().readTree("{\"left\":2}"),
                             true
                     ));
 
@@ -148,7 +150,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(10),
                             "concat",
-                            new tools.jackson.databind.ObjectMapper().readTree("{\"left\":\"a\",\"right\":\"b\"}"),
+                            new ObjectMapper().readTree("{\"left\":\"a\",\"right\":\"b\"}"),
                             true
                     ));
 
@@ -167,7 +169,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(12),
                             "concat",
-                            new tools.jackson.databind.ObjectMapper().readTree("{\"left\":\"a\"}"),
+                            new ObjectMapper().readTree("{\"left\":\"a\"}"),
                             true
                     ));
 
@@ -186,7 +188,7 @@ class JsonRpcAutoConfigurationTest {
                             "2.0",
                             IntNode.valueOf(13),
                             "join",
-                            new tools.jackson.databind.ObjectMapper().readTree("{\"left\":\"x\",\"right\":\"y\"}"),
+                            new ObjectMapper().readTree("{\"left\":\"x\",\"right\":\"y\"}"),
                             true
                     ));
 
@@ -853,7 +855,7 @@ class JsonRpcAutoConfigurationTest {
         }
 
         @Override
-        public void afterInvoke(JsonRpcRequest request, tools.jackson.databind.JsonNode result) {
+        public void afterInvoke(JsonRpcRequest request, JsonNode result) {
             afterInvokeCount++;
         }
     }

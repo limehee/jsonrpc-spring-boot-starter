@@ -1,5 +1,6 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
+import com.limehee.jsonrpc.core.JsonRpcResponse;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcEndpoint;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -65,12 +67,12 @@ class JsonRpcWebAutoConfigurationTest {
         JsonRpcHttpStatusStrategy customJsonRpcHttpStatusStrategy() {
             return new JsonRpcHttpStatusStrategy() {
                 @Override
-                public HttpStatus statusForSingle(com.limehee.jsonrpc.core.JsonRpcResponse response) {
+                public HttpStatus statusForSingle(JsonRpcResponse response) {
                     return HttpStatus.OK;
                 }
 
                 @Override
-                public HttpStatus statusForBatch(java.util.List<com.limehee.jsonrpc.core.JsonRpcResponse> responses) {
+                public HttpStatus statusForBatch(List<JsonRpcResponse> responses) {
                     return HttpStatus.OK;
                 }
 
