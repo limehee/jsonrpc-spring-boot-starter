@@ -84,4 +84,4 @@ GitHub Actions runs matrix tests and compatibility checks (when release tag base
 
 - Add tests for success/failure/exception branches
 - Keep protocol behavior aligned with JSON-RPC 2.0
-- Update docs and changelog for user-visible behavior changes
+- Update docs and GitHub release notes for user-visible behavior changes

@@ -2,10 +2,10 @@
 
 Use this checklist before creating a release tag (`vX.Y.Z`).
 
-## 1) Version and Changelog
+## 1) Version and Release Notes
 
 - Update `gradle.properties` `version` to the release version (remove `-SNAPSHOT`).
-- Ensure `CHANGELOG.md` reflects all user-visible changes.
+- Prepare GitHub release notes draft that reflects all user-visible changes.
 - Confirm README examples and configuration docs match the current code.
 
 ## 2) Local Verification
@@ -43,7 +43,7 @@ Use this checklist before creating a release tag (`vX.Y.Z`).
 ## 5) Post-Release
 
 - Bump `gradle.properties` version to next snapshot (for example `X.Y.(Z+1)-SNAPSHOT`).
-- Add release notes entry (GitHub release and changelog link).
+- Publish GitHub release notes.
 - Smoke test the sample project with the published version.
 - Verify Central Portal deployment visibility:
   - `Publish` workflow should call the `manual/upload/defaultRepository/<namespace>` finalize API.

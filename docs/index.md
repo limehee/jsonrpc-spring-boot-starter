@@ -31,4 +31,4 @@
 - Project overview: [`../README.md`](../README.md)
 - Contribution workflow: [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 - Security policy: [`../SECURITY.md`](../SECURITY.md)
-- Release notes: [`../CHANGELOG.md`](../CHANGELOG.md)
+- Release notes: <https://github.com/limehee/jsonrpc-spring-boot-starter/releases>

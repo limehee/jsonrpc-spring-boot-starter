@@ -208,4 +208,4 @@ Run:
 - Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Security: [`SECURITY.md`](SECURITY.md)
 - Release checklist: [`docs/release-checklist.md`](docs/release-checklist.md)
-- Changelog: [`CHANGELOG.md`](CHANGELOG.md)
+- Releases: <https://github.com/limehee/jsonrpc-spring-boot-starter/releases>

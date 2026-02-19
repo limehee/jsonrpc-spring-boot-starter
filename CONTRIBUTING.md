@@ -46,7 +46,7 @@ Common commands:
 
 - Write clear commit messages describing intent.
 - Update docs when behavior/configuration changes.
-- Update `CHANGELOG.md` for user-visible changes.
+- Add clear release notes in the GitHub Release for user-visible changes.
 
 Before opening a PR, make sure:
 
