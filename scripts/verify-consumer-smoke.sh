@@ -63,6 +63,7 @@ package com.example;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.StringNode;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
@@ -74,7 +75,7 @@ class CoreConsumerSmokeTest {
 
     @Test
     void dispatchesPingFromPublishedArtifact() throws Exception {
-        ObjectMapper mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+        ObjectMapper mapper = JsonMapper.builder().build();
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
@@ -153,6 +154,7 @@ cat > "${GRADLE_DIR}/src/test/java/com/example/StarterConsumerSmokeTest.java" <<
 package com.example;
 
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import org.junit.jupiter.api.Test;
@@ -169,7 +171,7 @@ class StarterConsumerSmokeTest {
 
     @Test
     void invokesRegisteredMethodFromPublishedStarter() throws Exception {
-        ObjectMapper mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+        ObjectMapper mapper = JsonMapper.builder().build();
         JsonRpcDispatchResult result = dispatcher.dispatch(mapper.readTree(
                 "{\"jsonrpc\":\"2.0\",\"method\":\"greet\",\"params\":{\"name\":\"developer\"},\"id\":1}"));
         assertEquals("hello developer", result.singleResponse().orElseThrow().result().asText());

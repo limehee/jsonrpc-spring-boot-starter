@@ -1,3 +1,5 @@
+import me.champeau.gradle.japicmp.JapicmpTask
+
 plugins {
     id 'base'
     alias(libs.plugins.japicmp) apply false
@@ -182,7 +184,7 @@ configure(publishedApiModules) {
         }
     }
 
-    tasks.register('apiCompatCheck', me.champeau.gradle.japicmp.JapicmpTask) {
+    tasks.register('apiCompatCheck', JapicmpTask) {
         group = 'verification'
         description = "Checks binary API compatibility for ${project.path} against -PapiBaselineVersion"
         dependsOn tasks.named('jar')

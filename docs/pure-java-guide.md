@@ -101,7 +101,7 @@ class CreateTagRequest {
 ```java
 dispatcher.register(
         "tags.list",
-        factory.noParams(() -> java.util.List.of("alpha", "beta", "gamma"))
+        factory.noParams(() -> List.of("alpha", "beta", "gamma"))
 );
 ```
 
@@ -110,7 +110,7 @@ dispatcher.register(
 ```java
 dispatcher.register(
         "health",
-        factory.noParams(() -> java.util.Map.of("status", "UP", "version", "0.1.0"))
+        factory.noParams(() -> Map.of("status", "UP", "version", "0.1.0"))
 );
 ```
 
@@ -159,6 +159,7 @@ import com.limehee.jsonrpc.core.DirectJsonRpcNotificationExecutor;
 import com.limehee.jsonrpc.core.InMemoryJsonRpcMethodRegistry;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy;
+import java.util.List;
 
 JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
         new InMemoryJsonRpcMethodRegistry(JsonRpcMethodRegistrationConflictPolicy.REJECT),
@@ -168,7 +169,7 @@ JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
         new DefaultJsonRpcExceptionResolver(false),
         new DefaultJsonRpcResponseComposer(),
         100,
-        java.util.List.of(),
+        List.of(),
         new DirectJsonRpcNotificationExecutor()
 );
 ```

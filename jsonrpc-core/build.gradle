@@ -1,3 +1,5 @@
+import me.champeau.jmh.JMHTask
+
 plugins {
     alias(libs.plugins.jmh)
 }
@@ -15,13 +17,13 @@ jmh {
     fork = 1
 }
 
-tasks.register('jmhQuick', me.champeau.jmh.JMHTask) {
+tasks.register('jmhQuick', JMHTask) {
     group = 'verification'
     description = 'Runs a quick JMH profile with short warmup/measurement.'
 
     dependsOn tasks.named('jmhJar')
 
-    def standardJmhTask = tasks.named('jmh', me.champeau.jmh.JMHTask).get()
+    def standardJmhTask = tasks.named('jmh', JMHTask).get()
     jmhClasspath.from(standardJmhTask.jmhClasspath)
     testRuntimeClasspath.from(standardJmhTask.testRuntimeClasspath)
     jarArchive.set(standardJmhTask.jarArchive)
