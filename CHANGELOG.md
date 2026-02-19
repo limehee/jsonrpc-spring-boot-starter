@@ -58,6 +58,7 @@ All notable changes to this project are documented in this file.
 - Added JMH benchmark support in `jsonrpc-core` with dispatcher benchmark scenarios.
 - Added `docs/release-checklist.md` for repeatable release execution.
 - `jsonrpc-spring-boot-autoconfigure` now includes Micrometer runtime dependency so optional metrics conditions can be evaluated safely in consumer applications.
+- Replace all FQCNs with `import` statements.
 
 ### Fixed
 - Invalid id-less requests now correctly return JSON-RPC error responses while valid notifications remain no-response.
