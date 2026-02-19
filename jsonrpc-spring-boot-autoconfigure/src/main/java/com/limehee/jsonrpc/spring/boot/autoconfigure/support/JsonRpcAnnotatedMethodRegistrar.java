@@ -13,6 +13,7 @@ import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.util.ClassUtils;
+import tools.jackson.databind.JsonNode;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -120,14 +121,14 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
         return typedMethodHandlerFactory.unary((Class<T>) paramType, param -> invoke(bean, method, param));
     }
 
-    private Object[] bindMethodParams(Method method, tools.jackson.databind.JsonNode params) {
+    private Object[] bindMethodParams(Method method, JsonNode params) {
         if (params != null && params.isObject()) {
             return bindNamedParams(method, params);
         }
         return bindPositionalParams(method, params);
     }
 
-    private Object[] bindPositionalParams(Method method, tools.jackson.databind.JsonNode params) {
+    private Object[] bindPositionalParams(Method method, JsonNode params) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (params == null || !params.isArray() || params.size() != parameterTypes.length) {
             throw invalidParamsException();
@@ -140,14 +141,14 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
         return bound;
     }
 
-    private Object[] bindNamedParams(Method method, tools.jackson.databind.JsonNode params) {
+    private Object[] bindNamedParams(Method method, JsonNode params) {
         Parameter[] parameters = method.getParameters();
         Object[] bound = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
             String paramName = resolveParameterName(parameter);
-            tools.jackson.databind.JsonNode valueNode = params.get(paramName);
+            JsonNode valueNode = params.get(paramName);
             if (valueNode == null) {
                 throw invalidParamsException();
             }
