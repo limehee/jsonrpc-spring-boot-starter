@@ -36,5 +36,4 @@ Details:
 ## Documentation
 
 - [ ] Updated README (if needed)
-- [ ] Updated CHANGELOG
 - [ ] Added migration notes for breaking changes (if any)
