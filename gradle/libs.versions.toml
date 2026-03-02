@@ -1,7 +1,7 @@
 [versions]
 spring-boot = "4.0.3"
 jspecify = "1.0.0"
-jackson = "3.0.4"
+jackson = "3.1.0"
 junit = "6.0.3"
 japicmp-plugin = "0.4.6"
 jmh-plugin = "0.7.3"
