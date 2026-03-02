@@ -31,8 +31,13 @@ jobs:
               "status: duplicate",
               "status: waiting-for-feedback"
             ];
+            // Prefix used to detect issue type labels.
+            const typeLabelPrefix = "type:";
             // Fallback status for newly opened or reopened issues.
             const defaultStatus = "status: waiting-for-feedback";
+            // Hidden markers prevent duplicate bot comments.
+            const typeMissingMarker = "<!-- issue-triage:type-missing -->";
+            const statusDeniedMarker = "<!-- issue-triage:status-maintainer-only -->";
             const issue = context.payload.issue;
             const issueNumber = issue.number;
 
@@ -44,6 +49,30 @@ jobs:
                 issue_number: issueNumber
               });
               return response.data.map((label) => label.name);
+            }
+
+            // Fetch all issue comments for duplicate-warning suppression.
+            async function listComments() {
+              return github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                per_page: 100
+              });
+            }
+
+            // Create a bot comment once per marker.
+            async function commentOnce(marker, body) {
+              const comments = await listComments();
+              const exists = comments.some((comment) => (comment.body || "").includes(marker));
+              if (!exists) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: `${marker}\n${body}`
+                });
+              }
             }
 
             // Attach a single label to the issue.
@@ -86,6 +115,45 @@ jobs:
               }
             }
 
+            // Ensure exactly one status label exists after unauthorized edits are reverted.
+            async function ensureAtLeastOneStatusLabel() {
+              const labels = await listCurrentLabels();
+              const statusCount = labels.filter((name) => statusLabels.includes(name)).length;
+              if (statusCount === 0) {
+                await addLabel(defaultStatus);
+              }
+            }
+
+            // Check whether the current actor has maintainer-level repository permission.
+            async function isMaintainerActor() {
+              try {
+                const response = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  username: context.actor
+                });
+                const permission = response.data.permission;
+                return permission === "admin" || permission === "maintain" || permission === "write";
+              } catch (error) {
+                if (error.status === 404) {
+                  return false;
+                }
+                throw error;
+              }
+            }
+
+            // Warn when no type label is present on an issue.
+            async function warnIfTypeLabelMissing() {
+              const labels = await listCurrentLabels();
+              const hasType = labels.some((name) => name.startsWith(typeLabelPrefix));
+              if (!hasType) {
+                await commentOnce(
+                  typeMissingMarker,
+                  "⚠️ This issue has no `type:*` label. Please add one of the repository type labels (for example `type: bug`, `type: feature`, `type: refactor`)."
+                );
+              }
+            }
+
             if (context.eventName === "issues") {
               const action = context.payload.action;
               if (action === "opened") {
@@ -99,19 +167,32 @@ jobs:
                   const keep = statusLabels.find((name) => statusSet.includes(name)) || statusSet[0];
                   await normalizeToSingleStatus(keep);
                 }
+                await warnIfTypeLabelMissing();
               }
 
               if (action === "reopened") {
                 // Reopened issues go back to waiting-for-feedback by default.
                 await normalizeToSingleStatus(defaultStatus);
+                await warnIfTypeLabelMissing();
               }
 
               if (action === "labeled") {
-                // When a status label is added manually, keep only that status.
+                // When a status label is added manually, allow only maintainers to change status.
                 const labeled = context.payload.label && context.payload.label.name;
                 if (statusLabels.includes(labeled)) {
-                  await normalizeToSingleStatus(labeled);
+                  const maintainer = await isMaintainerActor();
+                  if (!maintainer) {
+                    await removeLabel(labeled);
+                    await ensureAtLeastOneStatusLabel();
+                    await commentOnce(
+                      statusDeniedMarker,
+                      `⚠️ \`status:*\` labels can only be changed by maintainers. The label \`${labeled}\` was removed.`
+                    );
+                  } else {
+                    await normalizeToSingleStatus(labeled);
+                  }
                 }
+                await warnIfTypeLabelMissing();
               }
             }
 
@@ -123,4 +204,5 @@ jobs:
                 // Reporter feedback clears waiting-for-feedback.
                 await removeLabel(defaultStatus);
               }
+              await warnIfTypeLabelMissing();
             }
