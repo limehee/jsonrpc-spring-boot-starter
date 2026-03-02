@@ -1,0 +1,34 @@
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 15
+    labels:
+      - "type: dependencies"
+    groups:
+      gradle-patch-updates:
+        update-types:
+          - "patch"
+      gradle-minor-updates:
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    labels:
+      - "type: dependencies"
+    groups:
+      github-actions-updates:
+        patterns:
+          - "*"
