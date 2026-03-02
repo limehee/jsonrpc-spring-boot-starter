@@ -20,7 +20,7 @@ body:
     attributes:
       label: Library version
       description: Which version are you using?
-      placeholder: e.g. 0.1.0-SNAPSHOT
+      placeholder: e.g. <released-version> or <next-version>-SNAPSHOT
     validations:
       required: true
   - type: textarea
