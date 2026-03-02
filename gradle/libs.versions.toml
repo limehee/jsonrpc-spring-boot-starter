@@ -1,12 +1,12 @@
 [versions]
-spring-boot = "4.0.2"
+spring-boot = "4.0.3"
 jspecify = "1.0.0"
-jackson = "3.0.4"
-junit = "6.0.2"
+jackson = "3.1.0"
+junit = "6.0.3"
 japicmp-plugin = "0.4.6"
-jmh-plugin = "0.7.2"
+jmh-plugin = "0.7.3"
 spring-dependency-management-plugin = "1.1.7"
-jsonrpc-starter = "0.1.0"
+jsonrpc-starter = "0.1.1"
 
 [libraries]
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }

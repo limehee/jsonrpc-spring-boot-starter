@@ -30,7 +30,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5.0.1
+        uses: gradle/actions/setup-gradle@v5.0.2
 
       - name: Consumer Smoke Verification
         run: ./scripts/verify-consumer-smoke.sh
