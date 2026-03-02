@@ -16,6 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * HTTP endpoint that exposes JSON-RPC 2.0 over Spring WebMVC.
+ * <p>
+ * The endpoint accepts {@code application/json} POST payloads, delegates request processing to
+ * {@link JsonRpcDispatcher}, and serializes protocol-compliant JSON-RPC response payloads.
+ * Notification-only requests return an HTTP response without a body.
+ * </p>
+ */
 @RestController
 public class JsonRpcWebMvcEndpoint {
 
@@ -25,6 +33,14 @@ public class JsonRpcWebMvcEndpoint {
     private final int maxRequestBytes;
     private final JsonRpcWebMvcObserver observer;
 
+    /**
+     * Creates an endpoint with a no-op observer.
+     *
+     * @param dispatcher dispatcher that performs JSON-RPC parsing, validation, and invocation
+     * @param objectMapper mapper used to parse request payloads and serialize responses
+     * @param httpStatusStrategy strategy that maps JSON-RPC outcomes to HTTP status codes
+     * @param maxRequestBytes maximum accepted request payload size in bytes
+     */
     public JsonRpcWebMvcEndpoint(
             JsonRpcDispatcher dispatcher,
             ObjectMapper objectMapper,
@@ -40,6 +56,15 @@ public class JsonRpcWebMvcEndpoint {
         );
     }
 
+    /**
+     * Creates an endpoint with an explicit transport observer.
+     *
+     * @param dispatcher dispatcher that performs JSON-RPC parsing, validation, and invocation
+     * @param objectMapper mapper used to parse request payloads and serialize responses
+     * @param httpStatusStrategy strategy that maps JSON-RPC outcomes to HTTP status codes
+     * @param maxRequestBytes maximum accepted request payload size in bytes
+     * @param observer observer receiving transport-level event callbacks
+     */
     public JsonRpcWebMvcEndpoint(
             JsonRpcDispatcher dispatcher,
             ObjectMapper objectMapper,
@@ -59,6 +84,17 @@ public class JsonRpcWebMvcEndpoint {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    /**
+     * Handles JSON-RPC HTTP requests.
+     * <p>
+     * Parsing errors, oversized payloads, and whitespace-only payloads produce a single JSON-RPC
+     * error response. Notification-only handling returns an empty HTTP response with a transport
+     * status from {@link JsonRpcHttpStatusStrategy#statusForNotificationOnly()}.
+     * </p>
+     *
+     * @param body raw HTTP request payload bytes; may be {@code null} when request body is absent
+     * @return HTTP response entity containing either serialized JSON-RPC payload or empty body
+     */
     public ResponseEntity<String> invoke(@RequestBody(required = false) byte[] body) {
         if (body == null || body.length == 0) {
             observer.onParseError();
@@ -106,10 +142,24 @@ public class JsonRpcWebMvcEndpoint {
         return jsonResponse(httpStatusStrategy.statusForSingle(single), single);
     }
 
+    /**
+     * Creates a single-error transport response.
+     *
+     * @param response JSON-RPC error response payload
+     * @param status HTTP status selected for that payload
+     * @return HTTP response entity containing serialized JSON-RPC error payload
+     */
     private ResponseEntity<String> singleErrorResponse(JsonRpcResponse response, HttpStatus status) {
         return jsonResponse(status, response);
     }
 
+    /**
+     * Serializes the given payload and builds an HTTP response entity.
+     *
+     * @param status HTTP status to apply
+     * @param payload payload object to serialize as JSON
+     * @return HTTP response with JSON content type and serialized body
+     */
     private ResponseEntity<String> jsonResponse(HttpStatus status, Object payload) {
         return ResponseEntity
                 .status(status)
@@ -117,6 +167,13 @@ public class JsonRpcWebMvcEndpoint {
                 .body(toJson(payload));
     }
 
+    /**
+     * Serializes an object into JSON text.
+     *
+     * @param payload payload object to serialize
+     * @return serialized JSON text
+     * @throws IllegalStateException if serialization fails unexpectedly
+     */
     private String toJson(Object payload) {
         try {
             return objectMapper.writeValueAsString(payload);
@@ -125,6 +182,12 @@ public class JsonRpcWebMvcEndpoint {
         }
     }
 
+    /**
+     * Checks whether the payload consists only of JSON whitespace characters.
+     *
+     * @param body payload bytes to inspect
+     * @return {@code true} when payload is non-empty but whitespace-only
+     */
     private boolean isJsonWhitespaceOnly(byte[] body) {
         for (byte value : body) {
             if (value != ' ' && value != '\t' && value != '\n' && value != '\r') {
