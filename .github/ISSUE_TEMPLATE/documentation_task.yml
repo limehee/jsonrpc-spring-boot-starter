@@ -1,0 +1,49 @@
+name: Documentation task
+description: Request documentation creation, correction, or structural improvements
+title: "[Docs] "
+labels: ["type: documentation", "status: waiting-for-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for docs updates in README, docs/, and contribution guides.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What documentation needs to change?
+      placeholder: missing section, outdated setup step, unclear guide flow, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: audience
+    attributes:
+      label: Target audience
+      description: Who is this documentation for?
+      placeholder: first-time users, library maintainers, release operators, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: locations
+    attributes:
+      label: Target files or sections
+      description: Which files or sections should be updated?
+      placeholder: README.md, docs/getting-started.md, CONTRIBUTING.md
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected outcome
+      description: What should readers be able to do after this update?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Supporting evidence
+      description: Links to errors, screenshots, logs, or user feedback.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes

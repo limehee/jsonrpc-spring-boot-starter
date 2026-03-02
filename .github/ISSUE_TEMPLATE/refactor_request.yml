@@ -1,0 +1,50 @@
+name: Refactor request
+description: Propose internal structure improvements without changing external behavior
+title: "[Refactor] "
+labels: ["type: refactor", "status: waiting-for-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for behavior-preserving refactoring work.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Refactor goal
+      description: What maintainability, readability, or design problem should be improved?
+      placeholder: Describe the current technical issue.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Which modules, packages, or classes are expected to change?
+      placeholder: e.g. jsonrpc-core dispatcher pipeline only
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Behavior compatibility
+      description: Confirm which runtime behavior must stay unchanged.
+      placeholder: Public API and JSON-RPC protocol behavior remain unchanged.
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks and trade-offs
+      description: What risks exist and how can they be mitigated?
+  - type: textarea
+    id: tests
+    attributes:
+      label: Test plan
+      description: What tests should prove no regression?
+      placeholder: unit/integration/e2e coverage updates
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context

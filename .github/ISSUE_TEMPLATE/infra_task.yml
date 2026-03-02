@@ -1,0 +1,54 @@
+name: Infra/CI task
+description: Propose infrastructure, build, CI/CD, or repository operations changes
+title: "[Infra] "
+labels: ["type: infra", "status: waiting-for-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for build pipeline, release, and operational improvements.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What operational issue or inefficiency needs to be fixed?
+      placeholder: flaky CI step, slow builds, release reliability issue, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What should be changed in CI/CD or repository operations?
+      placeholder: workflow/job/action/cache/security/permission updates
+    validations:
+      required: true
+  - type: textarea
+    id: impacted
+    attributes:
+      label: Impacted files and systems
+      description: Which workflows, scripts, or external services are affected?
+      placeholder: .github/workflows/..., scripts/..., Maven Central, GPG, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security and secret impact
+      description: Any token/permission/secrets impact?
+      placeholder: required permissions, secret changes, rotation requirements
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback plan
+      description: How to revert safely if the change fails?
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
+      description: Which workflows/checks must pass?
+      placeholder: ci, consumer-smoke, publish dry-run, local script verification
+    validations:
+      required: true
