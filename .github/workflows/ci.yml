@@ -11,9 +11,23 @@ concurrency:
 
 permissions:
   contents: read
+  issues: read
 
 jobs:
+  metadata-guardrails:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate Issue Template Labels
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/check-issue-template-labels.sh
+
   test:
+    needs: metadata-guardrails
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 

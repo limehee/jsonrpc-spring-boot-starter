@@ -1,0 +1,66 @@
+name: Dependencies update
+description: Track dependency upgrades, pin changes, and compatibility work
+title: "[Dependencies] "
+labels: ["type: dependencies", "status: waiting-for-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for dependency lifecycle management.
+  - type: input
+    id: dependency
+    attributes:
+      label: Dependency name
+      description: Which dependency is changing?
+      placeholder: e.g. tools.jackson:jackson-databind
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Version change
+      description: What is the from/to version?
+      placeholder: e.g. 3.0.4 -> 3.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: update_type
+    attributes:
+      label: Update type
+      options:
+        - patch
+        - minor
+        - major
+        - security fix
+        - transitive alignment
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why is this update needed?
+      placeholder: security, bug fix, feature need, ecosystem alignment
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Compatibility impact
+      description: Any API/runtime/behavioral impact expected?
+      placeholder: no impact / possible breaking changes in ...
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
+      description: Which checks should pass before merge?
+      placeholder: test, check, smoke, compatibility checks
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Release notes, CVE links, migration docs, etc.

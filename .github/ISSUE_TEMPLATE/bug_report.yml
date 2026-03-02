@@ -1,7 +1,7 @@
 name: Bug report
 description: Report a reproducible bug
 title: "[Bug] "
-labels: ["bug", "needs-triage"]
+labels: ["type: bug", "status: waiting-for-feedback"]
 body:
   - type: markdown
     attributes:
