@@ -32,18 +32,18 @@ public class JsonRpcProperties {
     private List<String> methodDenylist = new ArrayList<>();
 
     /**
-     * Indicates whether JSON-RPC WebMVC endpoint auto-registration is enabled.
+     * Indicates whether the JSON-RPC WebMVC transport endpoint bean is registered.
      *
-     * @return {@code true} when endpoint auto-configuration is enabled
+     * @return {@code true} when endpoint bean registration is enabled
      */
     public boolean isEnabled() {
         return enabled;
     }
 
     /**
-     * Sets whether JSON-RPC WebMVC endpoint auto-registration is enabled.
+     * Sets whether the JSON-RPC WebMVC transport endpoint bean is registered.
      *
-     * @param enabled {@code true} to enable endpoint auto-configuration
+     * @param enabled {@code true} to enable endpoint bean registration
      */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
@@ -214,18 +214,22 @@ public class JsonRpcProperties {
     }
 
     /**
-     * Indicates whether notification execution should use an asynchronous executor path.
+     * Indicates whether notification handling should prefer an executor-backed path.
+     * <p>
+     * When enabled, auto-configuration attempts to choose a Spring {@link java.util.concurrent.Executor}.
+     * If no suitable executor is resolved, handling falls back to direct execution.
+     * </p>
      *
-     * @return {@code true} when executor-backed notification execution is enabled
+     * @return {@code true} when executor-backed notification handling is enabled
      */
     public boolean isNotificationExecutorEnabled() {
         return notificationExecutorEnabled;
     }
 
     /**
-     * Sets whether notification execution should use an asynchronous executor path.
+     * Sets whether notification handling should prefer an executor-backed path.
      *
-     * @param notificationExecutorEnabled {@code true} to enable executor-backed notifications
+     * @param notificationExecutorEnabled {@code true} to enable executor-backed handling
      */
     public void setNotificationExecutorEnabled(boolean notificationExecutorEnabled) {
         this.notificationExecutorEnabled = notificationExecutorEnabled;

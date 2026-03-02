@@ -12,7 +12,7 @@ public class ExecutorJsonRpcNotificationExecutor implements JsonRpcNotificationE
     /**
      * Creates an executor-backed notification runner.
      *
-     * @param executor target executor for async execution
+     * @param executor target executor that performs delegated notification execution
      */
     public ExecutorJsonRpcNotificationExecutor(Executor executor) {
         this.executor = executor;
