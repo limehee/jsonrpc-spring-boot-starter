@@ -14,6 +14,22 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Micrometer-backed interceptor that records server-side JSON-RPC execution metrics.
+ * <p>
+ * Metrics include:
+ * </p>
+ * <ul>
+ * <li>request call counts by method, outcome, and error code</li>
+ * <li>latency timers by method and outcome</li>
+ * <li>stage event counts for high-level failure classification</li>
+ * <li>failure source counts for root-cause grouping</li>
+ * </ul>
+ * <p>
+ * Method tag cardinality can be bounded by {@code maxMethodTagValues}; once the limit is reached,
+ * unseen methods are collapsed into the {@code other} bucket.
+ * </p>
+ */
 public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
 
     private static final String CALLS_METRIC = "jsonrpc.server.calls";
@@ -34,10 +50,24 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
     private final ConcurrentHashMap<LatencyKey, Timer> latencyTimers = new ConcurrentHashMap<>();
     private final ThreadLocal<Long> startedAtNanos = new ThreadLocal<>();
 
+    /**
+     * Creates an interceptor with default metric options.
+     *
+     * @param meterRegistry registry where JSON-RPC metrics are published
+     */
     public JsonRpcMetricsInterceptor(MeterRegistry meterRegistry) {
         this(meterRegistry, false, new double[0], 100);
     }
 
+    /**
+     * Creates an interceptor with explicit metric options.
+     *
+     * @param meterRegistry registry where JSON-RPC metrics are published
+     * @param latencyHistogramEnabled whether latency histogram buckets should be emitted
+     * @param latencyPercentiles latency percentiles to publish for timers
+     * @param maxMethodTagValues maximum number of distinct method tag values before collapsing to
+     *                           {@code other}; values less than or equal to zero disable collapsing
+     */
     public JsonRpcMetricsInterceptor(
             MeterRegistry meterRegistry,
             boolean latencyHistogramEnabled,
@@ -50,11 +80,22 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         this.maxMethodTagValues = maxMethodTagValues;
     }
 
+    /**
+     * Captures request start time for latency measurement.
+     *
+     * @param request JSON-RPC request being invoked
+     */
     @Override
     public void beforeInvoke(JsonRpcRequest request) {
         startedAtNanos.set(System.nanoTime());
     }
 
+    /**
+     * Records success counters and invocation latency after successful method execution.
+     *
+     * @param request JSON-RPC request that completed successfully
+     * @param result JSON result produced by the method handler
+     */
     @Override
     public void afterInvoke(JsonRpcRequest request, JsonNode result) {
         String method = normalizeMethodName(request == null ? null : request.method());
@@ -62,6 +103,13 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         counter(stageCounters, STAGE_EVENTS_METRIC, method, "invoke_success", "").increment();
     }
 
+    /**
+     * Records error counters, latency, stage, and failure-source dimensions.
+     *
+     * @param request request being processed when the error occurred
+     * @param throwable original throwable associated with the failure
+     * @param mappedError protocol-level error mapped for the response
+     */
     @Override
     public void onError(JsonRpcRequest request, Throwable throwable, JsonRpcError mappedError) {
         String method = normalizeMethodName(request == null ? null : request.method());
@@ -75,6 +123,13 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         counter(failureCounters, FAILURE_METRIC, method, errorCode, source).increment();
     }
 
+    /**
+     * Records call counter and elapsed time from {@link #beforeInvoke(JsonRpcRequest)}.
+     *
+     * @param method normalized method tag value
+     * @param outcome request outcome tag value
+     * @param errorCode JSON-RPC error code tag value or semantic placeholder
+     */
     private void recordCallAndLatency(String method, String outcome, String errorCode) {
         counter(callCounters, CALLS_METRIC, method, outcome, errorCode).increment();
 
@@ -86,6 +141,13 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         }
     }
 
+    /**
+     * Resolves or creates a latency timer for the given method/outcome pair.
+     *
+     * @param method normalized method tag value
+     * @param outcome outcome tag value
+     * @return cached or newly registered timer
+     */
     private Timer latencyTimer(String method, String outcome) {
         LatencyKey key = new LatencyKey(method, outcome);
         return latencyTimers.computeIfAbsent(key, ignored -> {
@@ -102,6 +164,12 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         });
     }
 
+    /**
+     * Classifies errors into high-level processing stages.
+     *
+     * @param mappedError protocol error mapped for the response
+     * @return stage label used in stage-event metrics
+     */
     private String classifyStage(JsonRpcError mappedError) {
         if (mappedError == null) {
             return "unknown_error";
@@ -115,6 +183,13 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         };
     }
 
+    /**
+     * Classifies failure source based on throwable type and mapped protocol error.
+     *
+     * @param throwable original throwable associated with the failure
+     * @param mappedError protocol error mapped for the response
+     * @return source label used in failure metrics
+     */
     private String classifyFailureSource(Throwable throwable, JsonRpcError mappedError) {
         if (mappedError == null) {
             return "unknown";
@@ -142,6 +217,16 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         return "custom";
     }
 
+    /**
+     * Resolves or creates counter meters for the target metric family.
+     *
+     * @param cache in-memory counter cache per metric dimensions
+     * @param metricName metric family name
+     * @param method method tag value
+     * @param firstTagValue first dimension tag value (semantic depends on metric family)
+     * @param secondTagValue second dimension tag value (semantic depends on metric family)
+     * @return cached or newly registered counter
+     */
     private Counter counter(
             ConcurrentHashMap<CounterKey, Counter> cache,
             String metricName,
@@ -175,6 +260,12 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         });
     }
 
+    /**
+     * Applies method tag normalization and cardinality limiting.
+     *
+     * @param method raw method name from request
+     * @return normalized method tag value
+     */
     private String normalizeMethodName(String method) {
         if (method == null || method.isBlank()) {
             return METHOD_UNKNOWN;
@@ -194,9 +285,23 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         return method;
     }
 
+    /**
+     * Cache key for counters differentiated by metric and tag dimensions.
+     *
+     * @param metric metric family name
+     * @param method method tag value
+     * @param first first metric-specific tag value
+     * @param second second metric-specific tag value
+     */
     private record CounterKey(String metric, String method, String first, String second) {
     }
 
+    /**
+     * Cache key for latency timers differentiated by method and outcome.
+     *
+     * @param method method tag value
+     * @param outcome outcome tag value
+     */
     private record LatencyKey(String method, String outcome) {
     }
 }

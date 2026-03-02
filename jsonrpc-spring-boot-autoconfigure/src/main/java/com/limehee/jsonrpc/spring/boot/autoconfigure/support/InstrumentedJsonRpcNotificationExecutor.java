@@ -7,6 +7,18 @@ import io.micrometer.core.instrument.Timer;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Decorator that records Micrometer metrics for notification task execution.
+ * <p>
+ * The wrapper captures:
+ * </p>
+ * <ul>
+ * <li>submission count</li>
+ * <li>queue delay between submission and execution start</li>
+ * <li>execution duration</li>
+ * <li>execution failures</li>
+ * </ul>
+ */
 public final class InstrumentedJsonRpcNotificationExecutor implements JsonRpcNotificationExecutor {
 
     private static final String QUEUE_DELAY_METRIC = "jsonrpc.server.notification.queue.delay";
@@ -20,6 +32,14 @@ public final class InstrumentedJsonRpcNotificationExecutor implements JsonRpcNot
     private final Counter submittedCounter;
     private final Counter failedCounter;
 
+    /**
+     * Creates an instrumented notification executor.
+     *
+     * @param delegate delegate executor that performs actual task scheduling and execution
+     * @param meterRegistry registry where notification metrics are emitted
+     * @param latencyHistogramEnabled whether percentile histograms are enabled for timers
+     * @param latencyPercentiles configured percentiles for queue/execution timers
+     */
     public InstrumentedJsonRpcNotificationExecutor(
             JsonRpcNotificationExecutor delegate,
             MeterRegistry meterRegistry,
@@ -43,6 +63,11 @@ public final class InstrumentedJsonRpcNotificationExecutor implements JsonRpcNot
         this.failedCounter = meterRegistry.counter(FAILED_METRIC);
     }
 
+    /**
+     * Submits a notification task and records queue, duration, and failure metrics.
+     *
+     * @param task notification task to execute
+     */
     @Override
     public void execute(Runnable task) {
         submittedCounter.increment();
@@ -61,6 +86,15 @@ public final class InstrumentedJsonRpcNotificationExecutor implements JsonRpcNot
         });
     }
 
+    /**
+     * Creates a timer using shared histogram/percentile settings.
+     *
+     * @param meterRegistry registry where the timer is registered
+     * @param name metric name
+     * @param latencyHistogramEnabled whether histogram publication is enabled
+     * @param latencyPercentiles percentile configuration to publish
+     * @return registered timer instance
+     */
     private Timer createTimer(
             MeterRegistry meterRegistry,
             String name,
