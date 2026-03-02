@@ -11,7 +11,14 @@ import org.jspecify.annotations.Nullable;
  */
 public class JsonRpcException extends RuntimeException {
 
+    /**
+     * JSON-RPC error code associated with this exception.
+     */
     private final int code;
+
+    /**
+     * Optional JSON-RPC {@code error.data} payload associated with this exception.
+     */
     private final @Nullable JsonNode data;
 
     /**

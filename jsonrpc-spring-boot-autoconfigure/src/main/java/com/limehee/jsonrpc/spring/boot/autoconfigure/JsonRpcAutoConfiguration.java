@@ -53,59 +53,117 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
+/**
+ * Spring Boot auto-configuration for JSON-RPC server components.
+ * <p>
+ * This configuration wires core dispatcher components, optional metrics integration, annotation
+ * scanning, transport endpoint registration, and basic property validation.
+ * </p>
+ */
 @AutoConfiguration
 @EnableConfigurationProperties(JsonRpcProperties.class)
 @ConditionalOnClass(JsonRpcDispatcher.class)
 public class JsonRpcAutoConfiguration {
 
+    /**
+     * Creates the JSON-RPC method registry.
+     *
+     * @param properties bound JSON-RPC properties
+     * @return method registry honoring configured conflict policy
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcMethodRegistry jsonRpcMethodRegistry(JsonRpcProperties properties) {
         return new InMemoryJsonRpcMethodRegistry(properties.getMethodRegistrationConflictPolicy());
     }
 
+    /**
+     * Creates the request parser used by the dispatcher.
+     *
+     * @return JSON-RPC request parser
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcRequestParser jsonRpcRequestParser() {
         return new DefaultJsonRpcRequestParser();
     }
 
+    /**
+     * Creates request validator for JSON-RPC structural checks.
+     *
+     * @return request validator
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcRequestValidator jsonRpcRequestValidator() {
         return new DefaultJsonRpcRequestValidator();
     }
 
+    /**
+     * Creates method invoker used to execute registered handlers.
+     *
+     * @return method invoker implementation
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcMethodInvoker jsonRpcMethodInvoker() {
         return new DefaultJsonRpcMethodInvoker();
     }
 
+    /**
+     * Creates exception resolver used to map failures to JSON-RPC errors.
+     *
+     * @param properties bound JSON-RPC properties
+     * @return exception resolver configured with error-data inclusion policy
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcExceptionResolver jsonRpcExceptionResolver(JsonRpcProperties properties) {
         return new DefaultJsonRpcExceptionResolver(properties.isIncludeErrorData());
     }
 
+    /**
+     * Creates response composer used for successful and error responses.
+     *
+     * @return response composer implementation
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcResponseComposer jsonRpcResponseComposer() {
         return new DefaultJsonRpcResponseComposer();
     }
 
+    /**
+     * Creates parameter binder backed by Jackson.
+     *
+     * @param objectMapperProvider provider for custom or default {@link ObjectMapper}
+     * @return parameter binder implementation
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcParameterBinder jsonRpcParameterBinder(ObjectProvider<ObjectMapper> objectMapperProvider) {
         return new JacksonJsonRpcParameterBinder(objectMapperProvider.getIfAvailable(() -> JsonMapper.builder().build()));
     }
 
+    /**
+     * Creates result writer backed by Jackson.
+     *
+     * @param objectMapperProvider provider for custom or default {@link ObjectMapper}
+     * @return result writer implementation
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcResultWriter jsonRpcResultWriter(ObjectProvider<ObjectMapper> objectMapperProvider) {
         return new JacksonJsonRpcResultWriter(objectMapperProvider.getIfAvailable(() -> JsonMapper.builder().build()));
     }
 
+    /**
+     * Creates typed method handler factory used by typed registration utilities.
+     *
+     * @param parameterBinder binder used for parameter conversion
+     * @param resultWriter writer used for serializing handler results
+     * @return typed method handler factory
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcTypedMethodHandlerFactory jsonRpcTypedMethodHandlerFactory(
@@ -115,6 +173,15 @@ public class JsonRpcAutoConfiguration {
         return new DefaultJsonRpcTypedMethodHandlerFactory(parameterBinder, resultWriter);
     }
 
+    /**
+     * Creates notification executor according to configuration and available executor beans.
+     *
+     * @param properties bound JSON-RPC properties
+     * @param beanFactory bean factory used to discover candidate executors
+     * @param meterRegistryProvider optional meter registry for executor instrumentation
+     * @return notification executor implementation
+     * @throws IllegalStateException if a configured executor bean name does not exist
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcNotificationExecutor jsonRpcNotificationExecutor(
@@ -154,6 +221,12 @@ public class JsonRpcAutoConfiguration {
         return instrumentNotificationExecutorIfEnabled(executor, properties, meterRegistryProvider);
     }
 
+    /**
+     * Creates method access control interceptor using configured allowlist and denylist.
+     *
+     * @param properties bound JSON-RPC properties
+     * @return access control interceptor
+     */
     @Bean
     @ConditionalOnMissingBean(name = "jsonRpcMethodAccessInterceptor")
     public JsonRpcInterceptor jsonRpcMethodAccessInterceptor(JsonRpcProperties properties) {
@@ -163,6 +236,13 @@ public class JsonRpcAutoConfiguration {
         );
     }
 
+    /**
+     * Creates Micrometer metrics interceptor for dispatcher lifecycle metrics.
+     *
+     * @param properties bound JSON-RPC properties
+     * @param meterRegistry meter registry used for metric publication
+     * @return metrics interceptor
+     */
     @Bean
     @ConditionalOnClass(MeterRegistry.class)
     @ConditionalOnBean(MeterRegistry.class)
@@ -177,6 +257,13 @@ public class JsonRpcAutoConfiguration {
         );
     }
 
+    /**
+     * Creates transport metrics observer for WebMVC-specific events.
+     *
+     * @param properties bound JSON-RPC properties
+     * @param meterRegistry meter registry used for metric publication
+     * @return WebMVC metrics observer
+     */
     @Bean
     @ConditionalOnClass(MeterRegistry.class)
     @ConditionalOnBean(MeterRegistry.class)
@@ -190,12 +277,28 @@ public class JsonRpcAutoConfiguration {
         );
     }
 
+    /**
+     * Creates no-op WebMVC observer when no explicit observer bean is provided.
+     *
+     * @return no-op observer instance
+     */
     @Bean
     @ConditionalOnMissingBean(JsonRpcWebMvcObserver.class)
     public JsonRpcWebMvcObserver jsonRpcWebMvcObserver() {
         return JsonRpcWebMvcObserver.noOp();
     }
 
+    /**
+     * Creates registrar that scans and registers {@link com.limehee.jsonrpc.core.JsonRpcMethod}
+     * annotated Spring bean methods.
+     *
+     * @param beanFactory Spring bean factory
+     * @param dispatcher dispatcher receiving discovered registrations
+     * @param typedMethodHandlerFactory typed handler factory
+     * @param parameterBinder parameter binder
+     * @param resultWriter result writer
+     * @return annotated method registrar
+     */
     @Bean
     @ConditionalOnProperty(prefix = "jsonrpc", name = "scan-annotated-methods", havingValue = "true", matchIfMissing = true)
     public JsonRpcAnnotatedMethodRegistrar jsonRpcAnnotatedMethodRegistrar(
@@ -214,6 +317,21 @@ public class JsonRpcAutoConfiguration {
         );
     }
 
+    /**
+     * Creates the JSON-RPC dispatcher and applies additional method registrations.
+     *
+     * @param methodRegistry method registry
+     * @param requestParser request parser
+     * @param requestValidator request validator
+     * @param methodInvoker method invoker
+     * @param exceptionResolver exception resolver
+     * @param responseComposer response composer
+     * @param notificationExecutor notification executor
+     * @param properties bound JSON-RPC properties
+     * @param registrations additional static method registrations
+     * @param interceptors dispatcher interceptors
+     * @return configured dispatcher instance
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcDispatcher jsonRpcDispatcher(
@@ -245,12 +363,27 @@ public class JsonRpcAutoConfiguration {
         return dispatcher;
     }
 
+    /**
+     * Creates default HTTP status mapping strategy.
+     *
+     * @return default HTTP status strategy
+     */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcHttpStatusStrategy jsonRpcHttpStatusStrategy() {
         return new DefaultJsonRpcHttpStatusStrategy();
     }
 
+    /**
+     * Creates JSON-RPC WebMVC endpoint for servlet applications.
+     *
+     * @param dispatcher dispatcher handling JSON-RPC requests
+     * @param httpStatusStrategy strategy mapping protocol outcomes to HTTP status codes
+     * @param objectMapperProvider provider for custom or default {@link ObjectMapper}
+     * @param webMvcObserver observer for transport-level events
+     * @param properties bound JSON-RPC properties
+     * @return WebMVC endpoint bean
+     */
     @Bean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
     @ConditionalOnBean(JsonRpcDispatcher.class)
@@ -273,6 +406,12 @@ public class JsonRpcAutoConfiguration {
         );
     }
 
+    /**
+     * Normalizes method names by trimming blanks, removing nulls, and preserving insertion order.
+     *
+     * @param methods raw method name list
+     * @return normalized method set
+     */
     private Set<String> normalizeMethodSet(List<String> methods) {
         Set<String> normalized = new LinkedHashSet<>();
         if (methods == null) {
@@ -290,6 +429,12 @@ public class JsonRpcAutoConfiguration {
         return normalized;
     }
 
+    /**
+     * Validates critical JSON-RPC property values before dispatcher creation.
+     *
+     * @param properties bound JSON-RPC properties
+     * @throws IllegalArgumentException if one or more properties are invalid
+     */
     private void validateProperties(JsonRpcProperties properties) {
         if (properties.getPath() == null || properties.getPath().isBlank()) {
             throw new IllegalArgumentException("jsonrpc.path must not be blank");
@@ -318,6 +463,12 @@ public class JsonRpcAutoConfiguration {
         validatePercentiles(properties.getMetricsLatencyPercentiles());
     }
 
+    /**
+     * Checks whether a string contains any whitespace character.
+     *
+     * @param value value to inspect
+     * @return {@code true} when value contains whitespace
+     */
     private boolean containsWhitespace(String value) {
         for (int i = 0; i < value.length(); i++) {
             if (Character.isWhitespace(value.charAt(i))) {
@@ -327,6 +478,13 @@ public class JsonRpcAutoConfiguration {
         return false;
     }
 
+    /**
+     * Validates method allow/deny list entries.
+     *
+     * @param propertyName validated property name for exception messages
+     * @param methods method names to validate
+     * @throws IllegalArgumentException if list is null or contains blank entries
+     */
     private void validateMethodList(String propertyName, List<String> methods) {
         if (methods == null) {
             throw new IllegalArgumentException(propertyName + " must not be null");
@@ -338,6 +496,12 @@ public class JsonRpcAutoConfiguration {
         }
     }
 
+    /**
+     * Trims a string and returns {@code null} when the result is empty.
+     *
+     * @param value raw value
+     * @return trimmed value or {@code null}
+     */
     private String trimToNull(String value) {
         if (value == null) {
             return null;
@@ -346,6 +510,14 @@ public class JsonRpcAutoConfiguration {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    /**
+     * Wraps notification executor with metrics instrumentation when enabled and available.
+     *
+     * @param delegate delegate notification executor
+     * @param properties bound JSON-RPC properties
+     * @param meterRegistryProvider provider for optional meter registry
+     * @return instrumented executor when possible, otherwise original delegate
+     */
     private JsonRpcNotificationExecutor instrumentNotificationExecutorIfEnabled(
             JsonRpcNotificationExecutor delegate,
             JsonRpcProperties properties,
@@ -366,6 +538,12 @@ public class JsonRpcAutoConfiguration {
         );
     }
 
+    /**
+     * Validates percentile values used for metrics publication.
+     *
+     * @param percentiles percentile list
+     * @throws IllegalArgumentException if list is null or contains values outside {@code (0,1)}
+     */
     private void validatePercentiles(List<Double> percentiles) {
         if (percentiles == null) {
             throw new IllegalArgumentException("jsonrpc.metrics-latency-percentiles must not be null");
@@ -378,6 +556,13 @@ public class JsonRpcAutoConfiguration {
         }
     }
 
+    /**
+     * Converts percentile list into primitive double array with validation.
+     *
+     * @param percentiles percentile list
+     * @return primitive percentile array
+     * @throws IllegalArgumentException if a percentile is null or outside {@code (0,1)}
+     */
     private double[] toPercentileArray(List<Double> percentiles) {
         if (percentiles == null || percentiles.isEmpty()) {
             return new double[0];

@@ -79,11 +79,6 @@ public class JsonRpcWebMvcEndpoint {
         this.observer = observer;
     }
 
-    @PostMapping(
-            value = "${jsonrpc.path:/jsonrpc}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
     /**
      * Handles JSON-RPC HTTP requests.
      * <p>
@@ -95,6 +90,11 @@ public class JsonRpcWebMvcEndpoint {
      * @param body raw HTTP request payload bytes; may be {@code null} when request body is absent
      * @return HTTP response entity containing either serialized JSON-RPC payload or empty body
      */
+    @PostMapping(
+            value = "${jsonrpc.path:/jsonrpc}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<String> invoke(@RequestBody(required = false) byte[] body) {
         if (body == null || body.length == 0) {
             observer.onParseError();

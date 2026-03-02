@@ -23,7 +23,14 @@ public record JsonRpcResponse(
 ) {
 
     /**
-     * Validates result/error exclusivity.
+     * Validates canonical response invariants.
+     *
+     * @param jsonrpc protocol version string
+     * @param id request id echoed back to caller; may be {@code null}
+     * @param result success payload; must be non-null when {@code error} is {@code null}
+     * @param error error payload; must be non-null when {@code result} is {@code null}
+     * @throws IllegalArgumentException when both {@code result} and {@code error} are present or
+     *                                  when both are absent
      */
     public JsonRpcResponse {
         boolean hasResult = result != null;
