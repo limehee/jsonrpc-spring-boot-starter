@@ -5,14 +5,25 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * {@link JsonRpcParameterBinder} implementation based on Jackson object mapping.
+ */
 public class JacksonJsonRpcParameterBinder implements JsonRpcParameterBinder {
 
     private final ObjectMapper objectMapper;
 
+    /**
+     * Creates a binder.
+     *
+     * @param objectMapper Jackson mapper used for tree-to-value conversion
+     */
     public JacksonJsonRpcParameterBinder(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public <T> T bind(@Nullable JsonNode params, Class<T> targetType) {
         if (targetType == null) {

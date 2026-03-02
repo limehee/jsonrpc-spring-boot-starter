@@ -8,6 +8,13 @@ import io.micrometer.core.instrument.MeterRegistry;
 
 import java.util.List;
 
+/**
+ * Micrometer-backed observer for transport-level JSON-RPC WebMVC events.
+ * <p>
+ * This observer tracks parsing failures, request size violations, notification-only handling,
+ * and batch-level composition details.
+ * </p>
+ */
 public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver {
 
     private static final String TRANSPORT_ERRORS_METRIC = "jsonrpc.server.transport.errors";
@@ -29,6 +36,13 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
     private final Counter batchEntryNotificationCounter;
     private final DistributionSummary batchSizeSummary;
 
+    /**
+     * Creates a WebMVC observer that records transport and batch metrics.
+     *
+     * @param meterRegistry registry where metrics are published
+     * @param latencyHistogramEnabled whether histogram distribution is enabled for batch sizes
+     * @param latencyPercentiles configured percentiles for batch size distribution
+     */
     public JsonRpcWebMvcMetricsObserver(
             MeterRegistry meterRegistry,
             boolean latencyHistogramEnabled,
@@ -56,16 +70,31 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
         this.batchSizeSummary = summaryBuilder.register(meterRegistry);
     }
 
+    /**
+     * Increments parse error counter.
+     */
     @Override
     public void onParseError() {
         parseErrorCounter.increment();
     }
 
+    /**
+     * Increments oversized request counter.
+     *
+     * @param actualBytes actual request payload size in bytes
+     * @param maxBytes configured maximum payload size in bytes
+     */
     @Override
     public void onRequestTooLarge(int actualBytes, int maxBytes) {
         requestTooLargeCounter.increment();
     }
 
+    /**
+     * Records batch composition metrics for success, error, and notification outcomes.
+     *
+     * @param requestCount number of entries in the incoming batch payload
+     * @param responses emitted JSON-RPC responses for that batch
+     */
     @Override
     public void onBatchResponse(int requestCount, List<JsonRpcResponse> responses) {
         int responseCount = responses.size();
@@ -97,6 +126,12 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
         }
     }
 
+    /**
+     * Records notification-only request handling counts.
+     *
+     * @param batch {@code true} if the original payload was a batch array
+     * @param requestCount number of request entries in the payload
+     */
     @Override
     public void onNotificationOnly(boolean batch, int requestCount) {
         if (batch) {
@@ -106,6 +141,12 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
         singleNotificationCounter.increment();
     }
 
+    /**
+     * Increments batch entry counters by outcome type.
+     *
+     * @param outcome outcome label ({@code success}, {@code error}, or {@code notification})
+     * @param count number of entries to increment
+     */
     private void incrementByOutcome(String outcome, int count) {
         if (count <= 0) {
             return;

@@ -2,8 +2,17 @@ package com.limehee.jsonrpc.core;
 
 import tools.jackson.databind.JsonNode;
 
+/**
+ * Default JSON-RPC request validator enforcing core protocol constraints.
+ */
 public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
 
+    /**
+     * Validates protocol version, method presence, id shape, and params type.
+     *
+     * @param request parsed request model
+     * @throws JsonRpcException when request violates JSON-RPC 2.0 constraints
+     */
     @Override
     public void validate(JsonRpcRequest request) {
         if (request == null) {

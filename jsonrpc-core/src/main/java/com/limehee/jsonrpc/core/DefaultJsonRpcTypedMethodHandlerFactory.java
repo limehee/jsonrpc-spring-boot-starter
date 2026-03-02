@@ -5,16 +5,28 @@ import tools.jackson.databind.JsonNode;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Default typed handler factory using binder/writer components for conversion.
+ */
 public class DefaultJsonRpcTypedMethodHandlerFactory implements JsonRpcTypedMethodHandlerFactory {
 
     private final JsonRpcParameterBinder parameterBinder;
     private final JsonRpcResultWriter resultWriter;
 
+    /**
+     * Creates a typed method handler factory.
+     *
+     * @param parameterBinder binder for converting params to Java values
+     * @param resultWriter serializer for converting Java return values to JSON
+     */
     public DefaultJsonRpcTypedMethodHandlerFactory(JsonRpcParameterBinder parameterBinder, JsonRpcResultWriter resultWriter) {
         this.parameterBinder = parameterBinder;
         this.resultWriter = resultWriter;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public JsonRpcMethodHandler noParams(Supplier<?> method) {
         return params -> {
@@ -24,6 +36,9 @@ public class DefaultJsonRpcTypedMethodHandlerFactory implements JsonRpcTypedMeth
         };
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public <P> JsonRpcMethodHandler unary(Class<P> paramType, Function<P, ?> method) {
         return params -> {
@@ -33,6 +48,12 @@ public class DefaultJsonRpcTypedMethodHandlerFactory implements JsonRpcTypedMeth
         };
     }
 
+    /**
+     * Ensures params are absent for zero-argument handlers.
+     *
+     * @param params params payload to validate
+     * @throws JsonRpcException when unexpected params are provided
+     */
     private void validateNoParams(JsonNode params) {
         if (params == null || params.isNull()) {
             return;
