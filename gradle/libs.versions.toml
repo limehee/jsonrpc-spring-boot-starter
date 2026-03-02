@@ -6,7 +6,7 @@ junit = "6.0.3"
 japicmp-plugin = "0.4.6"
 jmh-plugin = "0.7.3"
 spring-dependency-management-plugin = "1.1.7"
-jsonrpc-starter = "0.1.1"
+jsonrpc-starter = "0.1.2"
 
 [libraries]
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
