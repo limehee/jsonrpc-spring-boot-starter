@@ -24,16 +24,19 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
+            // Repository-wide status labels controlled by this workflow.
             const statusLabels = [
               "status: blocked",
               "status: declined",
               "status: duplicate",
               "status: waiting-for-feedback"
             ];
+            // Fallback status for newly opened or reopened issues.
             const defaultStatus = "status: waiting-for-feedback";
             const issue = context.payload.issue;
             const issueNumber = issue.number;
 
+            // Read the latest issue labels from GitHub API.
             async function listCurrentLabels() {
               const response = await github.rest.issues.listLabelsOnIssue({
                 owner: context.repo.owner,
@@ -43,6 +46,7 @@ jobs:
               return response.data.map((label) => label.name);
             }
 
+            // Attach a single label to the issue.
             async function addLabel(name) {
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
@@ -52,6 +56,7 @@ jobs:
               });
             }
 
+            // Remove a label if it exists; ignore already-removed labels.
             async function removeLabel(name) {
               try {
                 await github.rest.issues.removeLabel({
@@ -67,6 +72,7 @@ jobs:
               }
             }
 
+            // Enforce exactly one status label while keeping the target status.
             async function normalizeToSingleStatus(targetStatus) {
               const labels = await listCurrentLabels();
               const currentStatuses = labels.filter((name) => statusLabels.includes(name));
@@ -83,6 +89,7 @@ jobs:
             if (context.eventName === "issues") {
               const action = context.payload.action;
               if (action === "opened") {
+                // Ensure newly opened issues always start with a single valid status.
                 const current = (issue.labels || []).map((label) => typeof label === "string" ? label : label.name);
                 const statusSet = current.filter((name) => statusLabels.includes(name));
 
@@ -95,10 +102,12 @@ jobs:
               }
 
               if (action === "reopened") {
+                // Reopened issues go back to waiting-for-feedback by default.
                 await normalizeToSingleStatus(defaultStatus);
               }
 
               if (action === "labeled") {
+                // When a status label is added manually, keep only that status.
                 const labeled = context.payload.label && context.payload.label.name;
                 if (statusLabels.includes(labeled)) {
                   await normalizeToSingleStatus(labeled);
@@ -111,6 +120,7 @@ jobs:
               const author = issue.user && issue.user.login;
 
               if (commenter === author) {
+                // Reporter feedback clears waiting-for-feedback.
                 await removeLabel(defaultStatus);
               }
             }
