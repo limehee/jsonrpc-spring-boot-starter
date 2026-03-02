@@ -1,0 +1,116 @@
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened, reopened, labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: issue-triage-${{ github.event.issue.number || github.event.comment.id }}
+  cancel-in-progress: false
+
+jobs:
+  normalize:
+    if: github.event.issue.pull_request == null
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Normalize issue status labels
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const statusLabels = [
+              "status: blocked",
+              "status: declined",
+              "status: duplicate",
+              "status: waiting-for-feedback"
+            ];
+            const defaultStatus = "status: waiting-for-feedback";
+            const issue = context.payload.issue;
+            const issueNumber = issue.number;
+
+            async function listCurrentLabels() {
+              const response = await github.rest.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber
+              });
+              return response.data.map((label) => label.name);
+            }
+
+            async function addLabel(name) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: [name]
+              });
+            }
+
+            async function removeLabel(name) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
+
+            async function normalizeToSingleStatus(targetStatus) {
+              const labels = await listCurrentLabels();
+              const currentStatuses = labels.filter((name) => statusLabels.includes(name));
+              const statusesToRemove = currentStatuses.filter((name) => name !== targetStatus);
+
+              for (const status of statusesToRemove) {
+                await removeLabel(status);
+              }
+              if (!labels.includes(targetStatus)) {
+                await addLabel(targetStatus);
+              }
+            }
+
+            if (context.eventName === "issues") {
+              const action = context.payload.action;
+              if (action === "opened") {
+                const current = (issue.labels || []).map((label) => typeof label === "string" ? label : label.name);
+                const statusSet = current.filter((name) => statusLabels.includes(name));
+
+                if (statusSet.length === 0) {
+                  await addLabel(defaultStatus);
+                } else if (statusSet.length > 1) {
+                  const keep = statusLabels.find((name) => statusSet.includes(name)) || statusSet[0];
+                  await normalizeToSingleStatus(keep);
+                }
+              }
+
+              if (action === "reopened") {
+                await normalizeToSingleStatus(defaultStatus);
+              }
+
+              if (action === "labeled") {
+                const labeled = context.payload.label && context.payload.label.name;
+                if (statusLabels.includes(labeled)) {
+                  await normalizeToSingleStatus(labeled);
+                }
+              }
+            }
+
+            if (context.eventName === "issue_comment") {
+              const commenter = context.payload.comment.user && context.payload.comment.user.login;
+              const author = issue.user && issue.user.login;
+
+              if (commenter === author) {
+                await removeLabel(defaultStatus);
+              }
+            }

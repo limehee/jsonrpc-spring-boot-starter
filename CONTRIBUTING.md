@@ -42,6 +42,17 @@ Common commands:
   - exception/edge branches
 - Keep public API behavior backward compatible unless a breaking change is intentional and documented.
 
+## Issue Labels and Triage
+
+This repository uses a two-axis label taxonomy:
+- `type:*` labels classify issue category (`type: bug`, `type: feature`, etc.).
+- `status:*` labels represent workflow state (`status: blocked`, `status: declined`, `status: duplicate`, `status: waiting-for-feedback`).
+
+Rules:
+1. Every issue template must define exactly one `type:*` label and exactly one `status:*` label.
+2. Only one `status:*` label should be present on an issue at a time.
+3. Automated triage keeps status labels normalized on open/reopen/label events and can remove `status: waiting-for-feedback` when the issue author replies.
+
 ## Commit and PR Guidelines
 
 - Write clear commit messages describing intent.
