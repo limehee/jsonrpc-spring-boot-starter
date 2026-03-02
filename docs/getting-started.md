@@ -17,50 +17,110 @@ This guide gets a working JSON-RPC endpoint up quickly and provides the shortest
 
 ### 3.1 Spring Boot starter
 
+Replace `latest-version` with the release you want to use.
+
 Maven:
 
 ```xml
+<properties>
+  <jsonrpc.version>latest-version</jsonrpc.version>
+</properties>
+
 <dependency>
   <groupId>io.github.limehee</groupId>
   <artifactId>jsonrpc-spring-boot-starter</artifactId>
-  <version>0.1.0</version>
+  <version>${jsonrpc.version}</version>
 </dependency>
 ```
 
 Gradle (Kotlin DSL):
 
 ```kotlin
-implementation("io.github.limehee:jsonrpc-spring-boot-starter:0.1.0")
+val jsonrpcVersion = "latest-version"
+
+dependencies {
+    implementation("io.github.limehee:jsonrpc-spring-boot-starter:$jsonrpcVersion")
+}
 ```
 
 Gradle (Groovy DSL):
 
 ```groovy
-implementation 'io.github.limehee:jsonrpc-spring-boot-starter:0.1.0'
+def jsonrpcVersion = "latest-version"
+
+dependencies {
+    implementation "io.github.limehee:jsonrpc-spring-boot-starter:${jsonrpcVersion}"
+}
+```
+
+Gradle Version Catalog (`libs.versions.toml`):
+
+```toml
+[versions]
+jsonrpc = "latest-version"
+
+[libraries]
+jsonrpc-spring-boot-starter = { module = "io.github.limehee:jsonrpc-spring-boot-starter", version.ref = "jsonrpc" }
+```
+
+```kotlin
+dependencies {
+    implementation(libs.jsonrpc.spring.boot.starter)
+}
 ```
 
 ### 3.2 Core only (pure Java)
 
+Replace `latest-version` with the release you want to use.
+
 Maven:
 
 ```xml
+<properties>
+  <jsonrpc.version>latest-version</jsonrpc.version>
+</properties>
+
 <dependency>
   <groupId>io.github.limehee</groupId>
   <artifactId>jsonrpc-core</artifactId>
-  <version>0.1.0</version>
+  <version>${jsonrpc.version}</version>
 </dependency>
 ```
 
 Gradle (Kotlin DSL):
 
 ```kotlin
-implementation("io.github.limehee:jsonrpc-core:0.1.0")
+val jsonrpcVersion = "latest-version"
+
+dependencies {
+    implementation("io.github.limehee:jsonrpc-core:$jsonrpcVersion")
+}
 ```
 
 Gradle (Groovy DSL):
 
 ```groovy
-implementation 'io.github.limehee:jsonrpc-core:0.1.0'
+def jsonrpcVersion = "latest-version"
+
+dependencies {
+    implementation "io.github.limehee:jsonrpc-core:${jsonrpcVersion}"
+}
+```
+
+Gradle Version Catalog (`libs.versions.toml`):
+
+```toml
+[versions]
+jsonrpc = "latest-version"
+
+[libraries]
+jsonrpc-core = { module = "io.github.limehee:jsonrpc-core", version.ref = "jsonrpc" }
+```
+
+```kotlin
+dependencies {
+    implementation(libs.jsonrpc.core)
+}
 ```
 
 ## 4. Spring Boot Minimal Example
