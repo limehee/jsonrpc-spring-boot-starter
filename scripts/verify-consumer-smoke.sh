@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${JSONRPC_VERSION:-$(grep '^version=' "${ROOT_DIR}/gradle.properties" | cut -d'=' -f2)}"
-SPRING_BOOT_VERSION="${SPRING_BOOT_VERSION:-4.0.2}"
+SPRING_BOOT_VERSION="${SPRING_BOOT_VERSION:-4.0.3}"
 
 if ! command -v mvn >/dev/null 2>&1; then
   echo "mvn is required but was not found in PATH"

@@ -19,19 +19,19 @@ Production-oriented JSON-RPC 2.0 server library for Java, with optional Spring W
 ## Baseline
 
 - Java: 17+
-- Spring Boot baseline: 4.0.2
+- Spring Boot baseline: 4.0.3
 - Jackson baseline: 3.0.x
 - Build: Gradle with Version Catalog
 - CI matrix: Java 17, 21, 25
 
 ## Modules
 
-| Module | Purpose |
-|---|---|
-| `jsonrpc-core` | Protocol model, parser/validator, dispatcher, method registry, typed binding |
-| `jsonrpc-spring-webmvc` | HTTP endpoint adapter and HTTP status strategy |
-| `jsonrpc-spring-boot-autoconfigure` | Property binding, bean wiring, method scanning, metrics/access integration |
-| `jsonrpc-spring-boot-starter` | Starter dependency bundle for Spring Boot applications |
+| Module                              | Purpose                                                                      |
+|-------------------------------------|------------------------------------------------------------------------------|
+| `jsonrpc-core`                      | Protocol model, parser/validator, dispatcher, method registry, typed binding |
+| `jsonrpc-spring-webmvc`             | HTTP endpoint adapter and HTTP status strategy                               |
+| `jsonrpc-spring-boot-autoconfigure` | Property binding, bean wiring, method scanning, metrics/access integration   |
+| `jsonrpc-spring-boot-starter`       | Starter dependency bundle for Spring Boot applications                       |
 
 ## Install
 
