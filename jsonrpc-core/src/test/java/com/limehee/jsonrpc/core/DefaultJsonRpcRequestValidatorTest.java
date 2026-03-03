@@ -63,6 +63,25 @@ class DefaultJsonRpcRequestValidatorTest {
     }
 
     @Test
+    void validateRejectsPrimitiveParamsAsInvalidRequestWhenPolicyIsConfigured() {
+        DefaultJsonRpcRequestValidator strictShapeValidator = new DefaultJsonRpcRequestValidator(
+                JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST
+        );
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping", IntNode.valueOf(3), true);
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> strictShapeValidator.validate(request));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void constructorRejectsNullParamsTypeViolationPolicy() {
+        assertThrows(
+                NullPointerException.class,
+                () -> new DefaultJsonRpcRequestValidator(null)
+        );
+    }
+
+    @Test
     void validateAllowsTextOrNumberOrNullId() {
         assertDoesNotThrow(() -> validator.validate(
                 new JsonRpcRequest("2.0", StringNode.valueOf("abc"), "ping", null, true)));

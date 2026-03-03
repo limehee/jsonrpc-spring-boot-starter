@@ -2,10 +2,35 @@ package com.limehee.jsonrpc.core;
 
 import tools.jackson.databind.JsonNode;
 
+import java.util.Objects;
+
 /**
  * Default JSON-RPC request validator enforcing core protocol constraints.
  */
 public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
+
+    private final JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy;
+
+    /**
+     * Creates a validator using {@link JsonRpcParamsTypeViolationCodePolicy#INVALID_PARAMS} for
+     * invalid {@code params} type violations.
+     */
+    public DefaultJsonRpcRequestValidator() {
+        this(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
+    }
+
+    /**
+     * Creates a validator with an explicit error-code policy for invalid {@code params} type.
+     *
+     * @param paramsTypeViolationCodePolicy policy selecting the error code for invalid
+     *                                      {@code params} type violations
+     */
+    public DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy) {
+        this.paramsTypeViolationCodePolicy = Objects.requireNonNull(
+                paramsTypeViolationCodePolicy,
+                "paramsTypeViolationCodePolicy"
+        );
+    }
 
     /**
      * Validates protocol version, method presence, id shape, and params type.
@@ -32,6 +57,9 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
 
         JsonNode params = request.params();
         if (params != null && !params.isArray() && !params.isObject()) {
+            if (paramsTypeViolationCodePolicy == JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST) {
+                throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+            }
             throw new JsonRpcException(JsonRpcErrorCode.INVALID_PARAMS, JsonRpcConstants.MESSAGE_INVALID_PARAMS);
         }
     }
