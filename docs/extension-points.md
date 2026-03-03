@@ -8,16 +8,21 @@ You can override any of these with custom Spring beans:
 
 - `JsonRpcRequestParser`
 - `JsonRpcRequestValidator`
-- `JsonRpcEnvelopeClassifier`
-- `JsonRpcResponseParser`
-- `JsonRpcResponseValidator`
 - `JsonRpcMethodRegistry`
 - `JsonRpcMethodInvoker`
 - `JsonRpcExceptionResolver`
 - `JsonRpcResponseComposer`
 - `JsonRpcNotificationExecutor`
 
-`JsonRpcResponseValidationOptions` provides fine-grained rule switches for default response validation behavior.
+Response-side interfaces are available in `jsonrpc-core` for transport integrations:
+
+- `JsonRpcEnvelopeClassifier`
+- `JsonRpcResponseParser`
+- `JsonRpcResponseValidator`
+- `JsonRpcResponseValidationOptions`
+
+Spring Boot auto-configuration currently wires request-dispatch components by default. For response-side
+processing, create and use these components explicitly in your transport adapter.
 
 ## 2. Interceptor Chain
 

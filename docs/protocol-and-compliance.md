@@ -73,6 +73,22 @@ By default, `JsonRpcResponseValidationOptions.defaults()` enforces:
 
 RFC SHOULD or stricter interoperability policies are configurable via per-rule options.
 
+### Validation Options
+
+`JsonRpcResponseValidationOptions` exposes per-rule switches:
+
+- `requireJsonRpcVersion20` (default: `true`)
+- `requireResponseIdMember` (default: `true`)
+- `allowNullResponseId` (default: `true`)
+- `allowStringResponseId` (default: `true`)
+- `allowNumericResponseId` (default: `true`)
+- `allowFractionalResponseId` (default: `true`)
+- `requireExclusiveResultOrError` (default: `true`)
+- `requireErrorObjectWhenPresent` (default: `true`)
+- `requireIntegerErrorCode` (default: `true`)
+- `requireStringErrorMessage` (default: `true`)
+- `allowRequestFieldsInResponse` (default: `true`)
+
 ## `id` Handling Details
 
 - Notification is defined by **absence** of `id` field (`idPresent == false`).
