@@ -236,6 +236,11 @@ class DefaultJsonRpcResponseValidatorTest {
                 """)));
     }
 
+    @Test
+    void constructorRejectsNullOptions() {
+        assertThrows(NullPointerException.class, () -> new DefaultJsonRpcResponseValidator(null));
+    }
+
     private JsonRpcIncomingResponse incoming(String json) throws Exception {
         JsonNode payload = OBJECT_MAPPER.readTree(json);
         return PARSER.parse(payload).singleResponse().orElseThrow();

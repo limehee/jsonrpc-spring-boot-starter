@@ -2,6 +2,8 @@ package com.limehee.jsonrpc.core;
 
 import tools.jackson.databind.JsonNode;
 
+import java.util.Objects;
+
 /**
  * Default validator for parsed incoming JSON-RPC responses.
  */
@@ -22,7 +24,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
      * @param options response validation options
      */
     public DefaultJsonRpcResponseValidator(JsonRpcResponseValidationOptions options) {
-        this.options = options;
+        this.options = Objects.requireNonNull(options, "options");
     }
 
     /**
