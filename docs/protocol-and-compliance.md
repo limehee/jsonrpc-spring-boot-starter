@@ -46,6 +46,33 @@ Implementation constants are in `JsonRpcErrorCode` and messages in `JsonRpcConst
 5. Params are bound/invoked.
 6. Result or error is composed into JSON-RPC response.
 
+## Incoming Response Validation
+
+`jsonrpc-core` also provides response-side protocol utilities:
+
+- `JsonRpcEnvelopeClassifier`
+- `JsonRpcResponseParser`
+- `JsonRpcResponseValidator`
+- `JsonRpcResponseValidationOptions`
+
+These APIs are transport-agnostic and useful for bidirectional channels (for example WebSocket) where
+request/response envelopes may arrive on the same connection.
+
+### Default Validation Rules (RFC MUST)
+
+By default, `JsonRpcResponseValidationOptions.defaults()` enforces:
+
+- top-level response is an object
+- `jsonrpc` equals `"2.0"`
+- `id` member exists and is `string | number | null`
+- exactly one of `result` or `error` is present
+- when `error` is present:
+  - `error` is an object
+  - `error.code` is an integer
+  - `error.message` is a string
+
+RFC SHOULD or stricter interoperability policies are configurable via per-rule options.
+
 ## `id` Handling Details
 
 - Notification is defined by **absence** of `id` field (`idPresent == false`).
