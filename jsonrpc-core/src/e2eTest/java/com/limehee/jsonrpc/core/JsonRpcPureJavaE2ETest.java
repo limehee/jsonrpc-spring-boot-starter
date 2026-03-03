@@ -42,8 +42,8 @@ class JsonRpcPureJavaE2ETest {
                 {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"core"},"id":2}
                 """));
 
-        assertEquals("pong", ping.get("result").asText());
-        assertEquals("CORE", upper.get("result").get("value").asText());
+        assertEquals("pong", ping.get("result").asString());
+        assertEquals("CORE", upper.get("result").get("value").asString());
     }
 
     @Test
@@ -66,7 +66,7 @@ class JsonRpcPureJavaE2ETest {
 
         assertTrue(batch.isArray());
         assertEquals(2, batch.size());
-        assertEquals("alpha", batch.get(0).get("result").get(0).asText());
+        assertEquals("alpha", batch.get(0).get("result").get(0).asString());
         assertEquals(-32601, batch.get(1).get("error").get("code").asInt());
         assertEquals(-32700, parseError.get("error").get("code").asInt());
     }

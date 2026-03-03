@@ -40,7 +40,7 @@ class DefaultJsonRpcRequestParserTest {
         assertEquals("2.0", request.jsonrpc());
         assertEquals("ping", request.method());
         assertEquals(1, request.params().get("value").asInt());
-        assertEquals("abc", request.id().asText());
+        assertEquals("abc", request.id().asString());
         assertTrue(request.idPresent());
         assertFalse(request.isNotification());
     }

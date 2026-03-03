@@ -47,9 +47,9 @@ class JsonRpcLibraryE2ETest {
 
         assertEquals(200, response.statusCode());
         JsonNode body = OBJECT_MAPPER.readTree(response.body());
-        assertEquals("2.0", body.get("jsonrpc").asText());
+        assertEquals("2.0", body.get("jsonrpc").asString());
         assertEquals(10, body.get("id").asInt());
-        assertEquals("pong", body.get("result").asText());
+        assertEquals("pong", body.get("result").asString());
     }
 
     @Test

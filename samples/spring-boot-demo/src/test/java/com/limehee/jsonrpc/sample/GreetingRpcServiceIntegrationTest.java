@@ -49,8 +49,8 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
                 {"jsonrpc":"2.0","method":"sum","params":{"left":2,"right":3},"id":3}
                 """);
 
-        assertEquals("pong", ping.result().asText());
-        assertEquals("hello developer", greet.result().asText());
+        assertEquals("pong", ping.result().asString());
+        assertEquals("hello developer", greet.result().asString());
         assertEquals(5, sum.result().asInt());
     }
 
@@ -60,9 +60,9 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
                 {"jsonrpc":"2.0","method":"ping","id":10}
                 """);
 
-        assertEquals("2.0", body.get("jsonrpc").asText());
+        assertEquals("2.0", body.get("jsonrpc").asString());
         assertEquals(10, body.get("id").asInt());
-        assertEquals("pong", body.get("result").asText());
+        assertEquals("pong", body.get("result").asString());
         assertFalse(body.has("error"));
     }
 
@@ -75,7 +75,7 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
                 {"jsonrpc":"2.0","method":"sum","params":{"left":7,"right":5},"id":12}
                 """);
 
-        assertEquals("hello spring", greetBody.get("result").asText());
+        assertEquals("hello spring", greetBody.get("result").asString());
         assertEquals(12, sumBody.get("result").asInt());
     }
 
@@ -85,7 +85,7 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
                 {"jsonrpc":"2.0","method":"unknown","id":99}
                 """);
 
-        assertEquals("2.0", body.get("jsonrpc").asText());
+        assertEquals("2.0", body.get("jsonrpc").asString());
         assertEquals(99, body.get("id").asInt());
         assertTrue(body.has("error"));
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, body.get("error").get("code").asInt());
@@ -96,7 +96,7 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
     void returnsParseErrorForMalformedJson() throws Exception {
         JsonNode body = invokeJsonRpc("/jsonrpc", "{", 200);
 
-        assertEquals("2.0", body.get("jsonrpc").asText());
+        assertEquals("2.0", body.get("jsonrpc").asString());
         assertTrue(body.get("id").isNull());
         assertEquals(JsonRpcErrorCode.PARSE_ERROR, body.get("error").get("code").asInt());
     }
@@ -144,7 +144,7 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
 
         assertTrue(body.isArray());
         assertEquals(3, body.size());
-        assertEquals("pong", body.get(0).get("result").asText());
+        assertEquals("pong", body.get(0).get("result").asString());
         assertEquals(1, body.get(0).get("id").asInt());
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, body.get(1).get("error").get("code").asInt());
         assertEquals(2, body.get(1).get("id").asInt());

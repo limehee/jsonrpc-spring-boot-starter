@@ -49,7 +49,7 @@ class JsonRpcAutoConfigurationTest {
                     JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping", null, true);
                     JsonRpcResponse response = dispatcher.dispatch(request);
                     assertNotNull(response);
-                    assertEquals("pong", response.result().asText());
+                    assertEquals("pong", response.result().asString());
 
                     JsonRpcTypedMethodHandlerFactory typedFactory = context.getBean(JsonRpcTypedMethodHandlerFactory.class);
                     assertNotNull(typedFactory);
@@ -73,7 +73,7 @@ class JsonRpcAutoConfigurationTest {
                     ));
 
                     assertNotNull(response);
-                    assertEquals("hello developer", response.result().asText());
+                    assertEquals("hello developer", response.result().asString());
                 });
     }
 
@@ -155,7 +155,7 @@ class JsonRpcAutoConfigurationTest {
                     ));
 
                     assertNotNull(response);
-                    assertEquals("ab", response.result().asText());
+                    assertEquals("ab", response.result().asString());
                 });
     }
 
@@ -193,7 +193,7 @@ class JsonRpcAutoConfigurationTest {
                     ));
 
                     assertNotNull(response);
-                    assertEquals("xy", response.result().asText());
+                    assertEquals("xy", response.result().asString());
                 });
     }
 
@@ -215,7 +215,7 @@ class JsonRpcAutoConfigurationTest {
                             true
                     ));
 
-                    assertEquals("pong", response.result().asText());
+                    assertEquals("pong", response.result().asString());
                     assertTrue(interceptor.beforeInvokeCount > 0);
                     assertTrue(interceptor.afterInvokeCount > 0);
                 });
@@ -265,7 +265,7 @@ class JsonRpcAutoConfigurationTest {
 
                     assertNotNull(response.error());
                     assertEquals(-32001, response.error().code());
-                    assertEquals("secret", response.error().data().asText());
+                    assertEquals("secret", response.error().data().asString());
                 });
     }
 
@@ -557,7 +557,7 @@ class JsonRpcAutoConfigurationTest {
                             true
                     ));
 
-                    assertEquals("pong", response.result().asText());
+                    assertEquals("pong", response.result().asString());
                 });
     }
 

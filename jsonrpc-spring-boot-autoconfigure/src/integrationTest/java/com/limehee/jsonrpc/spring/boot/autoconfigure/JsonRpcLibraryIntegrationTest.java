@@ -64,7 +64,7 @@ class JsonRpcLibraryIntegrationTest {
                 """));
 
         JsonRpcResponse response = result.singleResponse().orElseThrow();
-        assertEquals("echo:x", response.result().asText());
+        assertEquals("echo:x", response.result().asString());
     }
 
     @Test
@@ -78,9 +78,9 @@ class JsonRpcLibraryIntegrationTest {
                 .andReturn();
 
         JsonNode body = OBJECT_MAPPER.readTree(result.getResponse().getContentAsByteArray());
-        assertEquals("2.0", body.get("jsonrpc").asText());
+        assertEquals("2.0", body.get("jsonrpc").asString());
         assertEquals(2, body.get("id").asInt());
-        assertEquals("pong", body.get("result").asText());
+        assertEquals("pong", body.get("result").asString());
     }
 
     @Test

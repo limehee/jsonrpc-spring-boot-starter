@@ -60,7 +60,7 @@ class JsonRpcRegistrationStylesIntegrationTest {
                 """);
 
         assertEquals(7, body.get("result").get("id").asInt());
-        assertEquals("user-7", body.get("result").get("name").asText());
+        assertEquals("user-7", body.get("result").get("name").asString());
     }
 
     @Test
@@ -81,7 +81,7 @@ class JsonRpcRegistrationStylesIntegrationTest {
                 {"jsonrpc":"2.0","method":"manual.ping","id":3}
                 """);
 
-        assertEquals("pong-manual", body.get("result").asText());
+        assertEquals("pong-manual", body.get("result").asString());
     }
 
     @Test
@@ -90,7 +90,7 @@ class JsonRpcRegistrationStylesIntegrationTest {
                 {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"developer"},"id":4}
                 """);
 
-        assertEquals("DEVELOPER", body.get("result").get("result").asText());
+        assertEquals("DEVELOPER", body.get("result").get("result").asString());
     }
 
     @Test
@@ -100,8 +100,8 @@ class JsonRpcRegistrationStylesIntegrationTest {
                 """);
 
         assertTrue(body.get("result").isArray());
-        assertEquals("alpha", body.get("result").get(0).asText());
-        assertEquals("beta", body.get("result").get(1).asText());
+        assertEquals("alpha", body.get("result").get(0).asString());
+        assertEquals("beta", body.get("result").get(1).asString());
     }
 
     private JsonNode invoke(String payload) throws Exception {
