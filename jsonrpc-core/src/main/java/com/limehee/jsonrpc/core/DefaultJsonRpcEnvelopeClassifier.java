@@ -42,6 +42,9 @@ public class DefaultJsonRpcEnvelopeClassifier implements JsonRpcEnvelopeClassifi
 
     /**
      * Classifies a single object node by request/response marker fields.
+     * <p>
+     * When request and response hints coexist, response classification takes precedence to keep
+     * routing aligned with response-side validation policies.
      *
      * @param node object node candidate
      * @return envelope classification
