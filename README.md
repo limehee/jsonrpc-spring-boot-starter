@@ -175,6 +175,24 @@ Response:
 {"jsonrpc":"2.0","id":1,"result":"hello developer"}
 ```
 
+## Spring Configuration Example
+
+Use `jsonrpc.validation.request.*` and `jsonrpc.validation.response.*` for fine-grained validation control:
+
+```yaml
+jsonrpc:
+  validation:
+    request:
+      params-type-violation-code-policy: INVALID_REQUEST
+    response:
+      require-response-id-member: true
+      allow-fractional-response-id: false
+      allow-request-fields-in-response: false
+```
+
+For the full list of validation keys and defaults, see
+[`docs/configuration-reference.md`](docs/configuration-reference.md).
+
 ## Quick Start (Pure Java)
 
 ```java

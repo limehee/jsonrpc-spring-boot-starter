@@ -26,10 +26,13 @@ processing, create and use these components explicitly in your transport adapter
 
 Request validator customization example:
 
-- `DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS)` keeps
-  default `-32602` for `params` type violations.
-- `DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST)` maps the
-  same violation to `-32600`.
+- Spring Boot property `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_PARAMS`
+  keeps default `-32602` for `params` type violations.
+- Spring Boot property `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_REQUEST`
+  maps the same violation to `-32600`.
+- For non-Spring or fully custom logic, you can still construct
+  `DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS)` or
+  `DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST)` directly.
 
 ## 2. Interceptor Chain
 

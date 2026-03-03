@@ -78,6 +78,78 @@
       "description": "Policy used when a method name is registered more than once."
     },
     {
+      "name": "jsonrpc.validation.request.params-type-violation-code-policy",
+      "type": "com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy",
+      "defaultValue": "INVALID_PARAMS",
+      "description": "Error-code policy when request params is present but neither object nor array."
+    },
+    {
+      "name": "jsonrpc.validation.response.require-json-rpc-version-20",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Require incoming response jsonrpc to equal \"2.0\"."
+    },
+    {
+      "name": "jsonrpc.validation.response.require-response-id-member",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Require incoming responses to include an id member."
+    },
+    {
+      "name": "jsonrpc.validation.response.allow-null-response-id",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Allow id:null in incoming responses."
+    },
+    {
+      "name": "jsonrpc.validation.response.allow-string-response-id",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Allow string ids in incoming responses."
+    },
+    {
+      "name": "jsonrpc.validation.response.allow-numeric-response-id",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Allow numeric ids in incoming responses."
+    },
+    {
+      "name": "jsonrpc.validation.response.allow-fractional-response-id",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Allow fractional numeric ids in incoming responses."
+    },
+    {
+      "name": "jsonrpc.validation.response.require-exclusive-result-or-error",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Require exactly one of result or error in incoming responses."
+    },
+    {
+      "name": "jsonrpc.validation.response.require-error-object-when-present",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Require error to be an object when present in incoming responses."
+    },
+    {
+      "name": "jsonrpc.validation.response.require-integer-error-code",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Require error.code to be an integer when validated."
+    },
+    {
+      "name": "jsonrpc.validation.response.require-string-error-message",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Require error.message to be a string when validated."
+    },
+    {
+      "name": "jsonrpc.validation.response.allow-request-fields-in-response",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Allow request-only fields (method/params) in incoming responses."
+    },
+    {
       "name": "jsonrpc.method-allowlist",
       "type": "java.util.List<java.lang.String>",
       "description": "Allowed JSON-RPC method names. Empty list means allow all. Blank entries are invalid."
@@ -101,6 +173,13 @@
       "values": [
         { "value": "REJECT" },
         { "value": "REPLACE" }
+      ]
+    },
+    {
+      "name": "jsonrpc.validation.request.params-type-violation-code-policy",
+      "values": [
+        { "value": "INVALID_PARAMS" },
+        { "value": "INVALID_REQUEST" }
       ]
     },
     {

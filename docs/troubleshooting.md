@@ -15,6 +15,7 @@ Checks:
 - `jsonrpc.path` starts with `/` and has no whitespace
 - `jsonrpc.max-batch-size > 0`
 - `jsonrpc.max-request-bytes > 0`
+- `jsonrpc.validation.request.params-type-violation-code-policy` is set to a valid enum value
 - allowlist/denylist entries are not blank
 - `jsonrpc.notification-executor-bean-name` is not null
 
@@ -47,7 +48,7 @@ Checks:
 - For multi-arg object params, confirm `@JsonRpcParam` names
 - For reflection names, ensure build uses `-parameters`
 - Validate incoming JSON types
-- Confirm your validator policy (`JsonRpcParamsTypeViolationCodePolicy`) matches expected code semantics
+- Confirm `jsonrpc.validation.request.params-type-violation-code-policy` matches expected code semantics
 
 ## Notification Did Not Return Body
 
