@@ -39,7 +39,7 @@ public class JacksonJsonRpcParameterBinder implements JsonRpcParameterBinder {
             if (params == null || params.isNull()) {
                 return objectMapper.convertValue(null, targetType);
             }
-            return objectMapper.treeToValue(params, targetType);
+            return objectMapper.convertValue(params, targetType);
         } catch (JacksonException | IllegalArgumentException ex) {
             throw new JsonRpcException(
                     JsonRpcErrorCode.INVALID_PARAMS,

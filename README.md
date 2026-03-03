@@ -257,11 +257,13 @@ Detailed docs are under [`docs/`](docs/):
 ## Sample
 
 - Spring Boot sample app: [`samples/spring-boot-demo`](samples/spring-boot-demo)
+- Pure Java sample app: [`samples/pure-java-demo`](samples/pure-java-demo)
 
 Run:
 
 ```bash
 ./gradlew -p samples/spring-boot-demo bootRun
+./gradlew -p samples/pure-java-demo run
 ```
 
 ## Project Docs

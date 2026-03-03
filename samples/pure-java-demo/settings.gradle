@@ -1,0 +1,14 @@
+rootProject.name = "jsonrpc-pure-java-demo"
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+
+includeBuild("../..") {
+    dependencySubstitution {
+        substitute(module("io.github.limehee:jsonrpc-core"))
+                .using(project(":jsonrpc-core"))
+    }
+}
