@@ -327,6 +327,15 @@ Common override points:
 - `JsonRpcNotificationExecutor`
 - `JsonRpcHttpStatusStrategy`
 
+Response-side protocol components are also available in `jsonrpc-core`:
+
+- `JsonRpcEnvelopeClassifier`
+- `JsonRpcResponseParser`
+- `JsonRpcResponseValidator`
+- `JsonRpcResponseValidationOptions`
+
+They are intended for custom bidirectional transports and are not auto-bound to the default HTTP request dispatcher.
+
 Example HTTP status strategy:
 
 ```java

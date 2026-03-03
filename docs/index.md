@@ -11,6 +11,7 @@
 ## 2. Core Reference
 
 - Protocol behavior and JSON-RPC compliance: [`protocol-and-compliance.md`](protocol-and-compliance.md)
+- Incoming response classification/parsing/validation guidance: [`protocol-and-compliance.md`](protocol-and-compliance.md), [`pure-java-guide.md`](pure-java-guide.md)
 - Registration styles and parameter binding rules: [`registration-and-binding.md`](registration-and-binding.md)
 - Configuration keys, defaults, constraints, and precedence: [`configuration-reference.md`](configuration-reference.md)
 - Extension interfaces and override points: [`extension-points.md`](extension-points.md)

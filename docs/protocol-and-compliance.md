@@ -72,6 +72,7 @@ By default, `JsonRpcResponseValidationOptions.defaults()` enforces:
   - `error.message` is a string
 
 RFC SHOULD or stricter interoperability policies are configurable via per-rule options.
+This library does not expose predefined strict/lenient modes; policy is controlled per rule.
 
 ### Validation Options
 
@@ -88,6 +89,8 @@ RFC SHOULD or stricter interoperability policies are configurable via per-rule o
 - `requireIntegerErrorCode` (default: `true`)
 - `requireStringErrorMessage` (default: `true`)
 - `allowRequestFieldsInResponse` (default: `true`)
+
+`allowRequestFieldsInResponse=true` is a compatibility default and is not an RFC MUST rule.
 
 ## `id` Handling Details
 

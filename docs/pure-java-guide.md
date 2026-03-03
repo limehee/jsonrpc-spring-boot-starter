@@ -255,7 +255,7 @@ if (envelopeType == JsonRpcEnvelopeType.REQUEST) {
 }
 ```
 
-For strict/lenient policy tuning, customize `JsonRpcResponseValidationOptions` and pass it into
+For policy tuning, customize `JsonRpcResponseValidationOptions` and pass it into
 `DefaultJsonRpcResponseValidator`.
 
 ## 9. Concurrency Notes

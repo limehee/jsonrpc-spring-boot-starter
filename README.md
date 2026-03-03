@@ -21,7 +21,7 @@ Production-oriented JSON-RPC 2.0 server library for Java, with optional Spring W
 
 - Java: 17+
 - Spring Boot baseline: 4.0.3
-- Jackson baseline: 3.0.x
+- Jackson baseline: 3.1.x
 - Build: Gradle with Version Catalog
 - CI matrix: Java 17, 21, 25
 
