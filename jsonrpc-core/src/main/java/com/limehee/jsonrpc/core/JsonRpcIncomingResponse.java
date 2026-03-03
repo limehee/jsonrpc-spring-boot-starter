@@ -1,0 +1,28 @@
+package com.limehee.jsonrpc.core;
+
+import tools.jackson.databind.JsonNode;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * Parsed incoming JSON-RPC response model preserving field presence semantics.
+ *
+ * @param source original response object node
+ * @param jsonrpc protocol version field value when textual; otherwise {@code null}
+ * @param id id field value when present; may be {@code null}
+ * @param idPresent whether the response explicitly contained an {@code id} member
+ * @param result result field value when present; may be {@code null}
+ * @param resultPresent whether the response explicitly contained a {@code result} member
+ * @param error error field value when present; may be {@code null}
+ * @param errorPresent whether the response explicitly contained an {@code error} member
+ */
+public record JsonRpcIncomingResponse(
+        JsonNode source,
+        @Nullable String jsonrpc,
+        @Nullable JsonNode id,
+        boolean idPresent,
+        @Nullable JsonNode result,
+        boolean resultPresent,
+        @Nullable JsonNode error,
+        boolean errorPresent
+) {
+}
