@@ -9,31 +9,31 @@ This document maps current behavior to JSON-RPC 2.0 requirements.
 
 ## Compliance Matrix
 
-| Rule | Spec Requirement | Implementation Behavior |
-|---|---|---|
-| `jsonrpc` field | MUST be string `"2.0"` | Validated; otherwise `-32600 Invalid Request` |
-| `method` field | MUST be string | Validated non-null/non-blank; otherwise `-32600` |
-| `params` field | MAY be array/object | If present and not array/object -> `-32602 Invalid params` |
-| `id` field type | String/Number/Null (if present) | Invalid `id` type -> `-32600`; error response id normalized to `null` |
-| Notification | Request without `id` | Invoked with no response payload |
-| Success response | MUST contain `result` (no `error`) | Enforced by `JsonRpcResponse` invariant |
-| Error response | MUST contain `error` (no `result`) | Enforced by `JsonRpcResponse` invariant |
-| Parse error | Invalid JSON text | `-32700 Parse error`, `id: null` |
-| Method not found | Unknown method | `-32601 Method not found` |
-| Internal error | Unhandled runtime/checked exceptions | `-32603 Internal error` |
-| Batch request | Array of requests | Supported |
-| Empty batch | Invalid request | Single error object with `-32600` |
-| Notification-only batch | No response | HTTP adapter returns no body |
+| Rule                    | Spec Requirement                     | Implementation Behavior                                                                                                                              |
+|-------------------------|--------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `jsonrpc` field         | MUST be string `"2.0"`               | Validated; otherwise `-32600 Invalid Request`                                                                                                        |
+| `method` field          | MUST be string                       | Validated non-null/non-blank; otherwise `-32600`                                                                                                     |
+| `params` field          | MAY be array/object                  | If present and not array/object -> default `-32602 Invalid params` (configurable to `-32600 Invalid Request` via validator policy / Spring property) |
+| `id` field type         | String/Number/Null (if present)      | Invalid `id` type -> `-32600`; error response id normalized to `null`                                                                                |
+| Notification            | Request without `id`                 | Invoked with no response payload                                                                                                                     |
+| Success response        | MUST contain `result` (no `error`)   | Enforced by `JsonRpcResponse` invariant                                                                                                              |
+| Error response          | MUST contain `error` (no `result`)   | Enforced by `JsonRpcResponse` invariant                                                                                                              |
+| Parse error             | Invalid JSON text                    | `-32700 Parse error`, `id: null`                                                                                                                     |
+| Method not found        | Unknown method                       | `-32601 Method not found`                                                                                                                            |
+| Internal error          | Unhandled runtime/checked exceptions | `-32603 Internal error`                                                                                                                              |
+| Batch request           | Array of requests                    | Supported                                                                                                                                            |
+| Empty batch             | Invalid request                      | Single error object with `-32600`                                                                                                                    |
+| Notification-only batch | No response                          | HTTP adapter returns no body                                                                                                                         |
 
 ## Error Codes
 
-| Code | Meaning |
-|---|---|
-| `-32700` | Parse error |
-| `-32600` | Invalid Request |
+| Code     | Meaning          |
+|----------|------------------|
+| `-32700` | Parse error      |
+| `-32600` | Invalid Request  |
 | `-32601` | Method not found |
-| `-32602` | Invalid params |
-| `-32603` | Internal error |
+| `-32602` | Invalid params   |
+| `-32603` | Internal error   |
 
 Implementation constants are in `JsonRpcErrorCode` and messages in `JsonRpcConstants`.
 
@@ -45,6 +45,52 @@ Implementation constants are in `JsonRpcErrorCode` and messages in `JsonRpcConst
 4. Method handler is resolved.
 5. Params are bound/invoked.
 6. Result or error is composed into JSON-RPC response.
+
+## Incoming Response Validation
+
+`jsonrpc-core` also provides response-side protocol utilities:
+
+- `JsonRpcEnvelopeClassifier`
+- `JsonRpcResponseParser`
+- `JsonRpcResponseValidator`
+- `JsonRpcResponseValidationOptions`
+
+These APIs are transport-agnostic and useful for bidirectional channels (for example WebSocket) where
+request/response envelopes may arrive on the same connection.
+
+### Default Validation Rules (RFC MUST)
+
+By default, `JsonRpcResponseValidationOptions.defaults()` enforces:
+
+- top-level response is an object
+- `jsonrpc` equals `"2.0"`
+- `id` member exists and is `string | number | null`
+- exactly one of `result` or `error` is present
+- when `error` is present:
+  - `error` is an object
+  - `error.code` is an integer
+  - `error.message` is a string
+
+RFC SHOULD or stricter interoperability policies are configurable via per-rule options.
+This library does not expose predefined strict/lenient modes; policy is controlled per rule.
+
+### Validation Options
+
+`JsonRpcResponseValidationOptions` exposes per-rule switches:
+
+- `requireJsonRpcVersion20` (default: `true`)
+- `requireResponseIdMember` (default: `true`)
+- `allowNullResponseId` (default: `true`)
+- `allowStringResponseId` (default: `true`)
+- `allowNumericResponseId` (default: `true`)
+- `allowFractionalResponseId` (default: `true`)
+- `requireExclusiveResultOrError` (default: `true`)
+- `requireErrorObjectWhenPresent` (default: `true`)
+- `requireIntegerErrorCode` (default: `true`)
+- `requireStringErrorMessage` (default: `true`)
+- `allowRequestFieldsInResponse` (default: `true`)
+
+`allowRequestFieldsInResponse=true` is a compatibility default and is not an RFC MUST rule.
 
 ## `id` Handling Details
 
@@ -78,3 +124,4 @@ This is transport policy, not protocol rule, and can be overridden via `JsonRpcH
 - Oversized request body (`jsonrpc.max-request-bytes`) maps to protocol error `-32600` with message `Request payload too large`.
 - Parse errors always use `id: null`.
 - Generic exceptions are intentionally normalized to `-32603` to avoid leaking internals.
+- `params` type violations (non-array/object) default to `-32602`; in Spring Boot this can be changed with `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_REQUEST`.

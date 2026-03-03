@@ -5,6 +5,8 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * {@link JsonRpcParameterBinder} implementation based on Jackson object mapping.
  */
@@ -18,7 +20,7 @@ public class JacksonJsonRpcParameterBinder implements JsonRpcParameterBinder {
      * @param objectMapper Jackson mapper used for tree-to-value conversion
      */
     public JacksonJsonRpcParameterBinder(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
     }
 
     /**
@@ -37,7 +39,7 @@ public class JacksonJsonRpcParameterBinder implements JsonRpcParameterBinder {
             if (params == null || params.isNull()) {
                 return objectMapper.convertValue(null, targetType);
             }
-            return objectMapper.treeToValue(params, targetType);
+            return objectMapper.convertValue(params, targetType);
         } catch (JacksonException | IllegalArgumentException ex) {
             throw new JsonRpcException(
                     JsonRpcErrorCode.INVALID_PARAMS,

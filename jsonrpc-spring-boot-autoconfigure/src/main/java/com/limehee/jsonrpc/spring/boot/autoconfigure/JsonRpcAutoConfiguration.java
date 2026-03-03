@@ -7,6 +7,7 @@ import com.limehee.jsonrpc.core.DefaultJsonRpcMethodInvoker;
 import com.limehee.jsonrpc.core.DefaultJsonRpcRequestParser;
 import com.limehee.jsonrpc.core.DefaultJsonRpcRequestValidator;
 import com.limehee.jsonrpc.core.DefaultJsonRpcResponseComposer;
+import com.limehee.jsonrpc.core.DefaultJsonRpcResponseValidator;
 import com.limehee.jsonrpc.core.DefaultJsonRpcTypedMethodHandlerFactory;
 import com.limehee.jsonrpc.core.InMemoryJsonRpcMethodRegistry;
 import com.limehee.jsonrpc.core.JacksonJsonRpcParameterBinder;
@@ -23,6 +24,8 @@ import com.limehee.jsonrpc.core.JsonRpcRequestParser;
 import com.limehee.jsonrpc.core.JsonRpcRequestValidator;
 import com.limehee.jsonrpc.core.JsonRpcResultWriter;
 import com.limehee.jsonrpc.core.JsonRpcResponseComposer;
+import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
+import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import com.limehee.jsonrpc.core.DirectJsonRpcNotificationExecutor;
 import com.limehee.jsonrpc.core.ExecutorJsonRpcNotificationExecutor;
@@ -91,12 +94,74 @@ public class JsonRpcAutoConfiguration {
     /**
      * Creates request validator for JSON-RPC structural checks.
      *
+     * @param properties bound JSON-RPC properties
      * @return request validator
      */
     @Bean
     @ConditionalOnMissingBean
-    public JsonRpcRequestValidator jsonRpcRequestValidator() {
-        return new DefaultJsonRpcRequestValidator();
+    public JsonRpcRequestValidator jsonRpcRequestValidator(JsonRpcProperties properties) {
+        JsonRpcProperties.Validation validation = properties.getValidation();
+        if (validation == null) {
+            throw new IllegalArgumentException("jsonrpc.validation must not be null");
+        }
+        JsonRpcProperties.Validation.Request request = validation.getRequest();
+        if (request == null) {
+            throw new IllegalArgumentException("jsonrpc.validation.request must not be null");
+        }
+        if (request.getParamsTypeViolationCodePolicy() == null) {
+            throw new IllegalArgumentException(
+                    "jsonrpc.validation.request.params-type-violation-code-policy must not be null"
+            );
+        }
+        return new DefaultJsonRpcRequestValidator(
+                request.getParamsTypeViolationCodePolicy()
+        );
+    }
+
+    /**
+     * Creates response-validation options bound from external configuration.
+     *
+     * @param properties bound JSON-RPC properties
+     * @return response-validation options
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcResponseValidationOptions jsonRpcResponseValidationOptions(JsonRpcProperties properties) {
+        JsonRpcProperties.Validation validation = properties.getValidation();
+        if (validation == null) {
+            throw new IllegalArgumentException("jsonrpc.validation must not be null");
+        }
+        JsonRpcProperties.Validation.Response response = validation.getResponse();
+        if (response == null) {
+            throw new IllegalArgumentException("jsonrpc.validation.response must not be null");
+        }
+        return JsonRpcResponseValidationOptions.builder()
+                .requireJsonRpcVersion20(response.isRequireJsonRpcVersion20())
+                .requireResponseIdMember(response.isRequireResponseIdMember())
+                .allowNullResponseId(response.isAllowNullResponseId())
+                .allowStringResponseId(response.isAllowStringResponseId())
+                .allowNumericResponseId(response.isAllowNumericResponseId())
+                .allowFractionalResponseId(response.isAllowFractionalResponseId())
+                .requireExclusiveResultOrError(response.isRequireExclusiveResultOrError())
+                .requireErrorObjectWhenPresent(response.isRequireErrorObjectWhenPresent())
+                .requireIntegerErrorCode(response.isRequireIntegerErrorCode())
+                .requireStringErrorMessage(response.isRequireStringErrorMessage())
+                .allowRequestFieldsInResponse(response.isAllowRequestFieldsInResponse())
+                .build();
+    }
+
+    /**
+     * Creates response validator for incoming JSON-RPC response envelopes.
+     *
+     * @param options response-validation options
+     * @return response validator
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcResponseValidator jsonRpcResponseValidator(JsonRpcResponseValidationOptions options) {
+        return new DefaultJsonRpcResponseValidator(
+                options
+        );
     }
 
     /**
@@ -456,6 +521,20 @@ public class JsonRpcAutoConfiguration {
         }
         if (properties.getNotificationExecutorBeanName() == null) {
             throw new IllegalArgumentException("jsonrpc.notification-executor-bean-name must not be null");
+        }
+        if (properties.getValidation() == null) {
+            throw new IllegalArgumentException("jsonrpc.validation must not be null");
+        }
+        if (properties.getValidation().getRequest() == null) {
+            throw new IllegalArgumentException("jsonrpc.validation.request must not be null");
+        }
+        if (properties.getValidation().getRequest().getParamsTypeViolationCodePolicy() == null) {
+            throw new IllegalArgumentException(
+                    "jsonrpc.validation.request.params-type-violation-code-policy must not be null"
+            );
+        }
+        if (properties.getValidation().getResponse() == null) {
+            throw new IllegalArgumentException("jsonrpc.validation.response must not be null");
         }
 
         validateMethodList("jsonrpc.method-allowlist", properties.getMethodAllowlist());

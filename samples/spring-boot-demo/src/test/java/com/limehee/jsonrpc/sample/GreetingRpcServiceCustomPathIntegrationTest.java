@@ -20,7 +20,7 @@ class GreetingRpcServiceCustomPathIntegrationTest extends AbstractJsonRpcIntegra
                 {"jsonrpc":"2.0","method":"ping","id":1}
                 """, 200);
 
-        assertEquals("pong", body.get("result").asText());
+        assertEquals("pong", body.get("result").asString());
     }
 
     @Test

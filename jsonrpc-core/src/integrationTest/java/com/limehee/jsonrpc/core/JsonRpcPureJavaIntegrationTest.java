@@ -42,9 +42,9 @@ class JsonRpcPureJavaIntegrationTest {
                 {"jsonrpc":"2.0","method":"typed.user","params":{"id":7},"id":2}
                 """);
 
-        assertEquals("pong", ping.get("result").asText());
+        assertEquals("pong", ping.get("result").asString());
         assertEquals(7, user.get("result").get("id").asInt());
-        assertEquals("user-7", user.get("result").get("name").asText());
+        assertEquals("user-7", user.get("result").get("name").asString());
     }
 
     @Test
@@ -55,8 +55,8 @@ class JsonRpcPureJavaIntegrationTest {
 
         assertTrue(tags.get("result").isArray());
         assertEquals(2, tags.get("result").size());
-        assertEquals("alpha", tags.get("result").get(0).asText());
-        assertEquals("beta", tags.get("result").get(1).asText());
+        assertEquals("alpha", tags.get("result").get(0).asString());
+        assertEquals("beta", tags.get("result").get(1).asString());
     }
 
     @Test
@@ -71,7 +71,7 @@ class JsonRpcPureJavaIntegrationTest {
 
         assertTrue(batchResult.isArray());
         assertEquals(2, batchResult.size());
-        assertEquals("pong", batchResult.get(0).get("result").asText());
+        assertEquals("pong", batchResult.get(0).get("result").asString());
         assertEquals(-32601, batchResult.get(1).get("error").get("code").asInt());
     }
 

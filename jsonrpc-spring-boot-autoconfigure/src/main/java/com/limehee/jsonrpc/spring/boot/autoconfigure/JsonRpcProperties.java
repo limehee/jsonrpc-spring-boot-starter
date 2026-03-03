@@ -1,10 +1,12 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
+import com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Externalized Spring Boot configuration properties for JSON-RPC auto-configuration.
@@ -28,6 +30,7 @@ public class JsonRpcProperties {
     private boolean notificationExecutorEnabled = false;
     private String notificationExecutorBeanName = "";
     private JsonRpcMethodRegistrationConflictPolicy methodRegistrationConflictPolicy = JsonRpcMethodRegistrationConflictPolicy.REJECT;
+    private Validation validation = new Validation();
     private List<String> methodAllowlist = new ArrayList<>();
     private List<String> methodDenylist = new ArrayList<>();
 
@@ -276,6 +279,24 @@ public class JsonRpcProperties {
     }
 
     /**
+     * Returns validation-related options.
+     *
+     * @return nested validation options
+     */
+    public Validation getValidation() {
+        return validation;
+    }
+
+    /**
+     * Sets validation-related options.
+     *
+     * @param validation nested validation options; must not be {@code null}
+     */
+    public void setValidation(Validation validation) {
+        this.validation = Objects.requireNonNull(validation, "validation");
+    }
+
+    /**
      * Returns method allowlist used by access control interceptor.
      *
      * @return configured allowlist entries
@@ -309,5 +330,302 @@ public class JsonRpcProperties {
      */
     public void setMethodDenylist(List<String> methodDenylist) {
         this.methodDenylist = methodDenylist;
+    }
+
+    /**
+     * Nested validation configuration under {@code jsonrpc.validation.*}.
+     */
+    public static final class Validation {
+
+        private Request request = new Request();
+        private Response response = new Response();
+
+        /**
+         * Returns request-validation options.
+         *
+         * @return request-validation options
+         */
+        public Request getRequest() {
+            return request;
+        }
+
+        /**
+         * Sets request-validation options.
+         *
+         * @param request request-validation options; must not be {@code null}
+         */
+        public void setRequest(Request request) {
+            this.request = Objects.requireNonNull(request, "request");
+        }
+
+        /**
+         * Returns response-validation options.
+         *
+         * @return response-validation options
+         */
+        public Response getResponse() {
+            return response;
+        }
+
+        /**
+         * Sets response-validation options.
+         *
+         * @param response response-validation options; must not be {@code null}
+         */
+        public void setResponse(Response response) {
+            this.response = Objects.requireNonNull(response, "response");
+        }
+
+        /**
+         * Request-side validation options under {@code jsonrpc.validation.request.*}.
+         */
+        public static final class Request {
+
+            private JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy =
+                    JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS;
+
+            /**
+             * Returns the error-code mapping policy used when request {@code params} exists but is
+             * neither an object nor an array.
+             *
+             * @return params-type violation error-code policy
+             */
+            public JsonRpcParamsTypeViolationCodePolicy getParamsTypeViolationCodePolicy() {
+                return paramsTypeViolationCodePolicy;
+            }
+
+            /**
+             * Sets the error-code mapping policy used when request {@code params} exists but is
+             * neither an object nor an array.
+             *
+             * @param paramsTypeViolationCodePolicy params-type violation error-code policy
+             */
+            public void setParamsTypeViolationCodePolicy(
+                    JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy
+            ) {
+                this.paramsTypeViolationCodePolicy = Objects.requireNonNull(
+                        paramsTypeViolationCodePolicy,
+                        "paramsTypeViolationCodePolicy"
+                );
+            }
+        }
+
+        /**
+         * Response-side validation options under {@code jsonrpc.validation.response.*}.
+         */
+        public static final class Response {
+
+            private boolean requireJsonRpcVersion20 = true;
+            private boolean requireResponseIdMember = true;
+            private boolean allowNullResponseId = true;
+            private boolean allowStringResponseId = true;
+            private boolean allowNumericResponseId = true;
+            private boolean allowFractionalResponseId = true;
+            private boolean requireExclusiveResultOrError = true;
+            private boolean requireErrorObjectWhenPresent = true;
+            private boolean requireIntegerErrorCode = true;
+            private boolean requireStringErrorMessage = true;
+            private boolean allowRequestFieldsInResponse = true;
+
+            /**
+             * Indicates whether {@code jsonrpc == "2.0"} is required on incoming responses.
+             *
+             * @return {@code true} when version enforcement is enabled
+             */
+            public boolean isRequireJsonRpcVersion20() {
+                return requireJsonRpcVersion20;
+            }
+
+            /**
+             * Sets whether {@code jsonrpc == "2.0"} is required on incoming responses.
+             *
+             * @param requireJsonRpcVersion20 {@code true} to enforce version field
+             */
+            public void setRequireJsonRpcVersion20(boolean requireJsonRpcVersion20) {
+                this.requireJsonRpcVersion20 = requireJsonRpcVersion20;
+            }
+
+            /**
+             * Indicates whether incoming responses must include an {@code id} member.
+             *
+             * @return {@code true} when response {@code id} member is required
+             */
+            public boolean isRequireResponseIdMember() {
+                return requireResponseIdMember;
+            }
+
+            /**
+             * Sets whether incoming responses must include an {@code id} member.
+             *
+             * @param requireResponseIdMember {@code true} to require response {@code id}
+             */
+            public void setRequireResponseIdMember(boolean requireResponseIdMember) {
+                this.requireResponseIdMember = requireResponseIdMember;
+            }
+
+            /**
+             * Indicates whether {@code id: null} is allowed in incoming responses.
+             *
+             * @return {@code true} when null IDs are accepted
+             */
+            public boolean isAllowNullResponseId() {
+                return allowNullResponseId;
+            }
+
+            /**
+             * Sets whether {@code id: null} is allowed in incoming responses.
+             *
+             * @param allowNullResponseId {@code true} to accept null IDs
+             */
+            public void setAllowNullResponseId(boolean allowNullResponseId) {
+                this.allowNullResponseId = allowNullResponseId;
+            }
+
+            /**
+             * Indicates whether textual response IDs are allowed.
+             *
+             * @return {@code true} when string IDs are accepted
+             */
+            public boolean isAllowStringResponseId() {
+                return allowStringResponseId;
+            }
+
+            /**
+             * Sets whether textual response IDs are allowed.
+             *
+             * @param allowStringResponseId {@code true} to accept string IDs
+             */
+            public void setAllowStringResponseId(boolean allowStringResponseId) {
+                this.allowStringResponseId = allowStringResponseId;
+            }
+
+            /**
+             * Indicates whether numeric response IDs are allowed.
+             *
+             * @return {@code true} when numeric IDs are accepted
+             */
+            public boolean isAllowNumericResponseId() {
+                return allowNumericResponseId;
+            }
+
+            /**
+             * Sets whether numeric response IDs are allowed.
+             *
+             * @param allowNumericResponseId {@code true} to accept numeric IDs
+             */
+            public void setAllowNumericResponseId(boolean allowNumericResponseId) {
+                this.allowNumericResponseId = allowNumericResponseId;
+            }
+
+            /**
+             * Indicates whether fractional numeric response IDs are allowed.
+             *
+             * @return {@code true} when fractional numeric IDs are accepted
+             */
+            public boolean isAllowFractionalResponseId() {
+                return allowFractionalResponseId;
+            }
+
+            /**
+             * Sets whether fractional numeric response IDs are allowed.
+             *
+             * @param allowFractionalResponseId {@code true} to accept fractional numeric IDs
+             */
+            public void setAllowFractionalResponseId(boolean allowFractionalResponseId) {
+                this.allowFractionalResponseId = allowFractionalResponseId;
+            }
+
+            /**
+             * Indicates whether exactly one of {@code result}/{@code error} must exist.
+             *
+             * @return {@code true} when exclusive result/error enforcement is enabled
+             */
+            public boolean isRequireExclusiveResultOrError() {
+                return requireExclusiveResultOrError;
+            }
+
+            /**
+             * Sets whether exactly one of {@code result}/{@code error} must exist.
+             *
+             * @param requireExclusiveResultOrError {@code true} to enforce exclusivity
+             */
+            public void setRequireExclusiveResultOrError(boolean requireExclusiveResultOrError) {
+                this.requireExclusiveResultOrError = requireExclusiveResultOrError;
+            }
+
+            /**
+             * Indicates whether {@code error} must be an object when present.
+             *
+             * @return {@code true} when error object enforcement is enabled
+             */
+            public boolean isRequireErrorObjectWhenPresent() {
+                return requireErrorObjectWhenPresent;
+            }
+
+            /**
+             * Sets whether {@code error} must be an object when present.
+             *
+             * @param requireErrorObjectWhenPresent {@code true} to enforce error object shape
+             */
+            public void setRequireErrorObjectWhenPresent(boolean requireErrorObjectWhenPresent) {
+                this.requireErrorObjectWhenPresent = requireErrorObjectWhenPresent;
+            }
+
+            /**
+             * Indicates whether {@code error.code} must be an integer number.
+             *
+             * @return {@code true} when integer error-code enforcement is enabled
+             */
+            public boolean isRequireIntegerErrorCode() {
+                return requireIntegerErrorCode;
+            }
+
+            /**
+             * Sets whether {@code error.code} must be an integer number.
+             *
+             * @param requireIntegerErrorCode {@code true} to enforce integer error code
+             */
+            public void setRequireIntegerErrorCode(boolean requireIntegerErrorCode) {
+                this.requireIntegerErrorCode = requireIntegerErrorCode;
+            }
+
+            /**
+             * Indicates whether {@code error.message} must be a string.
+             *
+             * @return {@code true} when string error-message enforcement is enabled
+             */
+            public boolean isRequireStringErrorMessage() {
+                return requireStringErrorMessage;
+            }
+
+            /**
+             * Sets whether {@code error.message} must be a string.
+             *
+             * @param requireStringErrorMessage {@code true} to enforce string error message
+             */
+            public void setRequireStringErrorMessage(boolean requireStringErrorMessage) {
+                this.requireStringErrorMessage = requireStringErrorMessage;
+            }
+
+            /**
+             * Indicates whether request-only fields like {@code method}/{@code params} are
+             * allowed in response objects.
+             *
+             * @return {@code true} when request fields are tolerated in responses
+             */
+            public boolean isAllowRequestFieldsInResponse() {
+                return allowRequestFieldsInResponse;
+            }
+
+            /**
+             * Sets whether request-only fields like {@code method}/{@code params} are allowed in
+             * response objects.
+             *
+             * @param allowRequestFieldsInResponse {@code true} to allow request fields in response
+             */
+            public void setAllowRequestFieldsInResponse(boolean allowRequestFieldsInResponse) {
+                this.allowRequestFieldsInResponse = allowRequestFieldsInResponse;
+            }
+        }
     }
 }

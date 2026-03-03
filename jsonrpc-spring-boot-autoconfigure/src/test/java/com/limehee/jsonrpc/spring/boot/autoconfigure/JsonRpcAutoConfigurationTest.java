@@ -12,6 +12,8 @@ import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcParam;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
+import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
+import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -49,7 +51,7 @@ class JsonRpcAutoConfigurationTest {
                     JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping", null, true);
                     JsonRpcResponse response = dispatcher.dispatch(request);
                     assertNotNull(response);
-                    assertEquals("pong", response.result().asText());
+                    assertEquals("pong", response.result().asString());
 
                     JsonRpcTypedMethodHandlerFactory typedFactory = context.getBean(JsonRpcTypedMethodHandlerFactory.class);
                     assertNotNull(typedFactory);
@@ -73,7 +75,7 @@ class JsonRpcAutoConfigurationTest {
                     ));
 
                     assertNotNull(response);
-                    assertEquals("hello developer", response.result().asText());
+                    assertEquals("hello developer", response.result().asString());
                 });
     }
 
@@ -155,7 +157,7 @@ class JsonRpcAutoConfigurationTest {
                     ));
 
                     assertNotNull(response);
-                    assertEquals("ab", response.result().asText());
+                    assertEquals("ab", response.result().asString());
                 });
     }
 
@@ -193,7 +195,7 @@ class JsonRpcAutoConfigurationTest {
                     ));
 
                     assertNotNull(response);
-                    assertEquals("xy", response.result().asText());
+                    assertEquals("xy", response.result().asString());
                 });
     }
 
@@ -215,7 +217,7 @@ class JsonRpcAutoConfigurationTest {
                             true
                     ));
 
-                    assertEquals("pong", response.result().asText());
+                    assertEquals("pong", response.result().asString());
                     assertTrue(interceptor.beforeInvokeCount > 0);
                     assertTrue(interceptor.afterInvokeCount > 0);
                 });
@@ -265,7 +267,7 @@ class JsonRpcAutoConfigurationTest {
 
                     assertNotNull(response.error());
                     assertEquals(-32001, response.error().code());
-                    assertEquals("secret", response.error().data().asText());
+                    assertEquals("secret", response.error().data().asString());
                 });
     }
 
@@ -557,7 +559,7 @@ class JsonRpcAutoConfigurationTest {
                             true
                     ));
 
-                    assertEquals("pong", response.result().asText());
+                    assertEquals("pong", response.result().asString());
                 });
     }
 
@@ -569,6 +571,93 @@ class JsonRpcAutoConfigurationTest {
                         "jsonrpc.method-denylist[0]=   "
                 )
                 .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void mapsParamsTypeViolationToInvalidParamsByDefault() {
+        contextRunner
+                .withBean("ping", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(35),
+                            "ping",
+                            StringNode.valueOf("invalid-shape"),
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32602, response.error().code());
+                });
+    }
+
+    @Test
+    void mapsParamsTypeViolationToInvalidRequestWhenConfiguredViaProperty() {
+        contextRunner
+                .withPropertyValues("jsonrpc.validation.request.params-type-violation-code-policy=INVALID_REQUEST")
+                .withBean("ping", JsonRpcMethodRegistration.class,
+                        () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
+                .run(context -> {
+                    JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                    JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                            "2.0",
+                            IntNode.valueOf(36),
+                            "ping",
+                            StringNode.valueOf("invalid-shape"),
+                            true
+                    ));
+
+                    assertNotNull(response.error());
+                    assertEquals(-32600, response.error().code());
+                });
+    }
+
+    @Test
+    void rejectsUnknownParamsTypeViolationCodePolicyValue() {
+        contextRunner
+                .withPropertyValues("jsonrpc.validation.request.params-type-violation-code-policy=NOT_A_POLICY")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void bindsDefaultResponseValidationOptions() {
+        contextRunner.run(context -> {
+            JsonRpcResponseValidationOptions options = context.getBean(JsonRpcResponseValidationOptions.class);
+            JsonRpcResponseValidator responseValidator = context.getBean(JsonRpcResponseValidator.class);
+            JsonRpcResponseValidationOptions coreDefaults = JsonRpcResponseValidationOptions.defaults();
+
+            assertEquals(coreDefaults.requireJsonRpcVersion20(), options.requireJsonRpcVersion20());
+            assertEquals(coreDefaults.requireResponseIdMember(), options.requireResponseIdMember());
+            assertEquals(coreDefaults.allowNullResponseId(), options.allowNullResponseId());
+            assertEquals(coreDefaults.allowStringResponseId(), options.allowStringResponseId());
+            assertEquals(coreDefaults.allowNumericResponseId(), options.allowNumericResponseId());
+            assertEquals(coreDefaults.allowFractionalResponseId(), options.allowFractionalResponseId());
+            assertEquals(coreDefaults.requireExclusiveResultOrError(), options.requireExclusiveResultOrError());
+            assertEquals(coreDefaults.requireErrorObjectWhenPresent(), options.requireErrorObjectWhenPresent());
+            assertEquals(coreDefaults.requireIntegerErrorCode(), options.requireIntegerErrorCode());
+            assertEquals(coreDefaults.requireStringErrorMessage(), options.requireStringErrorMessage());
+            assertEquals(coreDefaults.allowRequestFieldsInResponse(), options.allowRequestFieldsInResponse());
+            assertNotNull(responseValidator);
+        });
+    }
+
+    @Test
+    void appliesConfiguredResponseValidationOptions() {
+        contextRunner
+                .withPropertyValues(
+                        "jsonrpc.validation.response.require-response-id-member=false",
+                        "jsonrpc.validation.response.allow-fractional-response-id=false",
+                        "jsonrpc.validation.response.allow-request-fields-in-response=false"
+                )
+                .run(context -> {
+                    JsonRpcResponseValidationOptions options = context.getBean(JsonRpcResponseValidationOptions.class);
+
+                    assertFalse(options.requireResponseIdMember());
+                    assertFalse(options.allowFractionalResponseId());
+                    assertFalse(options.allowRequestFieldsInResponse());
+                });
     }
 
     @Test

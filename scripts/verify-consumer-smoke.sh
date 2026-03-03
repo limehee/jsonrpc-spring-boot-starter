@@ -82,7 +82,7 @@ class CoreConsumerSmokeTest {
         JsonNode payload = mapper.readTree("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}");
         JsonRpcDispatchResult result = dispatcher.dispatch(payload);
 
-        assertEquals("pong", result.singleResponse().orElseThrow().result().asText());
+        assertEquals("pong", result.singleResponse().orElseThrow().result().asString());
     }
 }
 EOF
@@ -174,7 +174,7 @@ class StarterConsumerSmokeTest {
         ObjectMapper mapper = JsonMapper.builder().build();
         JsonRpcDispatchResult result = dispatcher.dispatch(mapper.readTree(
                 "{\"jsonrpc\":\"2.0\",\"method\":\"greet\",\"params\":{\"name\":\"developer\"},\"id\":1}"));
-        assertEquals("hello developer", result.singleResponse().orElseThrow().result().asText());
+        assertEquals("hello developer", result.singleResponse().orElseThrow().result().asString());
     }
 }
 EOF

@@ -21,10 +21,10 @@ public class DefaultJsonRpcRequestParser implements JsonRpcRequestParser {
         }
 
         JsonNode jsonrpcNode = node.get("jsonrpc");
-        String jsonrpc = jsonrpcNode != null && jsonrpcNode.isTextual() ? jsonrpcNode.asText() : null;
+        String jsonrpc = jsonrpcNode != null && jsonrpcNode.isString() ? jsonrpcNode.stringValue() : null;
 
         JsonNode methodNode = node.get("method");
-        String method = methodNode != null && methodNode.isTextual() ? methodNode.asText() : null;
+        String method = methodNode != null && methodNode.isString() ? methodNode.stringValue() : null;
 
         JsonNode id = node.get("id");
         boolean idPresent = node.has("id");

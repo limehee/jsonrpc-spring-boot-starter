@@ -5,6 +5,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -147,16 +148,16 @@ public class JsonRpcDispatcher {
             List<JsonRpcInterceptor> interceptors,
             JsonRpcNotificationExecutor notificationExecutor
     ) {
-        this.methodRegistry = methodRegistry;
-        this.requestParser = requestParser;
-        this.requestValidator = requestValidator;
-        this.methodInvoker = methodInvoker;
-        this.exceptionResolver = exceptionResolver;
-        this.responseComposer = responseComposer;
+        this.methodRegistry = Objects.requireNonNull(methodRegistry, "methodRegistry");
+        this.requestParser = Objects.requireNonNull(requestParser, "requestParser");
+        this.requestValidator = Objects.requireNonNull(requestValidator, "requestValidator");
+        this.methodInvoker = Objects.requireNonNull(methodInvoker, "methodInvoker");
+        this.exceptionResolver = Objects.requireNonNull(exceptionResolver, "exceptionResolver");
+        this.responseComposer = Objects.requireNonNull(responseComposer, "responseComposer");
         this.maxBatchSize = maxBatchSize;
-        this.interceptors = List.copyOf(interceptors);
+        this.interceptors = List.copyOf(Objects.requireNonNull(interceptors, "interceptors"));
         this.hasInterceptors = !this.interceptors.isEmpty();
-        this.notificationExecutor = notificationExecutor;
+        this.notificationExecutor = Objects.requireNonNull(notificationExecutor, "notificationExecutor");
     }
 
     /**
@@ -216,6 +217,8 @@ public class JsonRpcDispatcher {
             requestValidator.validate(request);
             validRequest = true;
             return dispatchSingleRequest(request).orElse(null);
+        } catch (Error error) {
+            throw error;
         } catch (Throwable ex) {
             JsonNode id = request == null ? null : normalizeErrorId(request.id());
             return handleRequestError(id, request, validRequest, ex).orElse(null);
@@ -256,6 +259,8 @@ public class JsonRpcDispatcher {
             requestValidator.validate(request);
             validRequest = true;
             return dispatchSingleRequest(request);
+        } catch (Error error) {
+            throw error;
         } catch (Throwable ex) {
             return handleRequestError(errorId, request, validRequest, ex);
         }
@@ -342,7 +347,7 @@ public class JsonRpcDispatcher {
      * @return normalized id or {@code null}
      */
     private @Nullable JsonNode normalizeErrorId(@Nullable JsonNode id) {
-        if (id == null || id.isNull() || id.isTextual() || id.isNumber()) {
+        if (id == null || id.isNull() || id.isString() || id.isNumber()) {
             return id;
         }
         return null;
@@ -441,6 +446,8 @@ public class JsonRpcDispatcher {
             runBeforeInvoke(request);
             JsonNode result = methodInvoker.invoke(handler, request.params());
             runAfterInvoke(request, result);
+        } catch (Error error) {
+            throw error;
         } catch (Throwable ex) {
             JsonRpcError error = exceptionResolver.resolve(ex);
             runOnError(request, ex, error);

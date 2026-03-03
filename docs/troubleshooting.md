@@ -15,6 +15,7 @@ Checks:
 - `jsonrpc.path` starts with `/` and has no whitespace
 - `jsonrpc.max-batch-size > 0`
 - `jsonrpc.max-request-bytes > 0`
+- `jsonrpc.validation.request.params-type-violation-code-policy` is set to a valid enum value
 - allowlist/denylist entries are not blank
 - `jsonrpc.notification-executor-bean-name` is not null
 
@@ -32,7 +33,7 @@ Checks:
 - `@JsonRpcMethod` name or registration name
 - `jsonrpc.method-allowlist` / `jsonrpc.method-denylist`
 
-## Params Return `-32602 Invalid params`
+## Params Return `-32602` or `-32600`
 
 Possible causes:
 
@@ -40,12 +41,14 @@ Possible causes:
 - Missing named argument in object mode
 - Positional array size mismatch
 - Jackson conversion failure for target type
+- Custom `JsonRpcRequestValidator` policy maps params-shape errors to `-32600`
 
 Checks:
 
 - For multi-arg object params, confirm `@JsonRpcParam` names
 - For reflection names, ensure build uses `-parameters`
 - Validate incoming JSON types
+- Confirm `jsonrpc.validation.request.params-type-violation-code-policy` matches expected code semantics
 
 ## Notification Did Not Return Body
 

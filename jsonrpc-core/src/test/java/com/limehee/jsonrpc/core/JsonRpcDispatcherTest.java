@@ -37,7 +37,7 @@ class JsonRpcDispatcherTest {
         JsonRpcResponse response = result.singleResponse().orElseThrow();
         assertEquals("2.0", response.jsonrpc());
         assertEquals(1, response.id().asInt());
-        assertEquals("pong", response.result().asText());
+        assertEquals("pong", response.result().asString());
     }
 
     @Test
@@ -134,7 +134,7 @@ class JsonRpcDispatcherTest {
         assertTrue(result.hasResponse());
         JsonRpcResponse response = result.singleResponse().orElseThrow();
         assertTrue(response.id().isNull());
-        assertEquals("pong", response.result().asText());
+        assertEquals("pong", response.result().asString());
     }
 
     @Test
@@ -182,7 +182,7 @@ class JsonRpcDispatcherTest {
         assertEquals(3, responses.size());
 
         assertEquals(1, responses.get(0).id().asInt());
-        assertEquals("pong", responses.get(0).result().asText());
+        assertEquals("pong", responses.get(0).result().asString());
 
         assertEquals(2, responses.get(1).id().asInt());
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, responses.get(1).error().code());
@@ -224,7 +224,7 @@ class JsonRpcDispatcherTest {
         assertEquals(2, result.responses().size());
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, result.responses().get(0).error().code());
         assertNull(result.responses().get(0).id());
-        assertEquals("pong", result.responses().get(1).result().asText());
+        assertEquals("pong", result.responses().get(1).result().asString());
     }
 
     @Test
@@ -315,7 +315,7 @@ class JsonRpcDispatcherTest {
         JsonRpcResponse response = dispatcher.dispatch(request);
 
         assertNotNull(response);
-        assertEquals("pong", response.result().asText());
+        assertEquals("pong", response.result().asString());
     }
 
     @Test
@@ -435,6 +435,42 @@ class JsonRpcDispatcherTest {
         JsonRpcResponse response = result.singleResponse().orElseThrow();
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, response.error().code());
         assertTrue(interceptor.events.contains("onError:-32601"));
+    }
+
+    @Test
+    void dispatchRequestPropagatesErrorFromHandler() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("fatal", params -> {
+            throw new AssertionError("fatal");
+        });
+
+        assertThrows(AssertionError.class, () -> dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","method":"fatal","id":1}
+                """)));
+    }
+
+    @Test
+    void legacyDispatchRequestPropagatesErrorFromHandler() {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("fatal", params -> {
+            throw new AssertionError("fatal");
+        });
+
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "fatal", null, true);
+
+        assertThrows(AssertionError.class, () -> dispatcher.dispatch(request));
+    }
+
+    @Test
+    void dispatchNotificationPropagatesErrorFromHandler() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("fatal", params -> {
+            throw new AssertionError("fatal");
+        });
+
+        assertThrows(AssertionError.class, () -> dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","method":"fatal"}
+                """)));
     }
 
     private static final class RecordingInterceptor implements JsonRpcInterceptor {

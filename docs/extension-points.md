@@ -14,6 +14,26 @@ You can override any of these with custom Spring beans:
 - `JsonRpcResponseComposer`
 - `JsonRpcNotificationExecutor`
 
+Response-side interfaces are available in `jsonrpc-core` for transport integrations:
+
+- `JsonRpcEnvelopeClassifier`
+- `JsonRpcResponseParser`
+- `JsonRpcResponseValidator`
+- `JsonRpcResponseValidationOptions`
+
+Spring Boot auto-configuration currently wires request-dispatch components by default. For response-side
+processing, create and use these components explicitly in your transport adapter.
+
+Request validator customization example:
+
+- Spring Boot property `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_PARAMS`
+  keeps default `-32602` for `params` type violations.
+- Spring Boot property `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_REQUEST`
+  maps the same violation to `-32600`.
+- For non-Spring or fully custom logic, you can still construct
+  `DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS)` or
+  `DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST)` directly.
+
 ## 2. Interceptor Chain
 
 `JsonRpcInterceptor` hooks:

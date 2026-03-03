@@ -1,6 +1,7 @@
 package com.limehee.jsonrpc.core;
 
 import java.util.concurrent.Executor;
+import java.util.Objects;
 
 /**
  * Notification executor that delegates execution to a supplied {@link Executor}.
@@ -15,7 +16,7 @@ public class ExecutorJsonRpcNotificationExecutor implements JsonRpcNotificationE
      * @param executor target executor that performs delegated notification execution
      */
     public ExecutorJsonRpcNotificationExecutor(Executor executor) {
-        this.executor = executor;
+        this.executor = Objects.requireNonNull(executor, "executor");
     }
 
     /**

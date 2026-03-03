@@ -2,6 +2,7 @@ package com.limehee.jsonrpc.core;
 
 import tools.jackson.databind.JsonNode;
 
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -20,8 +21,8 @@ public class DefaultJsonRpcTypedMethodHandlerFactory implements JsonRpcTypedMeth
      * @param resultWriter serializer for converting Java return values to JSON
      */
     public DefaultJsonRpcTypedMethodHandlerFactory(JsonRpcParameterBinder parameterBinder, JsonRpcResultWriter resultWriter) {
-        this.parameterBinder = parameterBinder;
-        this.resultWriter = resultWriter;
+        this.parameterBinder = Objects.requireNonNull(parameterBinder, "parameterBinder");
+        this.resultWriter = Objects.requireNonNull(resultWriter, "resultWriter");
     }
 
     /**

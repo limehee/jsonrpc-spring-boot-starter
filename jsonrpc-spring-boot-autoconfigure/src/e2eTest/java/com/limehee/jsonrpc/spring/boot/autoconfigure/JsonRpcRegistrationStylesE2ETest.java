@@ -50,7 +50,7 @@ class JsonRpcRegistrationStylesE2ETest {
                 """);
 
         assertEquals(11, body.get("result").get("id").asInt());
-        assertEquals("user-11", body.get("result").get("name").asText());
+        assertEquals("user-11", body.get("result").get("name").asString());
     }
 
     @Test
@@ -59,7 +59,7 @@ class JsonRpcRegistrationStylesE2ETest {
                 {"jsonrpc":"2.0","method":"manual.ping","id":2}
                 """);
 
-        assertEquals("pong-manual", body.get("result").asText());
+        assertEquals("pong-manual", body.get("result").asString());
     }
 
     @Test
@@ -71,10 +71,10 @@ class JsonRpcRegistrationStylesE2ETest {
                 {"jsonrpc":"2.0","method":"typed.tags","id":4}
                 """);
 
-        assertEquals("RPC", upper.get("result").get("result").asText());
+        assertEquals("RPC", upper.get("result").get("result").asString());
         assertTrue(tags.get("result").isArray());
-        assertEquals("alpha", tags.get("result").get(0).asText());
-        assertEquals("beta", tags.get("result").get(1).asText());
+        assertEquals("alpha", tags.get("result").get(0).asString());
+        assertEquals("beta", tags.get("result").get(1).asString());
     }
 
     private JsonNode call(String payload) throws Exception {

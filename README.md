@@ -9,6 +9,7 @@ Production-oriented JSON-RPC 2.0 server library for Java, with optional Spring W
 - Spring WebMVC transport adapter and Spring Boot auto-configuration
 - Multiple registration styles (annotation/manual/typed)
 - Explicit extension points (parser/validator/invoker/exception mapping/interceptors/metrics)
+- Response-side protocol utilities for bidirectional transports (classifier/parser/validator)
 - Focused dependency surface (no direct Guava, Commons Lang3, or Jakarta Validation dependency)
 
 ## Specification
@@ -20,7 +21,7 @@ Production-oriented JSON-RPC 2.0 server library for Java, with optional Spring W
 
 - Java: 17+
 - Spring Boot baseline: 4.0.3
-- Jackson baseline: 3.0.x
+- Jackson baseline: 3.1.x
 - Build: Gradle with Version Catalog
 - CI matrix: Java 17, 21, 25
 
@@ -174,6 +175,24 @@ Response:
 {"jsonrpc":"2.0","id":1,"result":"hello developer"}
 ```
 
+## Spring Configuration Example
+
+Use `jsonrpc.validation.request.*` and `jsonrpc.validation.response.*` for fine-grained validation control:
+
+```yaml
+jsonrpc:
+  validation:
+    request:
+      params-type-violation-code-policy: INVALID_REQUEST
+    response:
+      require-response-id-member: true
+      allow-fractional-response-id: false
+      allow-request-fields-in-response: false
+```
+
+For the full list of validation keys and defaults, see
+[`docs/configuration-reference.md`](docs/configuration-reference.md).
+
 ## Quick Start (Pure Java)
 
 ```java
@@ -256,11 +275,13 @@ Detailed docs are under [`docs/`](docs/):
 ## Sample
 
 - Spring Boot sample app: [`samples/spring-boot-demo`](samples/spring-boot-demo)
+- Pure Java sample app: [`samples/pure-java-demo`](samples/pure-java-demo)
 
 Run:
 
 ```bash
 ./gradlew -p samples/spring-boot-demo bootRun
+./gradlew -p samples/pure-java-demo run
 ```
 
 ## Project Docs

@@ -27,6 +27,6 @@ class GreetingRpcServiceDenylistIntegrationTest extends AbstractJsonRpcIntegrati
                 {"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":2}
                 """);
 
-        assertEquals("hello developer", body.get("result").asText());
+        assertEquals("hello developer", body.get("result").asString());
     }
 }

@@ -27,6 +27,10 @@ Commands:
 ### Core (`jsonrpc-core`)
 
 - Parser/validator rules (`jsonrpc`, `method`, `params`, `id`)
+- Response-side utilities:
+  - envelope classifier (`REQUEST` / `RESPONSE` / `INVALID`)
+  - incoming response parser (single/batch and field-presence semantics)
+  - configurable response validator (`JsonRpcResponseValidationOptions`)
 - Dispatcher branches:
   - success
   - invalid request

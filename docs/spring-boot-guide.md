@@ -241,6 +241,58 @@ Supported practical types include:
 - `Map`, `List`, collection types
 - `JsonNode`
 
+### 5.4 Params type violation code policy
+
+Default auto-configuration uses `DefaultJsonRpcRequestValidator` with
+`JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS`, so request `params` with non-object/non-array shape
+returns `-32602`.
+
+Use configuration to change this behavior:
+
+```yaml
+jsonrpc:
+  validation:
+    request:
+      params-type-violation-code-policy: INVALID_REQUEST
+```
+
+If you need fully custom validation logic, you can still override the validator bean.
+
+### 5.5 Incoming response validation options
+
+`JsonRpcResponseValidationOptions` is also configurable through properties:
+
+```yaml
+jsonrpc:
+  validation:
+    response:
+      require-json-rpc-version-20: true
+      require-response-id-member: true
+      allow-null-response-id: true
+      allow-string-response-id: true
+      allow-numeric-response-id: true
+      allow-fractional-response-id: true
+      require-exclusive-result-or-error: true
+      require-error-object-when-present: true
+      require-integer-error-code: true
+      require-string-error-message: true
+      allow-request-fields-in-response: true
+```
+
+You can override only the options you need. Example:
+
+```yaml
+jsonrpc:
+  validation:
+    response:
+      allow-fractional-response-id: false
+      allow-request-fields-in-response: false
+```
+
+Auto-configuration exposes both `JsonRpcResponseValidationOptions` and
+`JsonRpcResponseValidator` beans. They are intended for client/bidirectional integrations and are
+not part of the default HTTP request dispatch path.
+
 ## 6. Control Scanning Scope
 
 Disable annotation scanning when you only want explicit registrations:
@@ -326,6 +378,16 @@ Common override points:
 - `JsonRpcResponseComposer`
 - `JsonRpcNotificationExecutor`
 - `JsonRpcHttpStatusStrategy`
+
+Response-side protocol components are also available in `jsonrpc-core`:
+
+- `JsonRpcEnvelopeClassifier`
+- `JsonRpcResponseParser`
+- `JsonRpcResponseValidator`
+- `JsonRpcResponseValidationOptions`
+
+Auto-configuration provides these as beans for reuse in custom bidirectional transports. They are
+not used by the default HTTP request dispatcher.
 
 Example HTTP status strategy:
 

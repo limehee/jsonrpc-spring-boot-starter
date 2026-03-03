@@ -25,7 +25,7 @@ class DefaultJsonRpcExceptionResolverTest {
         JsonRpcError error = resolver.resolve(new JsonRpcException(-32000, "domain", StringNode.valueOf("secret")));
 
         assertEquals(-32000, error.code());
-        assertEquals("secret", error.data().asText());
+        assertEquals("secret", error.data().asString());
     }
 
     @Test

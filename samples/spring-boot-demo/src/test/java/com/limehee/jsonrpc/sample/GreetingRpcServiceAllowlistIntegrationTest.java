@@ -18,7 +18,7 @@ class GreetingRpcServiceAllowlistIntegrationTest extends AbstractJsonRpcIntegrat
                 {"jsonrpc":"2.0","method":"ping","id":1}
                 """);
 
-        assertEquals("pong", body.get("result").asText());
+        assertEquals("pong", body.get("result").asString());
     }
 
     @Test

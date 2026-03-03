@@ -88,7 +88,7 @@ class JsonRpcWebMvcEndpointTest {
                 .andReturn();
 
         JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
-        assertEquals("pong", response.result().asText());
+        assertEquals("pong", response.result().asString());
         assertEquals(1, response.id().asInt());
     }
 
@@ -130,7 +130,7 @@ class JsonRpcWebMvcEndpointTest {
         JsonNode response = OBJECT_MAPPER.readTree(result.getResponse().getContentAsByteArray());
         assertTrue(response.isArray());
         assertEquals(2, response.size());
-        assertEquals("pong", response.get(0).get("result").asText());
+        assertEquals("pong", response.get(0).get("result").asString());
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, response.get(1).get("error").get("code").asInt());
     }
 
