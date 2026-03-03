@@ -24,6 +24,13 @@ Response-side interfaces are available in `jsonrpc-core` for transport integrati
 Spring Boot auto-configuration currently wires request-dispatch components by default. For response-side
 processing, create and use these components explicitly in your transport adapter.
 
+Request validator customization example:
+
+- `DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS)` keeps
+  default `-32602` for `params` type violations.
+- `DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST)` maps the
+  same violation to `-32600`.
+
 ## 2. Interceptor Chain
 
 `JsonRpcInterceptor` hooks:

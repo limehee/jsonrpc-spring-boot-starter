@@ -188,13 +188,14 @@ import com.limehee.jsonrpc.core.DefaultJsonRpcResponseComposer;
 import com.limehee.jsonrpc.core.DirectJsonRpcNotificationExecutor;
 import com.limehee.jsonrpc.core.InMemoryJsonRpcMethodRegistry;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
+import com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy;
 import java.util.List;
 
 JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
         new InMemoryJsonRpcMethodRegistry(JsonRpcMethodRegistrationConflictPolicy.REJECT),
         new DefaultJsonRpcRequestParser(),
-        new DefaultJsonRpcRequestValidator(),
+        new DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS),
         new DefaultJsonRpcMethodInvoker(),
         new DefaultJsonRpcExceptionResolver(false),
         new DefaultJsonRpcResponseComposer(),
@@ -205,6 +206,12 @@ JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
 ```
 
 This keeps protocol behavior while letting you customize policy and implementation.
+
+`JsonRpcParamsTypeViolationCodePolicy` controls which code is used when request `params` is present but not
+an object/array:
+
+- `INVALID_PARAMS` (default behavior): `-32602`
+- `INVALID_REQUEST`: `-32600`
 
 ## 7. Custom Transport Pattern
 

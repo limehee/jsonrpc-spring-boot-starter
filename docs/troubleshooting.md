@@ -32,7 +32,7 @@ Checks:
 - `@JsonRpcMethod` name or registration name
 - `jsonrpc.method-allowlist` / `jsonrpc.method-denylist`
 
-## Params Return `-32602 Invalid params`
+## Params Return `-32602` or `-32600`
 
 Possible causes:
 
@@ -40,12 +40,14 @@ Possible causes:
 - Missing named argument in object mode
 - Positional array size mismatch
 - Jackson conversion failure for target type
+- Custom `JsonRpcRequestValidator` policy maps params-shape errors to `-32600`
 
 Checks:
 
 - For multi-arg object params, confirm `@JsonRpcParam` names
 - For reflection names, ensure build uses `-parameters`
 - Validate incoming JSON types
+- Confirm your validator policy (`JsonRpcParamsTypeViolationCodePolicy`) matches expected code semantics
 
 ## Notification Did Not Return Body
 

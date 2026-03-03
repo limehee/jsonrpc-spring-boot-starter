@@ -241,6 +241,31 @@ Supported practical types include:
 - `Map`, `List`, collection types
 - `JsonNode`
 
+### 5.4 Params type violation code policy
+
+Default auto-configuration uses `DefaultJsonRpcRequestValidator` with
+`JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS`, so request `params` with non-object/non-array shape
+returns `-32602`.
+
+If you want `-32600 Invalid Request` instead, override the validator bean:
+
+```java
+import com.limehee.jsonrpc.core.DefaultJsonRpcRequestValidator;
+import com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy;
+import com.limehee.jsonrpc.core.JsonRpcRequestValidator;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+class JsonRpcValidatorConfig {
+
+    @Bean
+    JsonRpcRequestValidator jsonRpcRequestValidator() {
+        return new DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST);
+    }
+}
+```
+
 ## 6. Control Scanning Scope
 
 Disable annotation scanning when you only want explicit registrations:
