@@ -216,6 +216,8 @@ public class JsonRpcDispatcher {
             requestValidator.validate(request);
             validRequest = true;
             return dispatchSingleRequest(request).orElse(null);
+        } catch (Error error) {
+            throw error;
         } catch (Throwable ex) {
             JsonNode id = request == null ? null : normalizeErrorId(request.id());
             return handleRequestError(id, request, validRequest, ex).orElse(null);
@@ -256,6 +258,8 @@ public class JsonRpcDispatcher {
             requestValidator.validate(request);
             validRequest = true;
             return dispatchSingleRequest(request);
+        } catch (Error error) {
+            throw error;
         } catch (Throwable ex) {
             return handleRequestError(errorId, request, validRequest, ex);
         }
@@ -441,6 +445,8 @@ public class JsonRpcDispatcher {
             runBeforeInvoke(request);
             JsonNode result = methodInvoker.invoke(handler, request.params());
             runAfterInvoke(request, result);
+        } catch (Error error) {
+            throw error;
         } catch (Throwable ex) {
             JsonRpcError error = exceptionResolver.resolve(ex);
             runOnError(request, ex, error);

@@ -437,6 +437,42 @@ class JsonRpcDispatcherTest {
         assertTrue(interceptor.events.contains("onError:-32601"));
     }
 
+    @Test
+    void dispatchRequestPropagatesErrorFromHandler() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("fatal", params -> {
+            throw new AssertionError("fatal");
+        });
+
+        assertThrows(AssertionError.class, () -> dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","method":"fatal","id":1}
+                """)));
+    }
+
+    @Test
+    void legacyDispatchRequestPropagatesErrorFromHandler() {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("fatal", params -> {
+            throw new AssertionError("fatal");
+        });
+
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "fatal", null, true);
+
+        assertThrows(AssertionError.class, () -> dispatcher.dispatch(request));
+    }
+
+    @Test
+    void dispatchNotificationPropagatesErrorFromHandler() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("fatal", params -> {
+            throw new AssertionError("fatal");
+        });
+
+        assertThrows(AssertionError.class, () -> dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":"2.0","method":"fatal"}
+                """)));
+    }
+
     private static final class RecordingInterceptor implements JsonRpcInterceptor {
         private final List<String> events = new ArrayList<>();
 
