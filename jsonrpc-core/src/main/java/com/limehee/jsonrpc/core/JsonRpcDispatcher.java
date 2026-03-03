@@ -5,6 +5,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -147,16 +148,16 @@ public class JsonRpcDispatcher {
             List<JsonRpcInterceptor> interceptors,
             JsonRpcNotificationExecutor notificationExecutor
     ) {
-        this.methodRegistry = methodRegistry;
-        this.requestParser = requestParser;
-        this.requestValidator = requestValidator;
-        this.methodInvoker = methodInvoker;
-        this.exceptionResolver = exceptionResolver;
-        this.responseComposer = responseComposer;
+        this.methodRegistry = Objects.requireNonNull(methodRegistry, "methodRegistry");
+        this.requestParser = Objects.requireNonNull(requestParser, "requestParser");
+        this.requestValidator = Objects.requireNonNull(requestValidator, "requestValidator");
+        this.methodInvoker = Objects.requireNonNull(methodInvoker, "methodInvoker");
+        this.exceptionResolver = Objects.requireNonNull(exceptionResolver, "exceptionResolver");
+        this.responseComposer = Objects.requireNonNull(responseComposer, "responseComposer");
         this.maxBatchSize = maxBatchSize;
-        this.interceptors = List.copyOf(interceptors);
+        this.interceptors = List.copyOf(Objects.requireNonNull(interceptors, "interceptors"));
         this.hasInterceptors = !this.interceptors.isEmpty();
-        this.notificationExecutor = notificationExecutor;
+        this.notificationExecutor = Objects.requireNonNull(notificationExecutor, "notificationExecutor");
     }
 
     /**
