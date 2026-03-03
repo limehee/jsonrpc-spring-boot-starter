@@ -8,11 +8,16 @@ You can override any of these with custom Spring beans:
 
 - `JsonRpcRequestParser`
 - `JsonRpcRequestValidator`
+- `JsonRpcEnvelopeClassifier`
+- `JsonRpcResponseParser`
+- `JsonRpcResponseValidator`
 - `JsonRpcMethodRegistry`
 - `JsonRpcMethodInvoker`
 - `JsonRpcExceptionResolver`
 - `JsonRpcResponseComposer`
 - `JsonRpcNotificationExecutor`
+
+`JsonRpcResponseValidationOptions` provides fine-grained rule switches for default response validation behavior.
 
 ## 2. Interceptor Chain
 

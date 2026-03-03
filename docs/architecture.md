@@ -43,6 +43,13 @@ flowchart LR
 
 Design goal: each concern is replaceable without rewriting the dispatcher.
 
+Response-side transport integrations can use these additional protocol components:
+
+- `JsonRpcEnvelopeClassifier`
+- `JsonRpcResponseParser`
+- `JsonRpcResponseValidator`
+- `JsonRpcResponseValidationOptions`
+
 ## 4. Registration Lifecycle in Auto-Configuration
 
 Method registration order in Spring Boot:
