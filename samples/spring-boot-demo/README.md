@@ -111,8 +111,17 @@ curl -s http://localhost:8080/jsonrpc \
   -d '{'
 ```
 
+## Notification Executor Scenarios
+
+- Configured executor path is covered by
+  `GreetingRpcServiceNotificationExecutorIntegrationTest`.
+- Misconfiguration failure path (missing named executor bean) is covered by
+  `GreetingRpcServiceNotificationExecutorConfigurationFailureTest`.
+
 ## Test Coverage Entry Points
 
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceScenarioCoverageIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceParamsPolicyIntegrationTest.java`
+- `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceNotificationExecutorIntegrationTest.java`
+- `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceNotificationExecutorConfigurationFailureTest.java`
