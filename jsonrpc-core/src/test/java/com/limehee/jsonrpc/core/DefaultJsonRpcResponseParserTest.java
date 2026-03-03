@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -40,6 +41,16 @@ class DefaultJsonRpcResponseParserTest {
 
         assertTrue(envelope.isBatch());
         assertEquals(2, envelope.responses().size());
+    }
+
+    @Test
+    void parseStoresNullVersionWhenJsonrpcFieldIsNotString() throws Exception {
+        JsonRpcIncomingResponseEnvelope envelope = parser.parse(OBJECT_MAPPER.readTree("""
+                {"jsonrpc":2,"id":1,"result":true}
+                """));
+
+        JsonRpcIncomingResponse response = envelope.singleResponse().orElseThrow();
+        assertNull(response.jsonrpc());
     }
 
     @Test
