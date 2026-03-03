@@ -342,7 +342,7 @@ public class JsonRpcDispatcher {
      * @return normalized id or {@code null}
      */
     private @Nullable JsonNode normalizeErrorId(@Nullable JsonNode id) {
-        if (id == null || id.isNull() || id.isTextual() || id.isNumber()) {
+        if (id == null || id.isNull() || id.isString() || id.isNumber()) {
             return id;
         }
         return null;

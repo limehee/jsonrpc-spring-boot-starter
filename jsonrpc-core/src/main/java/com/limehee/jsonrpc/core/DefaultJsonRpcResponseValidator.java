@@ -26,9 +26,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
     }
 
     /**
-     * Validates response fields according to configured options.
-     *
-     * @param response parsed incoming response
+     * {@inheritDoc}
      */
     @Override
     public void validate(JsonRpcIncomingResponse response) {
@@ -81,7 +79,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
             return;
         }
 
-        if (id.isTextual()) {
+        if (id.isString()) {
             if (!options.allowStringResponseId()) {
                 throw invalid("response string id is not allowed");
             }
@@ -124,7 +122,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
 
         JsonNode message = error.get("message");
         if (options.requireStringErrorMessage()) {
-            if (message == null || !message.isTextual()) {
+            if (message == null || !message.isString()) {
                 throw invalid("response error.message must be a string");
             }
         }

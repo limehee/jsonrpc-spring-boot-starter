@@ -26,7 +26,7 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
         }
 
         JsonNode id = request.id();
-        if (request.idPresent() && id != null && !id.isNull() && !id.isTextual() && !id.isNumber()) {
+        if (request.idPresent() && id != null && !id.isNull() && !id.isString() && !id.isNumber()) {
             throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
         }
 

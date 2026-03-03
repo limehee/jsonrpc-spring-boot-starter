@@ -146,61 +146,132 @@ public final class JsonRpcResponseValidationOptions {
         private Builder() {
         }
 
+        /**
+         * Enables or disables strict validation of the {@code jsonrpc} version field.
+         *
+         * @param enabled {@code true} to require {@code "2.0"}
+         * @return this builder
+         */
         public Builder requireJsonRpcVersion20(boolean enabled) {
             this.requireJsonRpcVersion20 = enabled;
             return this;
         }
 
+        /**
+         * Enables or disables required presence of the {@code id} member.
+         *
+         * @param enabled {@code true} to require an {@code id} member
+         * @return this builder
+         */
         public Builder requireResponseIdMember(boolean enabled) {
             this.requireResponseIdMember = enabled;
             return this;
         }
 
+        /**
+         * Enables or disables support for explicit {@code id:null}.
+         *
+         * @param enabled {@code true} to accept null IDs
+         * @return this builder
+         */
         public Builder allowNullResponseId(boolean enabled) {
             this.allowNullResponseId = enabled;
             return this;
         }
 
+        /**
+         * Enables or disables support for textual response IDs.
+         *
+         * @param enabled {@code true} to accept string IDs
+         * @return this builder
+         */
         public Builder allowStringResponseId(boolean enabled) {
             this.allowStringResponseId = enabled;
             return this;
         }
 
+        /**
+         * Enables or disables support for numeric response IDs.
+         *
+         * @param enabled {@code true} to accept numeric IDs
+         * @return this builder
+         */
         public Builder allowNumericResponseId(boolean enabled) {
             this.allowNumericResponseId = enabled;
             return this;
         }
 
+        /**
+         * Enables or disables support for fractional numeric response IDs.
+         *
+         * @param enabled {@code true} to accept fractional numbers (for example {@code 1.5})
+         * @return this builder
+         */
         public Builder allowFractionalResponseId(boolean enabled) {
             this.allowFractionalResponseId = enabled;
             return this;
         }
 
+        /**
+         * Enables or disables strict exclusivity between {@code result} and {@code error}.
+         *
+         * @param enabled {@code true} to require exactly one of the two members
+         * @return this builder
+         */
         public Builder requireExclusiveResultOrError(boolean enabled) {
             this.requireExclusiveResultOrError = enabled;
             return this;
         }
 
+        /**
+         * Enables or disables object-shape enforcement for the {@code error} member.
+         *
+         * @param enabled {@code true} to require {@code error} to be an object when present
+         * @return this builder
+         */
         public Builder requireErrorObjectWhenPresent(boolean enabled) {
             this.requireErrorObjectWhenPresent = enabled;
             return this;
         }
 
+        /**
+         * Enables or disables integer enforcement for {@code error.code}.
+         *
+         * @param enabled {@code true} to require an integer code
+         * @return this builder
+         */
         public Builder requireIntegerErrorCode(boolean enabled) {
             this.requireIntegerErrorCode = enabled;
             return this;
         }
 
+        /**
+         * Enables or disables string enforcement for {@code error.message}.
+         *
+         * @param enabled {@code true} to require a string message
+         * @return this builder
+         */
         public Builder requireStringErrorMessage(boolean enabled) {
             this.requireStringErrorMessage = enabled;
             return this;
         }
 
+        /**
+         * Enables or disables tolerance for request-only fields in response objects.
+         *
+         * @param enabled {@code true} to allow response objects containing {@code method}/{@code params}
+         * @return this builder
+         */
         public Builder allowRequestFieldsInResponse(boolean enabled) {
             this.allowRequestFieldsInResponse = enabled;
             return this;
         }
 
+        /**
+         * Builds immutable validation options.
+         *
+         * @return immutable response validation options
+         */
         public JsonRpcResponseValidationOptions build() {
             return new JsonRpcResponseValidationOptions(this);
         }

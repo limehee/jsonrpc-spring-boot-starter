@@ -9,10 +9,7 @@ import org.jspecify.annotations.Nullable;
 public class DefaultJsonRpcEnvelopeClassifier implements JsonRpcEnvelopeClassifier {
 
     /**
-     * Classifies single-object and batch payloads.
-     *
-     * @param payload raw JSON payload
-     * @return request, response, or invalid classification
+     * {@inheritDoc}
      */
     @Override
     public JsonRpcEnvelopeType classify(@Nullable JsonNode payload) {

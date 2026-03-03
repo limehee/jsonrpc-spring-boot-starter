@@ -12,10 +12,7 @@ import java.util.List;
 public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
 
     /**
-     * Parses single-object or array payloads into an envelope.
-     *
-     * @param payload raw JSON payload
-     * @return parsed response envelope
+     * {@inheritDoc}
      */
     @Override
     public JsonRpcIncomingResponseEnvelope parse(@Nullable JsonNode payload) {
@@ -48,7 +45,7 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
         }
 
         JsonNode jsonrpcNode = node.get("jsonrpc");
-        String jsonrpc = jsonrpcNode != null && jsonrpcNode.isTextual() ? jsonrpcNode.asText() : null;
+        String jsonrpc = jsonrpcNode != null && jsonrpcNode.isString() ? jsonrpcNode.stringValue() : null;
 
         boolean idPresent = node.has("id");
         JsonNode id = node.get("id");
