@@ -54,17 +54,12 @@ public class DefaultJsonRpcEnvelopeClassifier implements JsonRpcEnvelopeClassifi
             return JsonRpcEnvelopeType.INVALID;
         }
 
-        boolean hasMethod = node.has("method");
-        boolean hasResult = node.has("result");
-        boolean hasError = node.has("error");
-        boolean hasRequestHint = hasMethod || node.has("params");
-        boolean hasResponseHint = hasResult || hasError;
-
-        if (hasRequestHint && !hasResponseHint) {
-            return JsonRpcEnvelopeType.REQUEST;
-        }
-        if (hasResponseHint && !hasRequestHint) {
+        boolean hasResponseHint = node.has("result") || node.has("error");
+        if (hasResponseHint) {
             return JsonRpcEnvelopeType.RESPONSE;
+        }
+        if (node.has("method") || node.has("params")) {
+            return JsonRpcEnvelopeType.REQUEST;
         }
         return JsonRpcEnvelopeType.INVALID;
     }

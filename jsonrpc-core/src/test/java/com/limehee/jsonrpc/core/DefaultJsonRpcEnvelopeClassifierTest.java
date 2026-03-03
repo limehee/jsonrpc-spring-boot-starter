@@ -53,9 +53,9 @@ class DefaultJsonRpcEnvelopeClassifierTest {
     }
 
     @Test
-    void classifyReturnsInvalidWhenRequestAndResponseHintsAreMixed() throws Exception {
+    void classifyReturnsResponseWhenResponseHintsExistWithRequestFields() throws Exception {
         assertEquals(
-                JsonRpcEnvelopeType.INVALID,
+                JsonRpcEnvelopeType.RESPONSE,
                 classifier.classify(OBJECT_MAPPER.readTree("""
                         {"jsonrpc":"2.0","method":"ping","result":true}
                         """))
