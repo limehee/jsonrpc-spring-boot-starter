@@ -118,6 +118,11 @@ curl -s http://localhost:8080/jsonrpc \
 - Misconfiguration failure path (missing named executor bean) is covered by
   `GreetingRpcServiceNotificationExecutorConfigurationFailureTest`.
 
+## Registration Conflict Policy Scenarios
+
+- `REJECT` startup-failure path and `REPLACE` overwrite path are covered by
+  `GreetingRpcServiceConflictPolicyIntegrationTest`.
+
 ## Test Coverage Entry Points
 
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceIntegrationTest.java`
@@ -125,3 +130,4 @@ curl -s http://localhost:8080/jsonrpc \
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceParamsPolicyIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceNotificationExecutorIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceNotificationExecutorConfigurationFailureTest.java`
+- `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceConflictPolicyIntegrationTest.java`
