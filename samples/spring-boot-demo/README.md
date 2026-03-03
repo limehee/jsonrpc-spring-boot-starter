@@ -123,6 +123,13 @@ curl -s http://localhost:8080/jsonrpc \
 - `REJECT` startup-failure path and `REPLACE` overwrite path are covered by
   `GreetingRpcServiceConflictPolicyIntegrationTest`.
 
+## Exception Resolver and Error Data Scenarios
+
+- Error-data exposure path (`jsonrpc.include-error-data=true`) is covered by
+  `GreetingRpcServiceErrorDataExposureIntegrationTest`.
+- Custom exception mapping path (`JsonRpcExceptionResolver` override) is covered by
+  `GreetingRpcServiceCustomExceptionResolverIntegrationTest`.
+
 ## Test Coverage Entry Points
 
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceIntegrationTest.java`
@@ -131,3 +138,5 @@ curl -s http://localhost:8080/jsonrpc \
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceNotificationExecutorIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceNotificationExecutorConfigurationFailureTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceConflictPolicyIntegrationTest.java`
+- `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceErrorDataExposureIntegrationTest.java`
+- `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceCustomExceptionResolverIntegrationTest.java`
