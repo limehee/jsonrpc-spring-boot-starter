@@ -2,13 +2,90 @@ package com.limehee.jsonrpc.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.StreamReadFeature;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Default parser for incoming JSON-RPC response payloads.
  */
 public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
+
+    private final ObjectMapper objectMapper;
+    private final ObjectMapper strictObjectMapper;
+    private final boolean rejectDuplicateMembers;
+
+    /**
+     * Creates a parser with a default ObjectMapper and duplicate-member rejection disabled.
+     */
+    public DefaultJsonRpcResponseParser() {
+        this(JsonMapper.builder().build(), false);
+    }
+
+    /**
+     * Creates a parser with a default ObjectMapper and explicit duplicate-member policy.
+     *
+     * @param rejectDuplicateMembers {@code true} to reject duplicate members while parsing raw JSON input
+     */
+    public DefaultJsonRpcResponseParser(boolean rejectDuplicateMembers) {
+        this(JsonMapper.builder().build(), rejectDuplicateMembers);
+    }
+
+    /**
+     * Creates a parser with explicit mapper and duplicate-member policy.
+     *
+     * @param objectMapper            mapper used to parse raw JSON input
+     * @param rejectDuplicateMembers  {@code true} to reject duplicate members while parsing raw JSON input
+     */
+    public DefaultJsonRpcResponseParser(ObjectMapper objectMapper, boolean rejectDuplicateMembers) {
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
+        this.strictObjectMapper = objectMapper.rebuild()
+            .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
+            .build();
+        this.rejectDuplicateMembers = rejectDuplicateMembers;
+    }
+
+    /**
+     * Parses a raw JSON string response payload.
+     *
+     * @param payload raw JSON string
+     * @return parsed incoming response envelope
+     * @throws JsonRpcException when JSON parsing fails or payload shape is invalid
+     */
+    public JsonRpcIncomingResponseEnvelope parse(@Nullable String payload) {
+        if (payload == null) {
+            throw invalidResponseEnvelope();
+        }
+        try {
+            JsonNode node = parserMapper().readTree(payload);
+            return parse(node);
+        } catch (JacksonException ex) {
+            throw invalidResponseEnvelope();
+        }
+    }
+
+    /**
+     * Parses raw JSON bytes response payload.
+     *
+     * @param payload raw JSON bytes
+     * @return parsed incoming response envelope
+     * @throws JsonRpcException when JSON parsing fails or payload shape is invalid
+     */
+    public JsonRpcIncomingResponseEnvelope parse(@Nullable byte[] payload) {
+        if (payload == null) {
+            throw invalidResponseEnvelope();
+        }
+        try {
+            JsonNode node = parserMapper().readTree(payload);
+            return parse(node);
+        } catch (JacksonException ex) {
+            throw invalidResponseEnvelope();
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -74,5 +151,14 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
      */
     private JsonRpcException invalidResponseEnvelope() {
         return new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, "Invalid response envelope");
+    }
+
+    /**
+     * Returns the mapper configured according to duplicate-member policy.
+     *
+     * @return mapper used for parsing raw payloads
+     */
+    private ObjectMapper parserMapper() {
+        return rejectDuplicateMembers ? strictObjectMapper : objectMapper;
     }
 }
