@@ -1,15 +1,14 @@
 package com.limehee.jsonrpc.spring.webmvc;
 
-import tools.jackson.databind.node.IntNode;
-import tools.jackson.databind.node.StringNode;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import tools.jackson.databind.node.IntNode;
+import tools.jackson.databind.node.StringNode;
 
 class DefaultJsonRpcHttpStatusStrategyTest {
 
@@ -27,8 +26,8 @@ class DefaultJsonRpcHttpStatusStrategyTest {
     @Test
     void statusForBatchReturnsOk() {
         List<JsonRpcResponse> responses = List.of(
-                JsonRpcResponse.success(IntNode.valueOf(1), StringNode.valueOf("ok")),
-                JsonRpcResponse.error(IntNode.valueOf(2), JsonRpcErrorCode.METHOD_NOT_FOUND, "not found")
+            JsonRpcResponse.success(IntNode.valueOf(1), StringNode.valueOf("ok")),
+            JsonRpcResponse.error(IntNode.valueOf(2), JsonRpcErrorCode.METHOD_NOT_FOUND, "not found")
         );
 
         assertEquals(HttpStatus.OK, strategy.statusForBatch(responses));
