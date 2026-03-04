@@ -1,41 +1,52 @@
 package com.limehee.jsonrpc.core;
 
+import java.util.Objects;
+import org.jspecify.annotations.Nullable;
+
 /**
  * Fine-grained validation switches for incoming JSON-RPC response validation.
  */
 public final class JsonRpcResponseValidationOptions {
 
     private final boolean requireJsonRpcVersion20;
-    private final boolean requireResponseIdMember;
-    private final boolean allowNullResponseId;
-    private final boolean allowStringResponseId;
-    private final boolean allowNumericResponseId;
-    private final boolean allowFractionalResponseId;
+    private final boolean requireIdMember;
+    private final boolean allowNullId;
+    private final boolean allowStringId;
+    private final boolean allowNumericId;
+    private final boolean allowFractionalId;
     private final boolean requireExclusiveResultOrError;
     private final boolean requireErrorObjectWhenPresent;
     private final boolean requireIntegerErrorCode;
     private final boolean requireStringErrorMessage;
-    private final boolean allowRequestFieldsInResponse;
+    private final boolean rejectRequestFields;
+    private final boolean rejectDuplicateMembers;
+    private final JsonRpcResponseErrorCodePolicy errorCodePolicy;
+    private final @Nullable Integer errorCodeRangeMin;
+    private final @Nullable Integer errorCodeRangeMax;
 
     private JsonRpcResponseValidationOptions(Builder builder) {
         this.requireJsonRpcVersion20 = builder.requireJsonRpcVersion20;
-        this.requireResponseIdMember = builder.requireResponseIdMember;
-        this.allowNullResponseId = builder.allowNullResponseId;
-        this.allowStringResponseId = builder.allowStringResponseId;
-        this.allowNumericResponseId = builder.allowNumericResponseId;
-        this.allowFractionalResponseId = builder.allowFractionalResponseId;
+        this.requireIdMember = builder.requireIdMember;
+        this.allowNullId = builder.allowNullId;
+        this.allowStringId = builder.allowStringId;
+        this.allowNumericId = builder.allowNumericId;
+        this.allowFractionalId = builder.allowFractionalId;
         this.requireExclusiveResultOrError = builder.requireExclusiveResultOrError;
         this.requireErrorObjectWhenPresent = builder.requireErrorObjectWhenPresent;
         this.requireIntegerErrorCode = builder.requireIntegerErrorCode;
         this.requireStringErrorMessage = builder.requireStringErrorMessage;
-        this.allowRequestFieldsInResponse = builder.allowRequestFieldsInResponse;
+        this.rejectRequestFields = builder.rejectRequestFields;
+        this.rejectDuplicateMembers = builder.rejectDuplicateMembers;
+        this.errorCodePolicy = builder.errorCodePolicy;
+        this.errorCodeRangeMin = builder.errorCodeRangeMin;
+        this.errorCodeRangeMax = builder.errorCodeRangeMax;
     }
 
     /**
      * Returns default validation options.
      * <p>
-     * RFC MUST rules are enabled by default. Compatibility-related rules are also configured with permissive defaults
-     * unless explicitly restricted through builder switches.
+     * RFC MUST rules are enabled by default. Optional interoperability-related rules stay permissive unless explicitly
+     * restricted via builder switches.
      *
      * @return default options
      */
@@ -62,36 +73,36 @@ public final class JsonRpcResponseValidationOptions {
     /**
      * @return whether the {@code id} member must exist
      */
-    public boolean requireResponseIdMember() {
-        return requireResponseIdMember;
+    public boolean requireIdMember() {
+        return requireIdMember;
     }
 
     /**
      * @return whether {@code id:null} is allowed
      */
-    public boolean allowNullResponseId() {
-        return allowNullResponseId;
+    public boolean allowNullId() {
+        return allowNullId;
     }
 
     /**
      * @return whether string IDs are allowed
      */
-    public boolean allowStringResponseId() {
-        return allowStringResponseId;
+    public boolean allowStringId() {
+        return allowStringId;
     }
 
     /**
      * @return whether numeric IDs are allowed
      */
-    public boolean allowNumericResponseId() {
-        return allowNumericResponseId;
+    public boolean allowNumericId() {
+        return allowNumericId;
     }
 
     /**
      * @return whether fractional numeric IDs are allowed
      */
-    public boolean allowFractionalResponseId() {
-        return allowFractionalResponseId;
+    public boolean allowFractionalId() {
+        return allowFractionalId;
     }
 
     /**
@@ -123,11 +134,38 @@ public final class JsonRpcResponseValidationOptions {
     }
 
     /**
-     * @return whether response objects may include request-only fields such as {@code method}/{@code params}; this is a
-     * compatibility policy and not an RFC MUST rule
+     * @return whether response objects containing request-only fields ({@code method}/{@code params}) are rejected
      */
-    public boolean allowRequestFieldsInResponse() {
-        return allowRequestFieldsInResponse;
+    public boolean rejectRequestFields() {
+        return rejectRequestFields;
+    }
+
+    /**
+     * @return whether response duplicate object members should be rejected during raw payload parsing
+     */
+    public boolean rejectDuplicateMembers() {
+        return rejectDuplicateMembers;
+    }
+
+    /**
+     * @return policy restricting accepted {@code error.code} integers
+     */
+    public JsonRpcResponseErrorCodePolicy errorCodePolicy() {
+        return errorCodePolicy;
+    }
+
+    /**
+     * @return lower bound for {@code error.code} when {@link #errorCodePolicy()} is {@code CUSTOM_RANGE}
+     */
+    public @Nullable Integer errorCodeRangeMin() {
+        return errorCodeRangeMin;
+    }
+
+    /**
+     * @return upper bound for {@code error.code} when {@link #errorCodePolicy()} is {@code CUSTOM_RANGE}
+     */
+    public @Nullable Integer errorCodeRangeMax() {
+        return errorCodeRangeMax;
     }
 
     /**
@@ -136,16 +174,20 @@ public final class JsonRpcResponseValidationOptions {
     public static final class Builder {
 
         private boolean requireJsonRpcVersion20 = true;
-        private boolean requireResponseIdMember = true;
-        private boolean allowNullResponseId = true;
-        private boolean allowStringResponseId = true;
-        private boolean allowNumericResponseId = true;
-        private boolean allowFractionalResponseId = true;
+        private boolean requireIdMember = true;
+        private boolean allowNullId = true;
+        private boolean allowStringId = true;
+        private boolean allowNumericId = true;
+        private boolean allowFractionalId = true;
         private boolean requireExclusiveResultOrError = true;
         private boolean requireErrorObjectWhenPresent = true;
         private boolean requireIntegerErrorCode = true;
         private boolean requireStringErrorMessage = true;
-        private boolean allowRequestFieldsInResponse = true;
+        private boolean rejectRequestFields = false;
+        private boolean rejectDuplicateMembers = false;
+        private JsonRpcResponseErrorCodePolicy errorCodePolicy = JsonRpcResponseErrorCodePolicy.ANY_INTEGER;
+        private @Nullable Integer errorCodeRangeMin;
+        private @Nullable Integer errorCodeRangeMax;
 
         private Builder() {
         }
@@ -167,8 +209,8 @@ public final class JsonRpcResponseValidationOptions {
          * @param enabled {@code true} to require an {@code id} member
          * @return this builder
          */
-        public Builder requireResponseIdMember(boolean enabled) {
-            this.requireResponseIdMember = enabled;
+        public Builder requireIdMember(boolean enabled) {
+            this.requireIdMember = enabled;
             return this;
         }
 
@@ -178,8 +220,8 @@ public final class JsonRpcResponseValidationOptions {
          * @param enabled {@code true} to accept null IDs
          * @return this builder
          */
-        public Builder allowNullResponseId(boolean enabled) {
-            this.allowNullResponseId = enabled;
+        public Builder allowNullId(boolean enabled) {
+            this.allowNullId = enabled;
             return this;
         }
 
@@ -189,8 +231,8 @@ public final class JsonRpcResponseValidationOptions {
          * @param enabled {@code true} to accept string IDs
          * @return this builder
          */
-        public Builder allowStringResponseId(boolean enabled) {
-            this.allowStringResponseId = enabled;
+        public Builder allowStringId(boolean enabled) {
+            this.allowStringId = enabled;
             return this;
         }
 
@@ -200,8 +242,8 @@ public final class JsonRpcResponseValidationOptions {
          * @param enabled {@code true} to accept numeric IDs
          * @return this builder
          */
-        public Builder allowNumericResponseId(boolean enabled) {
-            this.allowNumericResponseId = enabled;
+        public Builder allowNumericId(boolean enabled) {
+            this.allowNumericId = enabled;
             return this;
         }
 
@@ -211,8 +253,8 @@ public final class JsonRpcResponseValidationOptions {
          * @param enabled {@code true} to accept fractional numbers (for example {@code 1.5})
          * @return this builder
          */
-        public Builder allowFractionalResponseId(boolean enabled) {
-            this.allowFractionalResponseId = enabled;
+        public Builder allowFractionalId(boolean enabled) {
+            this.allowFractionalId = enabled;
             return this;
         }
 
@@ -261,13 +303,57 @@ public final class JsonRpcResponseValidationOptions {
         }
 
         /**
-         * Enables or disables tolerance for request-only fields in response objects.
+         * Enables or disables rejection for request-only fields in response objects.
          *
-         * @param enabled {@code true} to allow response objects containing {@code method}/{@code params}
+         * @param enabled {@code true} to reject response objects containing {@code method}/{@code params}
          * @return this builder
          */
-        public Builder allowRequestFieldsInResponse(boolean enabled) {
-            this.allowRequestFieldsInResponse = enabled;
+        public Builder rejectRequestFields(boolean enabled) {
+            this.rejectRequestFields = enabled;
+            return this;
+        }
+
+        /**
+         * Enables or disables duplicate member rejection in response payload parsing.
+         *
+         * @param enabled {@code true} to reject duplicate members while parsing raw response JSON
+         * @return this builder
+         */
+        public Builder rejectDuplicateMembers(boolean enabled) {
+            this.rejectDuplicateMembers = enabled;
+            return this;
+        }
+
+        /**
+         * Sets the accepted range policy for integer response {@code error.code} values.
+         *
+         * @param policy error-code policy
+         * @return this builder
+         */
+        public Builder errorCodePolicy(JsonRpcResponseErrorCodePolicy policy) {
+            this.errorCodePolicy = Objects.requireNonNull(policy, "policy");
+            return this;
+        }
+
+        /**
+         * Sets the lower bound for {@code error.code} when using {@code CUSTOM_RANGE}.
+         *
+         * @param min inclusive lower bound
+         * @return this builder
+         */
+        public Builder errorCodeRangeMin(@Nullable Integer min) {
+            this.errorCodeRangeMin = min;
+            return this;
+        }
+
+        /**
+         * Sets the upper bound for {@code error.code} when using {@code CUSTOM_RANGE}.
+         *
+         * @param max inclusive upper bound
+         * @return this builder
+         */
+        public Builder errorCodeRangeMax(@Nullable Integer max) {
+            this.errorCodeRangeMax = max;
             return this;
         }
 
@@ -277,6 +363,21 @@ public final class JsonRpcResponseValidationOptions {
          * @return immutable response validation options
          */
         public JsonRpcResponseValidationOptions build() {
+            if (!requireIntegerErrorCode && errorCodePolicy != JsonRpcResponseErrorCodePolicy.ANY_INTEGER) {
+                throw new IllegalArgumentException(
+                    "errorCodePolicy requires requireIntegerErrorCode=true when policy is not ANY_INTEGER"
+                );
+            }
+            if (errorCodePolicy == JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE) {
+                if (errorCodeRangeMin == null || errorCodeRangeMax == null) {
+                    throw new IllegalArgumentException(
+                        "CUSTOM_RANGE requires both errorCodeRangeMin and errorCodeRangeMax"
+                    );
+                }
+                if (errorCodeRangeMin > errorCodeRangeMax) {
+                    throw new IllegalArgumentException("errorCodeRangeMin must be less than or equal to errorCodeRangeMax");
+                }
+            }
             return new JsonRpcResponseValidationOptions(this);
         }
     }

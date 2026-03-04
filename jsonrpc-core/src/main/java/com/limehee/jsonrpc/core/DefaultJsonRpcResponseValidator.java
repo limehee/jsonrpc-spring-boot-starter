@@ -40,7 +40,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
             throw invalid("response jsonrpc must be \"2.0\"");
         }
 
-        if (options.requireResponseIdMember() && !response.idPresent()) {
+        if (options.requireIdMember() && !response.idPresent()) {
             throw invalid("response id must be present");
         }
 
@@ -56,7 +56,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
             }
         }
 
-        if (!options.allowRequestFieldsInResponse()) {
+        if (options.rejectRequestFields()) {
             JsonNode source = response.source();
             if (source == null || source.has("method") || source.has("params")) {
                 throw invalid("response must not contain request fields method/params");
@@ -75,24 +75,24 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
      */
     private void validateId(@Nullable JsonNode id) {
         if (id == null || id.isNull()) {
-            if (!options.allowNullResponseId()) {
+            if (!options.allowNullId()) {
                 throw invalid("response id must not be null");
             }
             return;
         }
 
         if (id.isString()) {
-            if (!options.allowStringResponseId()) {
+            if (!options.allowStringId()) {
                 throw invalid("response string id is not allowed");
             }
             return;
         }
 
         if (id.isNumber()) {
-            if (!options.allowNumericResponseId()) {
+            if (!options.allowNumericId()) {
                 throw invalid("response numeric id is not allowed");
             }
-            if (!options.allowFractionalResponseId() && id.isFloatingPointNumber()) {
+            if (!options.allowFractionalId() && id.isFloatingPointNumber()) {
                 throw invalid("response fractional numeric id is not allowed");
             }
             return;
@@ -121,6 +121,9 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
                 throw invalid("response error.code must be an integer");
             }
         }
+        if (code != null && code.isNumber() && !code.isFloatingPointNumber()) {
+            validateErrorCodePolicy(code.intValue());
+        }
 
         JsonNode message = error.get("message");
         if (options.requireStringErrorMessage()) {
@@ -138,5 +141,63 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
      */
     private JsonRpcException invalid(String message) {
         return new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, message);
+    }
+
+    /**
+     * Validates integer {@code error.code} value against configured range policy.
+     *
+     * @param code integer error code
+     */
+    private void validateErrorCodePolicy(int code) {
+        JsonRpcResponseErrorCodePolicy policy = options.errorCodePolicy();
+        if (policy == JsonRpcResponseErrorCodePolicy.ANY_INTEGER) {
+            return;
+        }
+        if (policy == JsonRpcResponseErrorCodePolicy.STANDARD_ONLY) {
+            if (!isStandardErrorCode(code)) {
+                throw invalid("response error.code must be one of JSON-RPC standard codes");
+            }
+            return;
+        }
+        if (policy == JsonRpcResponseErrorCodePolicy.STANDARD_OR_SERVER_ERROR_RANGE) {
+            if (!isStandardErrorCode(code) && !isServerErrorRangeCode(code)) {
+                throw invalid("response error.code must be standard or server-error range");
+            }
+            return;
+        }
+        if (policy == JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE) {
+            Integer min = options.errorCodeRangeMin();
+            Integer max = options.errorCodeRangeMax();
+            if (min == null || max == null) {
+                throw invalid("response error.code custom range is not configured");
+            }
+            if (code < min || code > max) {
+                throw invalid("response error.code is outside configured custom range");
+            }
+        }
+    }
+
+    /**
+     * Checks whether a code is one of the JSON-RPC standard error codes.
+     *
+     * @param code integer error code
+     * @return {@code true} when code is standard
+     */
+    private boolean isStandardErrorCode(int code) {
+        return code == JsonRpcErrorCode.PARSE_ERROR
+            || code == JsonRpcErrorCode.INVALID_REQUEST
+            || code == JsonRpcErrorCode.METHOD_NOT_FOUND
+            || code == JsonRpcErrorCode.INVALID_PARAMS
+            || code == JsonRpcErrorCode.INTERNAL_ERROR;
+    }
+
+    /**
+     * Checks whether a code belongs to the JSON-RPC server-error reserved range.
+     *
+     * @param code integer error code
+     * @return {@code true} when code is within {@code -32099..-32000}
+     */
+    private boolean isServerErrorRangeCode(int code) {
+        return code >= -32099 && code <= -32000;
     }
 }
