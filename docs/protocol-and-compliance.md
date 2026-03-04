@@ -55,6 +55,9 @@ Implementation constants are in `JsonRpcErrorCode` and messages in `JsonRpcConst
 - `JsonRpcResponseValidator`
 - `JsonRpcResponseValidationOptions`
 
+`DefaultJsonRpcResponseParser` can parse from `JsonNode`, `String`, or `byte[]`, and can optionally reject duplicate
+members during raw JSON parsing.
+
 These APIs are transport-agnostic and useful for bidirectional channels (for example WebSocket) where
 request/response envelopes may arrive on the same connection.
 

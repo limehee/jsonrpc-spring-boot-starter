@@ -302,7 +302,8 @@ jsonrpc:
 ```
 
 Auto-configuration exposes both `JsonRpcResponseValidationOptions` and
-`JsonRpcResponseValidator` beans. They are intended for client/bidirectional integrations and are
+`JsonRpcResponseValidator` beans, and also a `JsonRpcResponseParser` bean configured with
+`jsonrpc.validation.response.reject-duplicate-members`. These components are intended for client/bidirectional integrations and are
 not part of the default HTTP request dispatch path.
 
 ## 6. Control Scanning Scope
