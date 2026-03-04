@@ -34,24 +34,24 @@ public final class PureJavaDemoApplication {
         JsonRpcDispatcher dispatcher = createDispatcher(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
 
         print("single success", handle(dispatcher, """
-                {"jsonrpc":"2.0","method":"ping","id":1}
-                """));
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """));
         print("notification", handle(dispatcher, """
-                {"jsonrpc":"2.0","method":"ping"}
-                """));
+            {"jsonrpc":"2.0","method":"ping"}
+            """));
         print("mixed batch", handle(dispatcher, """
-                [
-                  {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"core"},"id":2},
-                  {"jsonrpc":"2.0","method":"typed.tags"},
-                  {"jsonrpc":"2.0","method":"missing","id":3}
-                ]
-                """));
+            [
+              {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"core"},"id":2},
+              {"jsonrpc":"2.0","method":"typed.tags"},
+              {"jsonrpc":"2.0","method":"missing","id":3}
+            ]
+            """));
         print("parse error", handle(dispatcher, "{"));
 
         JsonRpcDispatcher strictDispatcher = createDispatcher(JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST);
         print("strict params shape policy", handle(strictDispatcher, """
-                {"jsonrpc":"2.0","method":"typed.upper","params":"invalid-shape","id":9}
-                """));
+            {"jsonrpc":"2.0","method":"typed.upper","params":"invalid-shape","id":9}
+            """));
     }
 
     static String handle(JsonRpcDispatcher dispatcher, String rawJson) throws JacksonException {
@@ -72,25 +72,25 @@ public final class PureJavaDemoApplication {
 
     static JsonRpcDispatcher createDispatcher(JsonRpcParamsTypeViolationCodePolicy policy) {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
-                new InMemoryJsonRpcMethodRegistry(JsonRpcMethodRegistrationConflictPolicy.REJECT),
-                new DefaultJsonRpcRequestParser(),
-                new DefaultJsonRpcRequestValidator(policy),
-                new DefaultJsonRpcMethodInvoker(),
-                new DefaultJsonRpcExceptionResolver(false),
-                new DefaultJsonRpcResponseComposer(),
-                100,
-                List.of(),
-                new DirectJsonRpcNotificationExecutor()
+            new InMemoryJsonRpcMethodRegistry(JsonRpcMethodRegistrationConflictPolicy.REJECT),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(policy),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(false),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(),
+            new DirectJsonRpcNotificationExecutor()
         );
 
         JsonRpcTypedMethodHandlerFactory typedFactory = new DefaultJsonRpcTypedMethodHandlerFactory(
-                new JacksonJsonRpcParameterBinder(OBJECT_MAPPER),
-                new JacksonJsonRpcResultWriter(OBJECT_MAPPER)
+            new JacksonJsonRpcParameterBinder(OBJECT_MAPPER),
+            new JacksonJsonRpcResultWriter(OBJECT_MAPPER)
         );
 
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
         dispatcher.register("typed.upper", typedFactory.unary(UpperInput.class,
-                input -> new UpperOutput(input.value() == null ? "" : input.value().toUpperCase())));
+            input -> new UpperOutput(input.value() == null ? "" : input.value().toUpperCase())));
         dispatcher.register("typed.tags", typedFactory.noParams(() -> List.of("alpha", "beta")));
         return dispatcher;
     }
@@ -102,8 +102,10 @@ public final class PureJavaDemoApplication {
     }
 
     public record UpperInput(String value) {
+
     }
 
     public record UpperOutput(String value) {
+
     }
 }

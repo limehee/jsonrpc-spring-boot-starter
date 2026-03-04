@@ -13,8 +13,8 @@ class GreetingRpcServiceDefaultParamsPolicyIntegrationTest extends AbstractJsonR
     @Test
     void mapsParamsTypeViolationToInvalidParamsByDefault() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"sum","params":"invalid-shape","id":42}
-                """);
+            {"jsonrpc":"2.0","method":"sum","params":"invalid-shape","id":42}
+            """);
 
         assertEquals(JsonRpcErrorCode.INVALID_PARAMS, body.get("error").get("code").asInt());
     }

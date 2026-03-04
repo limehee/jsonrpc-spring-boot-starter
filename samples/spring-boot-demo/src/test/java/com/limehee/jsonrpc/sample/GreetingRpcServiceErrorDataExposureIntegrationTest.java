@@ -19,8 +19,8 @@ class GreetingRpcServiceErrorDataExposureIntegrationTest extends AbstractJsonRpc
     @Test
     void includesErrorDataWhenConfigured() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"boom.with-data","id":81}
-                """);
+            {"jsonrpc":"2.0","method":"boom.with-data","id":81}
+            """);
 
         assertEquals(-32011, body.get("error").get("code").asInt());
         assertEquals("sensitive-context", body.get("error").get("data").asString());
@@ -28,6 +28,7 @@ class GreetingRpcServiceErrorDataExposureIntegrationTest extends AbstractJsonRpc
 
     @TestConfiguration(proxyBeanMethods = false)
     static class BoomMethodConfig {
+
         @Bean
         JsonRpcMethodRegistration boomWithDataMethod() {
             return JsonRpcMethodRegistration.of("boom.with-data", params -> {

@@ -17,11 +17,12 @@ class PureJavaDemoApplicationTest {
 
     @Test
     void returnsExpectedResultForSingleRequest() throws JacksonException {
-        JsonRpcDispatcher dispatcher = PureJavaDemoApplication.createDispatcher(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
+        JsonRpcDispatcher dispatcher = PureJavaDemoApplication.createDispatcher(
+            JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
 
         JsonNode response = parse(PureJavaDemoApplication.handle(dispatcher, """
-                {"jsonrpc":"2.0","method":"ping","id":1}
-                """));
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """));
 
         assertEquals("pong", response.get("result").asString());
         assertEquals(1, response.get("id").asInt());
@@ -29,26 +30,28 @@ class PureJavaDemoApplicationTest {
 
     @Test
     void returnsNoBodyForNotificationRequest() throws JacksonException {
-        JsonRpcDispatcher dispatcher = PureJavaDemoApplication.createDispatcher(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
+        JsonRpcDispatcher dispatcher = PureJavaDemoApplication.createDispatcher(
+            JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
 
         String responseBody = PureJavaDemoApplication.handle(dispatcher, """
-                {"jsonrpc":"2.0","method":"ping"}
-                """);
+            {"jsonrpc":"2.0","method":"ping"}
+            """);
 
         assertTrue(responseBody.isEmpty());
     }
 
     @Test
     void returnsBatchWithOnlyNonNotificationResponses() throws JacksonException {
-        JsonRpcDispatcher dispatcher = PureJavaDemoApplication.createDispatcher(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
+        JsonRpcDispatcher dispatcher = PureJavaDemoApplication.createDispatcher(
+            JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
 
         JsonNode batch = parse(PureJavaDemoApplication.handle(dispatcher, """
-                [
-                  {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"demo"},"id":1},
-                  {"jsonrpc":"2.0","method":"typed.tags"},
-                  {"jsonrpc":"2.0","method":"missing","id":2}
-                ]
-                """));
+            [
+              {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"demo"},"id":1},
+              {"jsonrpc":"2.0","method":"typed.tags"},
+              {"jsonrpc":"2.0","method":"missing","id":2}
+            ]
+            """));
 
         assertTrue(batch.isArray());
         assertEquals(2, batch.size());
@@ -58,7 +61,8 @@ class PureJavaDemoApplicationTest {
 
     @Test
     void returnsParseErrorForInvalidJson() throws JacksonException {
-        JsonRpcDispatcher dispatcher = PureJavaDemoApplication.createDispatcher(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
+        JsonRpcDispatcher dispatcher = PureJavaDemoApplication.createDispatcher(
+            JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
 
         JsonNode response = parse(PureJavaDemoApplication.handle(dispatcher, "{"));
 
@@ -68,11 +72,12 @@ class PureJavaDemoApplicationTest {
 
     @Test
     void appliesConfigurableParamsTypeViolationCodePolicy() throws JacksonException {
-        JsonRpcDispatcher strict = PureJavaDemoApplication.createDispatcher(JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST);
+        JsonRpcDispatcher strict = PureJavaDemoApplication.createDispatcher(
+            JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST);
 
         JsonNode response = parse(PureJavaDemoApplication.handle(strict, """
-                {"jsonrpc":"2.0","method":"typed.upper","params":"invalid-shape","id":9}
-                """));
+            {"jsonrpc":"2.0","method":"typed.upper","params":"invalid-shape","id":9}
+            """));
 
         assertEquals(-32600, response.get("error").get("code").asInt());
     }

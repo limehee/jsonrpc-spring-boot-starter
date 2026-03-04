@@ -40,14 +40,14 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
         assertNotNull(greetingRpcService);
 
         JsonRpcResponse ping = dispatchSingle("""
-                {"jsonrpc":"2.0","method":"ping","id":1}
-                """);
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """);
         JsonRpcResponse greet = dispatchSingle("""
-                {"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":2}
-                """);
+            {"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":2}
+            """);
         JsonRpcResponse sum = dispatchSingle("""
-                {"jsonrpc":"2.0","method":"sum","params":{"left":2,"right":3},"id":3}
-                """);
+            {"jsonrpc":"2.0","method":"sum","params":{"left":2,"right":3},"id":3}
+            """);
 
         assertEquals("pong", ping.result().asString());
         assertEquals("hello developer", greet.result().asString());
@@ -57,8 +57,8 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
     @Test
     void returnsExpectedSuccessJsonForPingRequest() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"ping","id":10}
-                """);
+            {"jsonrpc":"2.0","method":"ping","id":10}
+            """);
 
         assertEquals("2.0", body.get("jsonrpc").asString());
         assertEquals(10, body.get("id").asInt());
@@ -69,11 +69,11 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
     @Test
     void bindsObjectAndNamedParamsAndReturnsExpectedJson() throws Exception {
         JsonNode greetBody = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"greet","params":{"name":"spring"},"id":11}
-                """);
+            {"jsonrpc":"2.0","method":"greet","params":{"name":"spring"},"id":11}
+            """);
         JsonNode sumBody = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"sum","params":{"left":7,"right":5},"id":12}
-                """);
+            {"jsonrpc":"2.0","method":"sum","params":{"left":7,"right":5},"id":12}
+            """);
 
         assertEquals("hello spring", greetBody.get("result").asString());
         assertEquals(12, sumBody.get("result").asInt());
@@ -82,8 +82,8 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
     @Test
     void returnsJsonRpcErrorForUnknownMethod() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"unknown","id":99}
-                """);
+            {"jsonrpc":"2.0","method":"unknown","id":99}
+            """);
 
         assertEquals("2.0", body.get("jsonrpc").asString());
         assertEquals(99, body.get("id").asInt());
@@ -104,8 +104,8 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
     @Test
     void returnsInvalidRequestForRequestShapeError() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","params":[]}
-                """);
+            {"jsonrpc":"2.0","params":[]}
+            """);
 
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, body.get("error").get("code").asInt());
         assertTrue(body.get("id").isNull());
@@ -114,8 +114,8 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
     @Test
     void returnsInvalidParamsForBindingMismatch() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"sum","params":{"left":2},"id":15}
-                """);
+            {"jsonrpc":"2.0","method":"sum","params":{"left":2},"id":15}
+            """);
 
         assertEquals(15, body.get("id").asInt());
         assertEquals(JsonRpcErrorCode.INVALID_PARAMS, body.get("error").get("code").asInt());
@@ -124,8 +124,8 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
     @Test
     void returnsNullIdWhenIdTypeIsInvalid() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"ping","id":{"nested":1}}
-                """);
+            {"jsonrpc":"2.0","method":"ping","id":{"nested":1}}
+            """);
 
         assertTrue(body.get("id").isNull());
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, body.get("error").get("code").asInt());
@@ -134,13 +134,13 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
     @Test
     void returnsBatchResponseForMixedBatch() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                [
-                  {"jsonrpc":"2.0","method":"ping","id":1},
-                  {"jsonrpc":"2.0","method":"ping"},
-                  {"jsonrpc":"2.0","method":"unknown","id":2},
-                  1
-                ]
-                """);
+            [
+              {"jsonrpc":"2.0","method":"ping","id":1},
+              {"jsonrpc":"2.0","method":"ping"},
+              {"jsonrpc":"2.0","method":"unknown","id":2},
+              1
+            ]
+            """);
 
         assertTrue(body.isArray());
         assertEquals(3, body.size());
@@ -162,41 +162,41 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
     @Test
     void returnsNoContentForNotificationOnlyBatch() throws Exception {
         mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                [
-                                  {"jsonrpc":"2.0","method":"ping"},
-                                  {"jsonrpc":"2.0","method":"ping"}
-                                ]
-                                """))
-                .andExpect(status().isNoContent())
-                .andExpect(content().string(""));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    [
+                      {"jsonrpc":"2.0","method":"ping"},
+                      {"jsonrpc":"2.0","method":"ping"}
+                    ]
+                    """))
+            .andExpect(status().isNoContent())
+            .andExpect(content().string(""));
     }
 
     @Test
     void returnsNoContentForNotificationRequest() throws Exception {
         mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"jsonrpc":"2.0","method":"ping"}
-                                """))
-                .andExpect(status().isNoContent())
-                .andExpect(content().string(""));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"jsonrpc":"2.0","method":"ping"}
+                    """))
+            .andExpect(status().isNoContent())
+            .andExpect(content().string(""));
     }
 
     @Test
     void rejectsUnsupportedMediaType() throws Exception {
         mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.TEXT_PLAIN)
-                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
-                .andExpect(status().isUnsupportedMediaType());
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+            .andExpect(status().isUnsupportedMediaType());
     }
 
     @Test
     void hidesErrorDataByDefault() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"boom","id":70}
-                """);
+            {"jsonrpc":"2.0","method":"boom","id":70}
+            """);
 
         assertEquals(-32001, body.get("error").get("code").asInt());
         assertNull(body.get("error").get("data"));
@@ -209,6 +209,7 @@ class GreetingRpcServiceIntegrationTest extends AbstractJsonRpcIntegrationSuppor
 
     @TestConfiguration(proxyBeanMethods = false)
     static class BoomMethodConfig {
+
         @Bean
         JsonRpcMethodRegistration boomMethod() {
             return JsonRpcMethodRegistration.of("boom", params -> {

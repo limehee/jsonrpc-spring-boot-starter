@@ -49,5 +49,6 @@ public final class ResponseSideUtilitiesExample {
     }
 
     public record Result(JsonRpcEnvelopeType envelopeType, List<JsonRpcIncomingResponse> responses) {
+
     }
 }

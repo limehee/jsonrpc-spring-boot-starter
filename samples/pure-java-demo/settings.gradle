@@ -9,6 +9,6 @@ dependencyResolutionManagement {
 includeBuild("../..") {
     dependencySubstitution {
         substitute(module("io.github.limehee:jsonrpc-core"))
-                .using(project(":jsonrpc-core"))
+            .using(project(":jsonrpc-core"))
     }
 }

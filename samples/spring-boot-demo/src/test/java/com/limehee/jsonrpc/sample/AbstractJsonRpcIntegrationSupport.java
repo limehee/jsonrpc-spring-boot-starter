@@ -34,10 +34,10 @@ abstract class AbstractJsonRpcIntegrationSupport {
 
     protected JsonNode invokeJsonRpc(String path, String requestJson, int expectedStatus) throws Exception {
         MvcResult result = mockMvc.perform(post(path)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().is(expectedStatus))
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson))
+            .andExpect(status().is(expectedStatus))
+            .andReturn();
 
         byte[] responseBody = result.getResponse().getContentAsByteArray();
         if (responseBody.length == 0) {

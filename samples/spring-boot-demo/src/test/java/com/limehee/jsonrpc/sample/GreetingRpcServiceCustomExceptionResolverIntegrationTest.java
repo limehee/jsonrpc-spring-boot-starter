@@ -19,8 +19,8 @@ class GreetingRpcServiceCustomExceptionResolverIntegrationTest extends AbstractJ
     @Test
     void mapsDomainExceptionWithCustomResolver() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"domain.fail","id":91}
-                """);
+            {"jsonrpc":"2.0","method":"domain.fail","id":91}
+            """);
 
         assertEquals(-32051, body.get("error").get("code").asInt());
         assertEquals("custom-domain-error", body.get("error").get("message").asString());
@@ -28,6 +28,7 @@ class GreetingRpcServiceCustomExceptionResolverIntegrationTest extends AbstractJ
 
     @TestConfiguration(proxyBeanMethods = false)
     static class CustomResolverConfig {
+
         @Bean
         JsonRpcExceptionResolver jsonRpcExceptionResolver() {
             return throwable -> {

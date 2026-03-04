@@ -58,14 +58,14 @@ public final class InterceptorFlowExample {
         };
 
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
-                new InMemoryJsonRpcMethodRegistry(),
-                new DefaultJsonRpcRequestParser(),
-                new DefaultJsonRpcRequestValidator(),
-                new DefaultJsonRpcMethodInvoker(),
-                new DefaultJsonRpcExceptionResolver(),
-                new DefaultJsonRpcResponseComposer(),
-                100,
-                List.of(recording, noisyOnError)
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(recording, noisyOnError)
         );
 
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
@@ -79,5 +79,6 @@ public final class InterceptorFlowExample {
     }
 
     public record Result(List<String> events, JsonRpcDispatchResult dispatchResult) {
+
     }
 }
