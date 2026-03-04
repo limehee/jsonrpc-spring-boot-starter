@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
+import com.limehee.jsonrpc.core.DefaultJsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
@@ -15,6 +17,7 @@ import com.limehee.jsonrpc.core.JsonRpcParam;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
 import com.limehee.jsonrpc.core.JsonRpcRequestValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
+import com.limehee.jsonrpc.core.JsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
@@ -730,6 +733,23 @@ class JsonRpcAutoConfigurationTest {
                 "jsonrpc.validation.response.error-code.range.max=-32100"
             )
             .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void appliesResponseDuplicateMemberRejectionToResponseParserBean() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.reject-duplicate-members=true")
+            .run(context -> {
+                JsonRpcResponseParser parser = context.getBean(JsonRpcResponseParser.class);
+                assertTrue(parser instanceof DefaultJsonRpcResponseParser);
+
+                DefaultJsonRpcResponseParser defaultParser = (DefaultJsonRpcResponseParser) parser;
+
+                assertNotNull(assertThrows(
+                    JsonRpcException.class,
+                    () -> defaultParser.parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}")
+                ));
+            });
     }
 
     @Test

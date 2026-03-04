@@ -4,6 +4,7 @@ import com.limehee.jsonrpc.core.DefaultJsonRpcExceptionResolver;
 import com.limehee.jsonrpc.core.DefaultJsonRpcMethodInvoker;
 import com.limehee.jsonrpc.core.DefaultJsonRpcRequestParser;
 import com.limehee.jsonrpc.core.DefaultJsonRpcRequestValidator;
+import com.limehee.jsonrpc.core.DefaultJsonRpcResponseParser;
 import com.limehee.jsonrpc.core.DefaultJsonRpcResponseComposer;
 import com.limehee.jsonrpc.core.DefaultJsonRpcResponseValidator;
 import com.limehee.jsonrpc.core.DefaultJsonRpcTypedMethodHandlerFactory;
@@ -25,6 +26,7 @@ import com.limehee.jsonrpc.core.JsonRpcRequestValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcRequestValidator;
 import com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcResponseComposer;
+import com.limehee.jsonrpc.core.JsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
 import com.limehee.jsonrpc.core.JsonRpcResultWriter;
@@ -184,6 +186,25 @@ public class JsonRpcAutoConfiguration {
             .errorCodeRangeMin(range.getMin())
             .errorCodeRangeMax(range.getMax())
             .build();
+    }
+
+    /**
+     * Creates parser for incoming JSON-RPC response envelopes.
+     *
+     * @param objectMapperProvider provider for custom or default {@link ObjectMapper}
+     * @param properties           bound JSON-RPC properties
+     * @return response parser
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcResponseParser jsonRpcResponseParser(
+        ObjectProvider<ObjectMapper> objectMapperProvider,
+        JsonRpcProperties properties
+    ) {
+        return new DefaultJsonRpcResponseParser(
+            objectMapperProvider.getIfAvailable(() -> JsonMapper.builder().build()),
+            properties.getValidation().getResponse().isRejectDuplicateMembers()
+        );
     }
 
     /**
