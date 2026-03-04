@@ -1,7 +1,7 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Default envelope classifier using top-level field presence heuristics.
@@ -43,14 +43,14 @@ public class DefaultJsonRpcEnvelopeClassifier implements JsonRpcEnvelopeClassifi
     /**
      * Classifies a single object node by request/response marker fields.
      * <p>
-     * When request and response hints coexist, response classification takes precedence to keep
-     * routing aligned with response-side validation policies.
+     * When request and response hints coexist, response classification takes precedence to keep routing aligned with
+     * response-side validation policies.
      *
      * @param node object node candidate
      * @return envelope classification
      */
     private JsonRpcEnvelopeType classifyObject(JsonNode node) {
-        if (node == null || !node.isObject()) {
+        if (!node.isObject()) {
             return JsonRpcEnvelopeType.INVALID;
         }
 

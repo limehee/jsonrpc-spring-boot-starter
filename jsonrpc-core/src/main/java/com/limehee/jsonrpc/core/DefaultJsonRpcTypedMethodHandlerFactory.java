@@ -1,10 +1,10 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
-
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Default typed handler factory using binder/writer components for conversion.
@@ -18,9 +18,10 @@ public class DefaultJsonRpcTypedMethodHandlerFactory implements JsonRpcTypedMeth
      * Creates a typed method handler factory.
      *
      * @param parameterBinder binder for converting params to Java values
-     * @param resultWriter serializer for converting Java return values to JSON
+     * @param resultWriter    serializer for converting Java return values to JSON
      */
-    public DefaultJsonRpcTypedMethodHandlerFactory(JsonRpcParameterBinder parameterBinder, JsonRpcResultWriter resultWriter) {
+    public DefaultJsonRpcTypedMethodHandlerFactory(JsonRpcParameterBinder parameterBinder,
+        JsonRpcResultWriter resultWriter) {
         this.parameterBinder = Objects.requireNonNull(parameterBinder, "parameterBinder");
         this.resultWriter = Objects.requireNonNull(resultWriter, "resultWriter");
     }
@@ -55,7 +56,7 @@ public class DefaultJsonRpcTypedMethodHandlerFactory implements JsonRpcTypedMeth
      * @param params params payload to validate
      * @throws JsonRpcException when unexpected params are provided
      */
-    private void validateNoParams(JsonNode params) {
+    private void validateNoParams(@Nullable JsonNode params) {
         if (params == null || params.isNull()) {
             return;
         }

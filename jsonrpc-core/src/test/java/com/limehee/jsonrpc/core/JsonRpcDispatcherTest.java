@@ -1,23 +1,22 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.node.ObjectNode;
-import tools.jackson.databind.node.IntNode;
-import tools.jackson.databind.node.StringNode;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.IntNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 class JsonRpcDispatcherTest {
 
@@ -29,8 +28,8 @@ class JsonRpcDispatcherTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping","id":1}
-                """));
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """));
 
         assertFalse(result.isBatch());
         assertTrue(result.hasResponse());
@@ -46,8 +45,8 @@ class JsonRpcDispatcherTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping"}
-                """));
+            {"jsonrpc":"2.0","method":"ping"}
+            """));
 
         assertFalse(result.hasResponse());
         assertTrue(result.singleResponse().isEmpty());
@@ -58,8 +57,8 @@ class JsonRpcDispatcherTest {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","params":[]}
-                """));
+            {"jsonrpc":"2.0","params":[]}
+            """));
 
         assertTrue(result.hasResponse());
         JsonRpcResponse response = result.singleResponse().orElseThrow();
@@ -72,8 +71,8 @@ class JsonRpcDispatcherTest {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping","id":true}
-                """));
+            {"jsonrpc":"2.0","method":"ping","id":true}
+            """));
 
         assertTrue(result.hasResponse());
         JsonRpcResponse response = result.singleResponse().orElseThrow();
@@ -86,8 +85,8 @@ class JsonRpcDispatcherTest {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"missing"}
-                """));
+            {"jsonrpc":"2.0","method":"missing"}
+            """));
 
         assertFalse(result.hasResponse());
         assertTrue(result.singleResponse().isEmpty());
@@ -98,15 +97,15 @@ class JsonRpcDispatcherTest {
         RecordingNotificationExecutor notificationExecutor = new RecordingNotificationExecutor();
         AtomicInteger invocationCount = new AtomicInteger();
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
-                new InMemoryJsonRpcMethodRegistry(),
-                new DefaultJsonRpcRequestParser(),
-                new DefaultJsonRpcRequestValidator(),
-                new DefaultJsonRpcMethodInvoker(),
-                new DefaultJsonRpcExceptionResolver(),
-                new DefaultJsonRpcResponseComposer(),
-                100,
-                List.of(),
-                notificationExecutor
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(),
+            notificationExecutor
         );
         dispatcher.register("ping", params -> {
             invocationCount.incrementAndGet();
@@ -114,8 +113,8 @@ class JsonRpcDispatcherTest {
         });
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping"}
-                """));
+            {"jsonrpc":"2.0","method":"ping"}
+            """));
 
         assertFalse(result.hasResponse());
         assertEquals(1, notificationExecutor.executeCount);
@@ -128,8 +127,8 @@ class JsonRpcDispatcherTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping","id":null}
-                """));
+            {"jsonrpc":"2.0","method":"ping","id":null}
+            """));
 
         assertTrue(result.hasResponse());
         JsonRpcResponse response = result.singleResponse().orElseThrow();
@@ -142,8 +141,8 @@ class JsonRpcDispatcherTest {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"unknown","id":1}
-                """));
+            {"jsonrpc":"2.0","method":"unknown","id":1}
+            """));
 
         JsonRpcResponse response = result.singleResponse().orElseThrow();
         assertNotNull(response.error());
@@ -156,8 +155,8 @@ class JsonRpcDispatcherTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping","params":1,"id":1}
-                """));
+            {"jsonrpc":"2.0","method":"ping","params":1,"id":1}
+            """));
 
         JsonRpcResponse response = result.singleResponse().orElseThrow();
         assertEquals(JsonRpcErrorCode.INVALID_PARAMS, response.error().code());
@@ -169,13 +168,13 @@ class JsonRpcDispatcherTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                [
-                  {"jsonrpc":"2.0","method":"ping","id":1},
-                  {"jsonrpc":"2.0","method":"ping"},
-                  {"jsonrpc":"2.0","method":"missing","id":2},
-                  1
-                ]
-                """));
+            [
+              {"jsonrpc":"2.0","method":"ping","id":1},
+              {"jsonrpc":"2.0","method":"ping"},
+              {"jsonrpc":"2.0","method":"missing","id":2},
+              1
+            ]
+            """));
 
         assertTrue(result.isBatch());
         List<JsonRpcResponse> responses = result.responses();
@@ -196,11 +195,11 @@ class JsonRpcDispatcherTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                [
-                  {"jsonrpc":"2.0","params":[]},
-                  {"jsonrpc":"2.0","method":"ping"}
-                ]
-                """));
+            [
+              {"jsonrpc":"2.0","params":[]},
+              {"jsonrpc":"2.0","method":"ping"}
+            ]
+            """));
 
         assertTrue(result.isBatch());
         assertEquals(1, result.responses().size());
@@ -214,11 +213,11 @@ class JsonRpcDispatcherTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                [
-                  {"jsonrpc":"2.0","method":"ping","id":{"x":1}},
-                  {"jsonrpc":"2.0","method":"ping","id":1}
-                ]
-                """));
+            [
+              {"jsonrpc":"2.0","method":"ping","id":{"x":1}},
+              {"jsonrpc":"2.0","method":"ping","id":1}
+            ]
+            """));
 
         assertTrue(result.isBatch());
         assertEquals(2, result.responses().size());
@@ -233,11 +232,11 @@ class JsonRpcDispatcherTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                [
-                  {"jsonrpc":"2.0","method":"ping"},
-                  {"jsonrpc":"2.0","method":"ping"}
-                ]
-                """));
+            [
+              {"jsonrpc":"2.0","method":"ping"},
+              {"jsonrpc":"2.0","method":"ping"}
+            ]
+            """));
 
         assertTrue(result.isBatch());
         assertFalse(result.hasResponse());
@@ -257,23 +256,23 @@ class JsonRpcDispatcherTest {
     @Test
     void dispatchBatchOverLimitReturnsInvalidRequest() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
-                new InMemoryJsonRpcMethodRegistry(),
-                new DefaultJsonRpcRequestParser(),
-                new DefaultJsonRpcRequestValidator(),
-                new DefaultJsonRpcMethodInvoker(),
-                new DefaultJsonRpcExceptionResolver(),
-                new DefaultJsonRpcResponseComposer(),
-                1,
-                List.of()
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            1,
+            List.of()
         );
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                [
-                  {"jsonrpc":"2.0","method":"ping","id":1},
-                  {"jsonrpc":"2.0","method":"ping","id":2}
-                ]
-                """));
+            [
+              {"jsonrpc":"2.0","method":"ping","id":1},
+              {"jsonrpc":"2.0","method":"ping","id":2}
+            ]
+            """));
 
         JsonRpcResponse response = result.singleResponse().orElseThrow();
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
@@ -291,7 +290,8 @@ class JsonRpcDispatcherTest {
 
     @Test
     void errorResponseWithUnknownIdSerializesIdAsNull() {
-        JsonRpcResponse response = JsonRpcResponse.error(null, JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+        JsonRpcResponse response = JsonRpcResponse.error(null, JsonRpcErrorCode.INVALID_REQUEST,
+            JsonRpcConstants.MESSAGE_INVALID_REQUEST);
         ObjectNode node = OBJECT_MAPPER.valueToTree(response);
 
         assertTrue(node.has("id"));
@@ -303,7 +303,7 @@ class JsonRpcDispatcherTest {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 
         assertThrows(IllegalArgumentException.class,
-                () -> dispatcher.register("rpc.system", params -> StringNode.valueOf("ok")));
+            () -> dispatcher.register("rpc.system", params -> StringNode.valueOf("ok")));
     }
 
     @Test
@@ -341,17 +341,28 @@ class JsonRpcDispatcherTest {
     }
 
     @Test
+    void legacyDispatchNullRequestReturnsInvalidRequestError() {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        JsonRpcResponse response = dispatcher.dispatch((JsonRpcRequest) null);
+
+        assertNotNull(response);
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
+        assertNull(response.id());
+    }
+
+    @Test
     void interceptorCallbacksRunForSuccessfulRequest() throws Exception {
         RecordingInterceptor interceptor = new RecordingInterceptor();
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
-                new InMemoryJsonRpcMethodRegistry(),
-                new DefaultJsonRpcRequestParser(),
-                new DefaultJsonRpcRequestValidator(),
-                new DefaultJsonRpcMethodInvoker(),
-                new DefaultJsonRpcExceptionResolver(),
-                new DefaultJsonRpcResponseComposer(),
-                100,
-                List.of(interceptor)
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(interceptor)
         );
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
@@ -364,17 +375,18 @@ class JsonRpcDispatcherTest {
     void interceptorOnErrorRunsForMethodErrors() throws Exception {
         RecordingInterceptor interceptor = new RecordingInterceptor();
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
-                new InMemoryJsonRpcMethodRegistry(),
-                new DefaultJsonRpcRequestParser(),
-                new DefaultJsonRpcRequestValidator(),
-                new DefaultJsonRpcMethodInvoker(),
-                new DefaultJsonRpcExceptionResolver(),
-                new DefaultJsonRpcResponseComposer(),
-                100,
-                List.of(interceptor)
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(interceptor)
         );
 
-        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("{\"jsonrpc\":\"2.0\",\"method\":\"missing\",\"id\":1}"));
+        JsonRpcDispatchResult result = dispatcher.dispatch(
+            OBJECT_MAPPER.readTree("{\"jsonrpc\":\"2.0\",\"method\":\"missing\",\"id\":1}"));
 
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, result.singleResponse().orElseThrow().error().code());
         assertTrue(interceptor.events.contains("onError:-32601"));
@@ -385,23 +397,23 @@ class JsonRpcDispatcherTest {
         RecordingInterceptor interceptor = new RecordingInterceptor();
         RecordingNotificationExecutor notificationExecutor = new RecordingNotificationExecutor();
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
-                new InMemoryJsonRpcMethodRegistry(),
-                new DefaultJsonRpcRequestParser(),
-                new DefaultJsonRpcRequestValidator(),
-                new DefaultJsonRpcMethodInvoker(),
-                new DefaultJsonRpcExceptionResolver(),
-                new DefaultJsonRpcResponseComposer(),
-                100,
-                List.of(interceptor),
-                notificationExecutor
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(interceptor),
+            notificationExecutor
         );
         dispatcher.register("fail", params -> {
             throw new RuntimeException("boom");
         });
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"fail"}
-                """));
+            {"jsonrpc":"2.0","method":"fail"}
+            """));
 
         assertFalse(result.hasResponse());
         assertTrue(interceptor.events.contains("onError:-32603"));
@@ -418,19 +430,19 @@ class JsonRpcDispatcherTest {
         };
 
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
-                new InMemoryJsonRpcMethodRegistry(),
-                new DefaultJsonRpcRequestParser(),
-                new DefaultJsonRpcRequestValidator(),
-                new DefaultJsonRpcMethodInvoker(),
-                new DefaultJsonRpcExceptionResolver(),
-                new DefaultJsonRpcResponseComposer(),
-                100,
-                List.of(throwingInterceptor, interceptor)
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(throwingInterceptor, interceptor)
         );
 
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"missing","id":1}
-                """));
+            {"jsonrpc":"2.0","method":"missing","id":1}
+            """));
 
         JsonRpcResponse response = result.singleResponse().orElseThrow();
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, response.error().code());
@@ -445,8 +457,8 @@ class JsonRpcDispatcherTest {
         });
 
         assertThrows(AssertionError.class, () -> dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"fatal","id":1}
-                """)));
+            {"jsonrpc":"2.0","method":"fatal","id":1}
+            """)));
     }
 
     @Test
@@ -469,11 +481,12 @@ class JsonRpcDispatcherTest {
         });
 
         assertThrows(AssertionError.class, () -> dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"fatal"}
-                """)));
+            {"jsonrpc":"2.0","method":"fatal"}
+            """)));
     }
 
     private static final class RecordingInterceptor implements JsonRpcInterceptor {
+
         private final List<String> events = new ArrayList<>();
 
         @Override
@@ -498,6 +511,7 @@ class JsonRpcDispatcherTest {
     }
 
     private static final class RecordingNotificationExecutor implements JsonRpcNotificationExecutor {
+
         private int executeCount;
 
         @Override

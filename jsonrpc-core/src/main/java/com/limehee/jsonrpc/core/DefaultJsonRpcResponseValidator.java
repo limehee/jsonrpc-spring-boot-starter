@@ -1,8 +1,8 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
-
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Default validator for parsed incoming JSON-RPC responses.
@@ -73,7 +73,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
      *
      * @param id response id node
      */
-    private void validateId(JsonNode id) {
+    private void validateId(@Nullable JsonNode id) {
         if (id == null || id.isNull()) {
             if (!options.allowNullResponseId()) {
                 throw invalid("response id must not be null");
@@ -106,7 +106,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
      *
      * @param error error node
      */
-    private void validateError(JsonNode error) {
+    private void validateError(@Nullable JsonNode error) {
         if (options.requireErrorObjectWhenPresent() && (error == null || !error.isObject())) {
             throw invalid("response error must be an object");
         }

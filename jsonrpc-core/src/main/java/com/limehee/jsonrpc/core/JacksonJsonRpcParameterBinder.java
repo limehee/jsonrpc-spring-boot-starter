@@ -1,11 +1,11 @@
 package com.limehee.jsonrpc.core;
 
+import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
+import tools.jackson.databind.node.NullNode;
 
 /**
  * {@link JsonRpcParameterBinder} implementation based on Jackson object mapping.
@@ -32,7 +32,7 @@ public class JacksonJsonRpcParameterBinder implements JsonRpcParameterBinder {
             throw new IllegalArgumentException("targetType must not be null");
         }
         if (targetType == JsonNode.class) {
-            return targetType.cast(params);
+            return targetType.cast(params == null ? NullNode.getInstance() : params);
         }
 
         try {
@@ -42,10 +42,10 @@ public class JacksonJsonRpcParameterBinder implements JsonRpcParameterBinder {
             return objectMapper.convertValue(params, targetType);
         } catch (JacksonException | IllegalArgumentException ex) {
             throw new JsonRpcException(
-                    JsonRpcErrorCode.INVALID_PARAMS,
-                    JsonRpcConstants.MESSAGE_INVALID_PARAMS,
-                    null,
-                    ex
+                JsonRpcErrorCode.INVALID_PARAMS,
+                JsonRpcConstants.MESSAGE_INVALID_PARAMS,
+                null,
+                ex
             );
         }
     }
