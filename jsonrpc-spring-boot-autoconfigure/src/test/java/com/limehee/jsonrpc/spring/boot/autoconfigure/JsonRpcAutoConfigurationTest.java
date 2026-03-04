@@ -638,6 +638,7 @@ class JsonRpcAutoConfigurationTest {
             assertEquals(coreDefaults.allowNumericId(), options.allowNumericId());
             assertEquals(coreDefaults.allowFractionalId(), options.allowFractionalId());
             assertEquals(coreDefaults.rejectResponseFields(), options.rejectResponseFields());
+            assertEquals(coreDefaults.rejectDuplicateMembers(), options.rejectDuplicateMembers());
             assertEquals(coreDefaults.paramsTypeViolationCodePolicy(), options.paramsTypeViolationCodePolicy());
         });
     }
@@ -648,7 +649,8 @@ class JsonRpcAutoConfigurationTest {
             .withPropertyValues(
                 "jsonrpc.validation.request.require-id-member=true",
                 "jsonrpc.validation.request.allow-fractional-id=false",
-                "jsonrpc.validation.request.reject-response-fields=true"
+                "jsonrpc.validation.request.reject-response-fields=true",
+                "jsonrpc.validation.request.reject-duplicate-members=true"
             )
             .run(context -> {
                 JsonRpcRequestValidationOptions options = context.getBean(JsonRpcRequestValidationOptions.class);
@@ -656,6 +658,7 @@ class JsonRpcAutoConfigurationTest {
                 assertTrue(options.requireIdMember());
                 assertFalse(options.allowFractionalId());
                 assertTrue(options.rejectResponseFields());
+                assertTrue(options.rejectDuplicateMembers());
             });
     }
 
@@ -745,10 +748,23 @@ class JsonRpcAutoConfigurationTest {
 
                 DefaultJsonRpcResponseParser defaultParser = (DefaultJsonRpcResponseParser) parser;
 
-                assertNotNull(assertThrows(
+                assertThrows(
                     JsonRpcException.class,
                     () -> defaultParser.parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}")
-                ));
+                );
+            });
+    }
+
+    @Test
+    void keepsResponseDuplicateMemberAcceptanceWhenPolicyIsDisabled() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.reject-duplicate-members=false")
+            .run(context -> {
+                JsonRpcResponseParser parser = context.getBean(JsonRpcResponseParser.class);
+                assertTrue(parser instanceof DefaultJsonRpcResponseParser);
+
+                DefaultJsonRpcResponseParser defaultParser = (DefaultJsonRpcResponseParser) parser;
+                assertNotNull(defaultParser.parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}"));
             });
     }
 

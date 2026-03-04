@@ -14,6 +14,7 @@ public final class JsonRpcRequestValidationOptions {
     private final boolean allowNumericId;
     private final boolean allowFractionalId;
     private final boolean rejectResponseFields;
+    private final boolean rejectDuplicateMembers;
     private final JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy;
 
     private JsonRpcRequestValidationOptions(Builder builder) {
@@ -24,6 +25,7 @@ public final class JsonRpcRequestValidationOptions {
         this.allowNumericId = builder.allowNumericId;
         this.allowFractionalId = builder.allowFractionalId;
         this.rejectResponseFields = builder.rejectResponseFields;
+        this.rejectDuplicateMembers = builder.rejectDuplicateMembers;
         this.paramsTypeViolationCodePolicy = builder.paramsTypeViolationCodePolicy;
     }
 
@@ -95,6 +97,13 @@ public final class JsonRpcRequestValidationOptions {
     }
 
     /**
+     * @return whether duplicate members should be rejected during raw request payload parsing
+     */
+    public boolean rejectDuplicateMembers() {
+        return rejectDuplicateMembers;
+    }
+
+    /**
      * @return error-code policy used when {@code params} exists but is neither object nor array
      */
     public JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy() {
@@ -113,6 +122,7 @@ public final class JsonRpcRequestValidationOptions {
         private boolean allowNumericId = true;
         private boolean allowFractionalId = true;
         private boolean rejectResponseFields = false;
+        private boolean rejectDuplicateMembers = false;
         private JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy =
             JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS;
 
@@ -193,6 +203,17 @@ public final class JsonRpcRequestValidationOptions {
          */
         public Builder rejectResponseFields(boolean enabled) {
             this.rejectResponseFields = enabled;
+            return this;
+        }
+
+        /**
+         * Enables or disables duplicate member rejection while parsing raw request payloads.
+         *
+         * @param enabled {@code true} to reject duplicate members
+         * @return this builder
+         */
+        public Builder rejectDuplicateMembers(boolean enabled) {
+            this.rejectDuplicateMembers = enabled;
             return this;
         }
 
