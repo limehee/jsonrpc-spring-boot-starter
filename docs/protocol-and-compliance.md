@@ -67,9 +67,9 @@ By default, `JsonRpcResponseValidationOptions.defaults()` enforces:
 - `id` member exists and is `string | number | null`
 - exactly one of `result` or `error` is present
 - when `error` is present:
-  - `error` is an object
-  - `error.code` is an integer
-  - `error.message` is a string
+    - `error` is an object
+    - `error.code` is an integer
+    - `error.message` is a string
 
 RFC SHOULD or stricter interoperability policies are configurable via per-rule options.
 This library does not expose predefined strict/lenient modes; policy is controlled per rule.
@@ -108,7 +108,8 @@ This library does not expose predefined strict/lenient modes; policy is controll
 
 ## Reserved Method Namespace
 
-Methods starting with `rpc.` are rejected at registration (`IllegalArgumentException`) to preserve reserved namespace semantics.
+Methods starting with `rpc.` are rejected at registration (`IllegalArgumentException`) to preserve reserved namespace
+semantics.
 
 ## HTTP Mapping Notes
 
@@ -121,7 +122,9 @@ This is transport policy, not protocol rule, and can be overridden via `JsonRpcH
 
 ## Known Deliberate Policy Choices
 
-- Oversized request body (`jsonrpc.max-request-bytes`) maps to protocol error `-32600` with message `Request payload too large`.
+- Oversized request body (`jsonrpc.max-request-bytes`) maps to protocol error `-32600` with message
+  `Request payload too large`.
 - Parse errors always use `id: null`.
 - Generic exceptions are intentionally normalized to `-32603` to avoid leaking internals.
-- `params` type violations (non-array/object) default to `-32602`; in Spring Boot this can be changed with `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_REQUEST`.
+- `params` type violations (non-array/object) default to `-32602`; in Spring Boot this can be changed with
+  `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_REQUEST`.

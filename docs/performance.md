@@ -27,7 +27,8 @@ JMH benchmark exists in `jsonrpc-core`:
 ./gradlew :jsonrpc-core:jmh
 ```
 
-It includes dispatcher scenarios for single success/error/invalid cases and large batch profiles (all-success, all-error, mixed, notification-only).
+It includes dispatcher scenarios for single success/error/invalid cases and large batch profiles (all-success,
+all-error, mixed, notification-only).
 
 Quick profile (short warmup/measurement):
 
@@ -50,8 +51,8 @@ Run quick profile for a specific benchmark include pattern:
 - Use allowlist/denylist to reduce exposed method surface area.
 - Set `jsonrpc.metrics-max-method-tag-values` to bound method tag cardinality.
 - Enable histogram/percentiles only when needed:
-  - `jsonrpc.metrics-latency-histogram-enabled`
-  - `jsonrpc.metrics-latency-percentiles`
+    - `jsonrpc.metrics-latency-histogram-enabled`
+    - `jsonrpc.metrics-latency-percentiles`
 
 ## Performance Testing Guidance
 

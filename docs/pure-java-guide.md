@@ -1,6 +1,7 @@
 # Pure Java Guide
 
-`jsonrpc-core` is transport-agnostic and can be used without Spring. This guide shows how to use it in plain Java applications, custom servers, workers, and tests.
+`jsonrpc-core` is transport-agnostic and can be used without Spring. This guide shows how to use it in plain Java
+applications, custom servers, workers, and tests.
 
 ## 1. Dependency
 
