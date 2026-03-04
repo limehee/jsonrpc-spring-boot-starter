@@ -31,6 +31,6 @@ public class DefaultJsonRpcRequestParser implements JsonRpcRequestParser {
 
         JsonNode params = node.get("params");
 
-        return new JsonRpcRequest(jsonrpc, id, method, params, idPresent);
+        return new JsonRpcRequest(jsonrpc, id, method, params, idPresent, node);
     }
 }
