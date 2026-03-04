@@ -255,6 +255,9 @@ Use configuration to change this behavior:
 jsonrpc:
   validation:
     request:
+      require-id-member: false
+      allow-fractional-id: false
+      reject-response-fields: true
       params-type-violation-code-policy: INVALID_REQUEST
 ```
 
@@ -269,16 +272,21 @@ jsonrpc:
   validation:
     response:
       require-json-rpc-version-20: true
-      require-response-id-member: true
-      allow-null-response-id: true
-      allow-string-response-id: true
-      allow-numeric-response-id: true
-      allow-fractional-response-id: true
+      require-id-member: true
+      allow-null-id: true
+      allow-string-id: true
+      allow-numeric-id: true
+      allow-fractional-id: true
       require-exclusive-result-or-error: true
       require-error-object-when-present: true
       require-integer-error-code: true
       require-string-error-message: true
-      allow-request-fields-in-response: true
+      reject-request-fields: false
+      error-code:
+        policy: ANY_INTEGER
+        range:
+          min: null
+          max: null
 ```
 
 You can override only the options you need. Example:
@@ -287,8 +295,10 @@ You can override only the options you need. Example:
 jsonrpc:
   validation:
     response:
-      allow-fractional-response-id: false
-      allow-request-fields-in-response: false
+      allow-fractional-id: false
+      reject-request-fields: true
+      error-code:
+        policy: STANDARD_OR_SERVER_ERROR_RANGE
 ```
 
 Auto-configuration exposes both `JsonRpcResponseValidationOptions` and

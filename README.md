@@ -183,11 +183,16 @@ Use `jsonrpc.validation.request.*` and `jsonrpc.validation.response.*` for fine-
 jsonrpc:
   validation:
     request:
+      require-id-member: false
+      allow-fractional-id: false
+      reject-response-fields: true
       params-type-violation-code-policy: INVALID_REQUEST
     response:
-      require-response-id-member: true
-      allow-fractional-response-id: false
-      allow-request-fields-in-response: false
+      require-id-member: true
+      allow-fractional-id: false
+      reject-request-fields: true
+      error-code:
+        policy: STANDARD_OR_SERVER_ERROR_RANGE
 ```
 
 For the full list of validation keys and defaults, see

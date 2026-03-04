@@ -79,18 +79,21 @@ This library does not expose predefined strict/lenient modes; policy is controll
 `JsonRpcResponseValidationOptions` exposes per-rule switches:
 
 - `requireJsonRpcVersion20` (default: `true`)
-- `requireResponseIdMember` (default: `true`)
-- `allowNullResponseId` (default: `true`)
-- `allowStringResponseId` (default: `true`)
-- `allowNumericResponseId` (default: `true`)
-- `allowFractionalResponseId` (default: `true`)
+- `requireIdMember` (default: `true`)
+- `allowNullId` (default: `true`)
+- `allowStringId` (default: `true`)
+- `allowNumericId` (default: `true`)
+- `allowFractionalId` (default: `true`)
 - `requireExclusiveResultOrError` (default: `true`)
 - `requireErrorObjectWhenPresent` (default: `true`)
 - `requireIntegerErrorCode` (default: `true`)
 - `requireStringErrorMessage` (default: `true`)
-- `allowRequestFieldsInResponse` (default: `true`)
+- `rejectRequestFields` (default: `false`)
+- `rejectDuplicateMembers` (default: `false`)
+- `errorCodePolicy` (default: `ANY_INTEGER`)
+- `errorCodeRangeMin` / `errorCodeRangeMax` (default: `null`, used with `CUSTOM_RANGE`)
 
-`allowRequestFieldsInResponse=true` is a compatibility default and is not an RFC MUST rule.
+`rejectRequestFields=false` is a compatibility default and is not an RFC MUST rule.
 
 ## `id` Handling Details
 
