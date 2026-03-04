@@ -28,17 +28,17 @@ Commands:
 
 - Parser/validator rules (`jsonrpc`, `method`, `params`, `id`)
 - Response-side utilities:
-  - envelope classifier (`REQUEST` / `RESPONSE` / `INVALID`)
-  - incoming response parser (single/batch and field-presence semantics)
-  - configurable response validator (`JsonRpcResponseValidationOptions`)
+    - envelope classifier (`REQUEST` / `RESPONSE` / `INVALID`)
+    - incoming response parser (single/batch and field-presence semantics)
+    - configurable response validator (`JsonRpcResponseValidationOptions`)
 - Dispatcher branches:
-  - success
-  - invalid request
-  - method missing
-  - invalid params
-  - internal exceptions
-  - notification no-response
-  - batch (mixed/single/empty)
+    - success
+    - invalid request
+    - method missing
+    - invalid params
+    - internal exceptions
+    - notification no-response
+    - batch (mixed/single/empty)
 - Interceptor callbacks and error resilience
 - Typed binder/writer behavior for records/classes/collections
 - Pure Java integration and e2e usage
@@ -75,12 +75,25 @@ Binary compatibility checks are provided via JApiCmp:
 ./gradlew apiCompat -PapiBaselineVersion=<released-version>
 ```
 
+## Static Analysis
+
+Production Java source sets are checked with NullAway through Error Prone.
+
+- Enabled for `compileJava` in all library modules.
+- Disabled for `compileTestJava`, `compileIntegrationTestJava`, and `compileE2eTestJava`.
+- `check` fails on any NullAway violation.
+
+Goal:
+
+- catch nullable contract bugs at compile time
+- keep runtime behavior stable while strengthening type-level safety
+
 ## CI
 
 GitHub Actions runs matrix tests and compatibility checks (when release tag baseline exists):
 
 - `.github/workflows/ci.yml`
-  - Java matrix: 17 / 21 / 25
+    - Java matrix: 17 / 21 / 25
 - `.github/workflows/publish.yml`
 - `.github/workflows/consumer-smoke.yml` (publishes to `mavenLocal` and verifies Maven/Gradle consumer projects)
 

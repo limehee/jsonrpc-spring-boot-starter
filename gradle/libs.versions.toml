@@ -7,6 +7,9 @@ japicmp-plugin = "0.4.6"
 jmh-plugin = "0.7.3"
 spring-dependency-management-plugin = "1.1.7"
 jsonrpc-starter = "0.1.2"
+errorprone-plugin = "5.1.0"
+errorprone = "2.42.0"
+nullaway = "0.13.1"
 
 [libraries]
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
@@ -24,6 +27,8 @@ spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-start
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 micrometer-core = { module = "io.micrometer:micrometer-core" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 jsonrpc-spring-boot-starter = { module = "io.github.limehee:jsonrpc-spring-boot-starter", version.ref = "jsonrpc-starter" }
 
 [plugins]
@@ -31,3 +36,4 @@ japicmp = { id = "me.champeau.gradle.japicmp", version.ref = "japicmp-plugin" }
 jmh = { id = "me.champeau.jmh", version.ref = "jmh-plugin" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management-plugin" }
+errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }

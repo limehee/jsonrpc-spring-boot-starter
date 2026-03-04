@@ -1,8 +1,10 @@
 import me.champeau.gradle.japicmp.JapicmpTask
+import net.ltgt.gradle.errorprone.CheckSeverity
 
 plugins {
     id 'base'
     alias(libs.plugins.japicmp) apply false
+    alias(libs.plugins.errorprone) apply false
 }
 
 allprojects {
@@ -15,6 +17,7 @@ subprojects {
     apply plugin: 'java-library'
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
+    apply plugin: 'net.ltgt.errorprone'
 
     java {
         toolchain {
@@ -33,11 +36,23 @@ subprojects {
         testImplementation libs.junit.jupiter
         testRuntimeOnly libs.junit.platform.launcher
         compileOnly libs.jspecify
+        errorprone libs.errorprone.core
+        errorprone libs.nullaway
     }
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
         options.compilerArgs += ['-parameters']
+
+        def isTestCompile = name.toLowerCase().contains('test')
+        options.errorprone.enabled = !isTestCompile
+        options.errorprone.disableWarningsInGeneratedCode = true
+        if (!isTestCompile) {
+            options.errorprone.disableAllChecks = true
+            options.errorprone.check('NullAway', CheckSeverity.ERROR)
+            options.errorprone.option('NullAway:AnnotatedPackages', 'com.limehee.jsonrpc')
+            options.errorprone.option('NullAway:JSpecifyMode', 'true')
+        }
     }
 
     tasks.withType(Test).configureEach {
@@ -162,10 +177,10 @@ subprojects {
 }
 
 def publishedApiModules = [
-        project(':jsonrpc-core'),
-        project(':jsonrpc-spring-webmvc'),
-        project(':jsonrpc-spring-boot-autoconfigure'),
-        project(':jsonrpc-spring-boot-starter')
+    project(':jsonrpc-core'),
+    project(':jsonrpc-spring-webmvc'),
+    project(':jsonrpc-spring-boot-autoconfigure'),
+    project(':jsonrpc-spring-boot-starter')
 ]
 def apiBaselineVersionProvider = providers.gradleProperty('apiBaselineVersion')
 
