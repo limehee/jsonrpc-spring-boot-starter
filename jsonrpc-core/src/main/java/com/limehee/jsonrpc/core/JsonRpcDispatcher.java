@@ -1,12 +1,11 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Central JSON-RPC dispatcher orchestrating parsing, validation, invocation, interception, and response composition.
@@ -44,109 +43,109 @@ public class JsonRpcDispatcher {
      */
     public JsonRpcDispatcher() {
         this(
-                new InMemoryJsonRpcMethodRegistry(),
-                new DefaultJsonRpcRequestParser(),
-                new DefaultJsonRpcRequestValidator(),
-                new DefaultJsonRpcMethodInvoker(),
-                new DefaultJsonRpcExceptionResolver(),
-                new DefaultJsonRpcResponseComposer(),
-                100,
-                List.of(),
-                new DirectJsonRpcNotificationExecutor()
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(),
+            new DirectJsonRpcNotificationExecutor()
         );
     }
 
     /**
      * Creates a dispatcher with custom core pipeline components and default interceptor/notification behavior.
      *
-     * @param methodRegistry method registry
-     * @param requestParser request parser
-     * @param requestValidator request validator
-     * @param methodInvoker method invoker
+     * @param methodRegistry    method registry
+     * @param requestParser     request parser
+     * @param requestValidator  request validator
+     * @param methodInvoker     method invoker
      * @param exceptionResolver exception resolver
-     * @param responseComposer response composer
-     * @param maxBatchSize maximum number of elements allowed in batch payloads
+     * @param responseComposer  response composer
+     * @param maxBatchSize      maximum number of elements allowed in batch payloads
      */
     public JsonRpcDispatcher(
-            JsonRpcMethodRegistry methodRegistry,
-            JsonRpcRequestParser requestParser,
-            JsonRpcRequestValidator requestValidator,
-            JsonRpcMethodInvoker methodInvoker,
-            JsonRpcExceptionResolver exceptionResolver,
-            JsonRpcResponseComposer responseComposer,
-            int maxBatchSize
+        JsonRpcMethodRegistry methodRegistry,
+        JsonRpcRequestParser requestParser,
+        JsonRpcRequestValidator requestValidator,
+        JsonRpcMethodInvoker methodInvoker,
+        JsonRpcExceptionResolver exceptionResolver,
+        JsonRpcResponseComposer responseComposer,
+        int maxBatchSize
     ) {
         this(
-                methodRegistry,
-                requestParser,
-                requestValidator,
-                methodInvoker,
-                exceptionResolver,
-                responseComposer,
-                maxBatchSize,
-                List.of(),
-                new DirectJsonRpcNotificationExecutor()
+            methodRegistry,
+            requestParser,
+            requestValidator,
+            methodInvoker,
+            exceptionResolver,
+            responseComposer,
+            maxBatchSize,
+            List.of(),
+            new DirectJsonRpcNotificationExecutor()
         );
     }
 
     /**
      * Creates a dispatcher with custom components and interceptors.
      *
-     * @param methodRegistry method registry
-     * @param requestParser request parser
-     * @param requestValidator request validator
-     * @param methodInvoker method invoker
+     * @param methodRegistry    method registry
+     * @param requestParser     request parser
+     * @param requestValidator  request validator
+     * @param methodInvoker     method invoker
      * @param exceptionResolver exception resolver
-     * @param responseComposer response composer
-     * @param maxBatchSize maximum number of elements allowed in batch payloads
-     * @param interceptors interceptor chain executed around request handling
+     * @param responseComposer  response composer
+     * @param maxBatchSize      maximum number of elements allowed in batch payloads
+     * @param interceptors      interceptor chain executed around request handling
      */
     public JsonRpcDispatcher(
-            JsonRpcMethodRegistry methodRegistry,
-            JsonRpcRequestParser requestParser,
-            JsonRpcRequestValidator requestValidator,
-            JsonRpcMethodInvoker methodInvoker,
-            JsonRpcExceptionResolver exceptionResolver,
-            JsonRpcResponseComposer responseComposer,
-            int maxBatchSize,
-            List<JsonRpcInterceptor> interceptors
+        JsonRpcMethodRegistry methodRegistry,
+        JsonRpcRequestParser requestParser,
+        JsonRpcRequestValidator requestValidator,
+        JsonRpcMethodInvoker methodInvoker,
+        JsonRpcExceptionResolver exceptionResolver,
+        JsonRpcResponseComposer responseComposer,
+        int maxBatchSize,
+        List<JsonRpcInterceptor> interceptors
     ) {
         this(
-                methodRegistry,
-                requestParser,
-                requestValidator,
-                methodInvoker,
-                exceptionResolver,
-                responseComposer,
-                maxBatchSize,
-                interceptors,
-                new DirectJsonRpcNotificationExecutor()
+            methodRegistry,
+            requestParser,
+            requestValidator,
+            methodInvoker,
+            exceptionResolver,
+            responseComposer,
+            maxBatchSize,
+            interceptors,
+            new DirectJsonRpcNotificationExecutor()
         );
     }
 
     /**
      * Creates a fully customized dispatcher.
      *
-     * @param methodRegistry method registry
-     * @param requestParser request parser
-     * @param requestValidator request validator
-     * @param methodInvoker method invoker
-     * @param exceptionResolver exception resolver
-     * @param responseComposer response composer
-     * @param maxBatchSize maximum number of elements allowed in batch payloads
-     * @param interceptors interceptor chain executed around request handling
+     * @param methodRegistry       method registry
+     * @param requestParser        request parser
+     * @param requestValidator     request validator
+     * @param methodInvoker        method invoker
+     * @param exceptionResolver    exception resolver
+     * @param responseComposer     response composer
+     * @param maxBatchSize         maximum number of elements allowed in batch payloads
+     * @param interceptors         interceptor chain executed around request handling
      * @param notificationExecutor executor used for notification invocations
      */
     public JsonRpcDispatcher(
-            JsonRpcMethodRegistry methodRegistry,
-            JsonRpcRequestParser requestParser,
-            JsonRpcRequestValidator requestValidator,
-            JsonRpcMethodInvoker methodInvoker,
-            JsonRpcExceptionResolver exceptionResolver,
-            JsonRpcResponseComposer responseComposer,
-            int maxBatchSize,
-            List<JsonRpcInterceptor> interceptors,
-            JsonRpcNotificationExecutor notificationExecutor
+        JsonRpcMethodRegistry methodRegistry,
+        JsonRpcRequestParser requestParser,
+        JsonRpcRequestValidator requestValidator,
+        JsonRpcMethodInvoker methodInvoker,
+        JsonRpcExceptionResolver exceptionResolver,
+        JsonRpcResponseComposer responseComposer,
+        int maxBatchSize,
+        List<JsonRpcInterceptor> interceptors,
+        JsonRpcNotificationExecutor notificationExecutor
     ) {
         this.methodRegistry = Objects.requireNonNull(methodRegistry, "methodRegistry");
         this.requestParser = Objects.requireNonNull(requestParser, "requestParser");
@@ -163,7 +162,7 @@ public class JsonRpcDispatcher {
     /**
      * Registers a method handler.
      *
-     * @param method JSON-RPC method name
+     * @param method  JSON-RPC method name
      * @param handler method handler
      */
     public void register(String method, JsonRpcMethodHandler handler) {
@@ -179,20 +178,20 @@ public class JsonRpcDispatcher {
     public JsonRpcDispatchResult dispatch(@Nullable JsonNode payload) {
         if (payload == null) {
             return JsonRpcDispatchResult.single(errorResponse(null, new JsonRpcException(
-                    JsonRpcErrorCode.INVALID_REQUEST,
-                    JsonRpcConstants.MESSAGE_INVALID_REQUEST)));
+                JsonRpcErrorCode.INVALID_REQUEST,
+                JsonRpcConstants.MESSAGE_INVALID_REQUEST)));
         }
 
         if (payload.isArray()) {
             if (payload.isEmpty()) {
                 return JsonRpcDispatchResult.single(errorResponse(null, new JsonRpcException(
-                        JsonRpcErrorCode.INVALID_REQUEST,
-                        JsonRpcConstants.MESSAGE_INVALID_REQUEST)));
+                    JsonRpcErrorCode.INVALID_REQUEST,
+                    JsonRpcConstants.MESSAGE_INVALID_REQUEST)));
             }
             if (payload.size() > maxBatchSize) {
                 return JsonRpcDispatchResult.single(errorResponse(null, new JsonRpcException(
-                        JsonRpcErrorCode.INVALID_REQUEST,
-                        "Batch size exceeds configured maximum")));
+                    JsonRpcErrorCode.INVALID_REQUEST,
+                    "Batch size exceeds configured maximum")));
             }
 
             List<JsonRpcResponse> responses = new ArrayList<>(payload.size());
@@ -214,6 +213,9 @@ public class JsonRpcDispatcher {
     public @Nullable JsonRpcResponse dispatch(@Nullable JsonRpcRequest request) {
         boolean validRequest = false;
         try {
+            if (request == null) {
+                throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+            }
             requestValidator.validate(request);
             validRequest = true;
             return dispatchSingleRequest(request).orElse(null);
@@ -232,8 +234,8 @@ public class JsonRpcDispatcher {
      */
     public JsonRpcResponse parseErrorResponse() {
         return responseComposer.error(null, JsonRpcError.of(
-                JsonRpcErrorCode.PARSE_ERROR,
-                JsonRpcConstants.MESSAGE_PARSE_ERROR));
+            JsonRpcErrorCode.PARSE_ERROR,
+            JsonRpcConstants.MESSAGE_PARSE_ERROR));
     }
 
     /**
@@ -242,11 +244,11 @@ public class JsonRpcDispatcher {
      * @param node request object node
      * @return optional response; empty for notifications
      */
-    private Optional<JsonRpcResponse> dispatchSingleNode(@Nullable JsonNode node) {
-        if (node == null || !node.isObject()) {
+    private Optional<JsonRpcResponse> dispatchSingleNode(JsonNode node) {
+        if (!node.isObject()) {
             return Optional.of(errorResponse(null, new JsonRpcException(
-                    JsonRpcErrorCode.INVALID_REQUEST,
-                    JsonRpcConstants.MESSAGE_INVALID_REQUEST)));
+                JsonRpcErrorCode.INVALID_REQUEST,
+                JsonRpcConstants.MESSAGE_INVALID_REQUEST)));
         }
 
         JsonNode errorId = extractIdForError(node);
@@ -274,10 +276,17 @@ public class JsonRpcDispatcher {
      * @throws Exception when invocation fails before error mapping
      */
     private Optional<JsonRpcResponse> dispatchSingleRequest(JsonRpcRequest request) throws Exception {
-        JsonRpcMethodHandler handler = methodRegistry.find(request.method())
-                .orElseThrow(() -> new JsonRpcException(
-                        JsonRpcErrorCode.METHOD_NOT_FOUND,
-                        JsonRpcConstants.MESSAGE_METHOD_NOT_FOUND));
+        String methodName = request.method();
+        if (methodName == null || methodName.isBlank()) {
+            throw new JsonRpcException(
+                JsonRpcErrorCode.INVALID_REQUEST,
+                JsonRpcConstants.MESSAGE_INVALID_REQUEST
+            );
+        }
+        JsonRpcMethodHandler handler = methodRegistry.find(methodName)
+            .orElseThrow(() -> new JsonRpcException(
+                JsonRpcErrorCode.METHOD_NOT_FOUND,
+                JsonRpcConstants.MESSAGE_METHOD_NOT_FOUND));
 
         if (request.isNotification()) {
             notificationExecutor.execute(() -> invokeNotificationHandler(request, handler));
@@ -306,17 +315,17 @@ public class JsonRpcDispatcher {
     /**
      * Handles errors for requests parsed from payload nodes.
      *
-     * @param id normalized error id
-     * @param request request if parsing/validation reached request construction
+     * @param id           normalized error id
+     * @param request      request if parsing/validation reached request construction
      * @param validRequest whether request validation succeeded before error
-     * @param ex thrown exception
+     * @param ex           thrown exception
      * @return response unless the request is a valid notification
      */
     private Optional<JsonRpcResponse> handleRequestError(
-            @Nullable JsonNode id,
-            @Nullable JsonRpcRequest request,
-            boolean validRequest,
-            Throwable ex
+        @Nullable JsonNode id,
+        @Nullable JsonRpcRequest request,
+        boolean validRequest,
+        Throwable ex
     ) {
         JsonRpcError error = exceptionResolver.resolve(ex);
         runOnError(request, ex, error);
@@ -397,7 +406,7 @@ public class JsonRpcDispatcher {
      * Runs {@code afterInvoke} interceptors.
      *
      * @param request validated request
-     * @param result invocation result
+     * @param result  invocation result
      */
     private void runAfterInvoke(JsonRpcRequest request, JsonNode result) {
         if (!hasInterceptors) {
@@ -419,9 +428,9 @@ public class JsonRpcDispatcher {
      * <p>
      * Interceptor failures are intentionally ignored to avoid masking original request-processing errors.
      *
-     * @param request request model when available
+     * @param request   request model when available
      * @param throwable original throwable
-     * @param error mapped JSON-RPC error
+     * @param error     mapped JSON-RPC error
      */
     private void runOnError(@Nullable JsonRpcRequest request, Throwable throwable, JsonRpcError error) {
         if (!hasInterceptors) {

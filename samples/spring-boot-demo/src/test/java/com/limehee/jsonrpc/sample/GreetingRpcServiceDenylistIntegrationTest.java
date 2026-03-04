@@ -8,15 +8,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(properties = {
-        "jsonrpc.method-denylist[0]=ping"
+    "jsonrpc.method-denylist[0]=ping"
 })
 class GreetingRpcServiceDenylistIntegrationTest extends AbstractJsonRpcIntegrationSupport {
 
     @Test
     void denylistBlocksConfiguredMethod() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"ping","id":1}
-                """);
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """);
 
         assertEquals(JsonRpcErrorCode.METHOD_NOT_FOUND, body.get("error").get("code").asInt());
     }
@@ -24,8 +24,8 @@ class GreetingRpcServiceDenylistIntegrationTest extends AbstractJsonRpcIntegrati
     @Test
     void denylistStillAllowsOtherMethods() throws Exception {
         JsonNode body = invokeJsonRpc("""
-                {"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":2}
-                """);
+            {"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":2}
+            """);
 
         assertEquals("hello developer", body.get("result").asString());
     }

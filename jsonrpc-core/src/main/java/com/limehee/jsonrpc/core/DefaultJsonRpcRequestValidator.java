@@ -1,8 +1,7 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
-
 import java.util.Objects;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Default JSON-RPC request validator enforcing core protocol constraints.
@@ -12,8 +11,8 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
     private final JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy;
 
     /**
-     * Creates a validator using {@link JsonRpcParamsTypeViolationCodePolicy#INVALID_PARAMS} for
-     * invalid {@code params} type violations.
+     * Creates a validator using {@link JsonRpcParamsTypeViolationCodePolicy#INVALID_PARAMS} for invalid {@code params}
+     * type violations.
      */
     public DefaultJsonRpcRequestValidator() {
         this(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
@@ -22,13 +21,12 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
     /**
      * Creates a validator with an explicit error-code policy for invalid {@code params} type.
      *
-     * @param paramsTypeViolationCodePolicy policy selecting the error code for invalid
-     *                                      {@code params} type violations
+     * @param paramsTypeViolationCodePolicy policy selecting the error code for invalid {@code params} type violations
      */
     public DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy) {
         this.paramsTypeViolationCodePolicy = Objects.requireNonNull(
-                paramsTypeViolationCodePolicy,
-                "paramsTypeViolationCodePolicy"
+            paramsTypeViolationCodePolicy,
+            "paramsTypeViolationCodePolicy"
         );
     }
 

@@ -12,18 +12,18 @@ class GreetingRpcServiceNotificationExecutorConfigurationFailureTest {
     void failsStartupWhenConfiguredNotificationExecutorBeanIsMissing() {
         try {
             new SpringApplicationBuilder(DemoApplication.class)
-                    .properties(
-                            "spring.main.web-application-type=none",
-                            "jsonrpc.notification-executor-enabled=true",
-                            "jsonrpc.notification-executor-bean-name=missingExecutor"
-                    )
-                    .run()
-                    .close();
+                .properties(
+                    "spring.main.web-application-type=none",
+                    "jsonrpc.notification-executor-enabled=true",
+                    "jsonrpc.notification-executor-bean-name=missingExecutor"
+                )
+                .run()
+                .close();
             fail("Expected startup failure");
         } catch (Exception ex) {
             Throwable root = rootCause(ex);
             assertTrue(root.getMessage().contains(
-                    "jsonrpc.notification-executor-bean-name points to missing Executor bean: missingExecutor"));
+                "jsonrpc.notification-executor-bean-name points to missing Executor bean: missingExecutor"));
         }
     }
 

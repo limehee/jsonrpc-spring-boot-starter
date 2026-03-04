@@ -1,7 +1,7 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Default response composer delegating to {@link JsonRpcResponse} factories.
@@ -11,7 +11,7 @@ public class DefaultJsonRpcResponseComposer implements JsonRpcResponseComposer {
     /**
      * Creates a success response.
      *
-     * @param id request id
+     * @param id     request id
      * @param result success payload
      * @return success response
      */
@@ -23,7 +23,7 @@ public class DefaultJsonRpcResponseComposer implements JsonRpcResponseComposer {
     /**
      * Creates an error response.
      *
-     * @param id request id
+     * @param id    request id
      * @param error error payload
      * @return error response
      */

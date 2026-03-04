@@ -23,5 +23,6 @@ public class GreetingRpcService {
     }
 
     public record GreetParams(String name) {
+
     }
 }

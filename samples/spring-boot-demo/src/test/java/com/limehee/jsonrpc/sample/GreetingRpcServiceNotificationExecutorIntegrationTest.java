@@ -22,8 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {
-        "jsonrpc.notification-executor-enabled=true",
-        "jsonrpc.notification-executor-bean-name=sampleNotificationExecutor"
+    "jsonrpc.notification-executor-enabled=true",
+    "jsonrpc.notification-executor-bean-name=sampleNotificationExecutor"
 })
 @Import(GreetingRpcServiceNotificationExecutorIntegrationTest.NotificationExecutorTestConfig.class)
 class GreetingRpcServiceNotificationExecutorIntegrationTest extends AbstractJsonRpcIntegrationSupport {
@@ -34,12 +34,12 @@ class GreetingRpcServiceNotificationExecutorIntegrationTest extends AbstractJson
     @Test
     void usesConfiguredExecutorForNotificationRequests() throws Exception {
         mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"jsonrpc":"2.0","method":"notify.mark"}
-                                """))
-                .andExpect(status().isNoContent())
-                .andExpect(content().string(""));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"jsonrpc":"2.0","method":"notify.mark"}
+                    """))
+            .andExpect(status().isNoContent())
+            .andExpect(content().string(""));
 
         assertTrue(probe.latch.await(1, TimeUnit.SECONDS));
         assertEquals(1, probe.executorDispatchCount.get());
@@ -47,6 +47,7 @@ class GreetingRpcServiceNotificationExecutorIntegrationTest extends AbstractJson
     }
 
     static final class NotificationProbe {
+
         private final AtomicInteger executorDispatchCount = new AtomicInteger();
         private final AtomicInteger handlerInvocationCount = new AtomicInteger();
         private final CountDownLatch latch = new CountDownLatch(1);
@@ -54,6 +55,7 @@ class GreetingRpcServiceNotificationExecutorIntegrationTest extends AbstractJson
 
     @TestConfiguration(proxyBeanMethods = false)
     static class NotificationExecutorTestConfig {
+
         @Bean("sampleNotificationExecutor")
         Executor sampleNotificationExecutor(NotificationProbe probe) {
             return command -> {

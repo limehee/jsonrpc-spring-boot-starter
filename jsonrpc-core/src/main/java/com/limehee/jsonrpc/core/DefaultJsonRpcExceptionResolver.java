@@ -1,5 +1,7 @@
 package com.limehee.jsonrpc.core;
 
+import java.util.Objects;
+
 /**
  * Default exception resolver that maps {@link JsonRpcException} and falls back to internal error.
  */
@@ -32,10 +34,14 @@ public class DefaultJsonRpcExceptionResolver implements JsonRpcExceptionResolver
     @Override
     public JsonRpcError resolve(Throwable throwable) {
         if (throwable instanceof JsonRpcException jsonRpcException) {
+            String message = Objects.requireNonNullElse(
+                jsonRpcException.getMessage(),
+                JsonRpcConstants.MESSAGE_INTERNAL_ERROR
+            );
             return new JsonRpcError(
-                    jsonRpcException.getCode(),
-                    jsonRpcException.getMessage(),
-                    includeErrorData ? jsonRpcException.getData() : null
+                jsonRpcException.getCode(),
+                message,
+                includeErrorData ? jsonRpcException.getData() : null
             );
         }
         return JsonRpcError.of(JsonRpcErrorCode.INTERNAL_ERROR, JsonRpcConstants.MESSAGE_INTERNAL_ERROR);

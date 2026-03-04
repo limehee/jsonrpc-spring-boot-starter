@@ -2,9 +2,8 @@ package com.limehee.jsonrpc.spring.boot.autoconfigure.support;
 
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
-import org.springframework.core.Ordered;
-
 import java.util.Set;
+import org.springframework.core.Ordered;
 
 /**
  * Interceptor that enforces method-level access control using allowlist and denylist sets.
@@ -29,7 +28,7 @@ public final class JsonRpcMethodAccessInterceptor implements JsonRpcInterceptor,
      * Creates a new method access interceptor.
      *
      * @param allowlist methods that are allowed when the set is non-empty
-     * @param denylist methods that are always denied
+     * @param denylist  methods that are always denied
      */
     public JsonRpcMethodAccessInterceptor(Set<String> allowlist, Set<String> denylist) {
         this.allowlist = allowlist;

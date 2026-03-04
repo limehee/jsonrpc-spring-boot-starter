@@ -14,12 +14,12 @@ class ResponseSideUtilitiesExampleTest {
     @Test
     void classifiesAndValidatesSingleResponse() throws Exception {
         ResponseSideUtilitiesExample example = new ResponseSideUtilitiesExample(
-                JsonRpcResponseValidationOptions.defaults()
+            JsonRpcResponseValidationOptions.defaults()
         );
 
         ResponseSideUtilitiesExample.Result result = example.inspect("""
-                {"jsonrpc":"2.0","id":1,"result":"pong"}
-                """);
+            {"jsonrpc":"2.0","id":1,"result":"pong"}
+            """);
 
         assertEquals(JsonRpcEnvelopeType.RESPONSE, result.envelopeType());
         assertEquals(1, result.responses().size());
@@ -29,12 +29,12 @@ class ResponseSideUtilitiesExampleTest {
     @Test
     void classifiesRequestWithoutParsingAsResponse() throws Exception {
         ResponseSideUtilitiesExample example = new ResponseSideUtilitiesExample(
-                JsonRpcResponseValidationOptions.defaults()
+            JsonRpcResponseValidationOptions.defaults()
         );
 
         ResponseSideUtilitiesExample.Result result = example.inspect("""
-                {"jsonrpc":"2.0","method":"ping","id":1}
-                """);
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """);
 
         assertEquals(JsonRpcEnvelopeType.REQUEST, result.envelopeType());
         assertTrue(result.responses().isEmpty());
@@ -43,15 +43,15 @@ class ResponseSideUtilitiesExampleTest {
     @Test
     void validatesBatchResponses() throws Exception {
         ResponseSideUtilitiesExample example = new ResponseSideUtilitiesExample(
-                JsonRpcResponseValidationOptions.defaults()
+            JsonRpcResponseValidationOptions.defaults()
         );
 
         ResponseSideUtilitiesExample.Result result = example.inspect("""
-                [
-                  {"jsonrpc":"2.0","id":1,"result":"one"},
-                  {"jsonrpc":"2.0","id":2,"error":{"code":-32601,"message":"Method not found"}}
-                ]
-                """);
+            [
+              {"jsonrpc":"2.0","id":1,"result":"one"},
+              {"jsonrpc":"2.0","id":2,"error":{"code":-32601,"message":"Method not found"}}
+            ]
+            """);
 
         assertEquals(JsonRpcEnvelopeType.RESPONSE, result.envelopeType());
         assertEquals(2, result.responses().size());
@@ -62,11 +62,11 @@ class ResponseSideUtilitiesExampleTest {
     @Test
     void failsValidationForMalformedErrorObject() {
         ResponseSideUtilitiesExample example = new ResponseSideUtilitiesExample(
-                JsonRpcResponseValidationOptions.defaults()
+            JsonRpcResponseValidationOptions.defaults()
         );
 
         assertThrows(JsonRpcException.class, () -> example.inspect("""
-                {"jsonrpc":"2.0","id":1,"error":{"code":"bad","message":1}}
-                """));
+            {"jsonrpc":"2.0","id":1,"error":{"code":"bad","message":1}}
+            """));
     }
 }

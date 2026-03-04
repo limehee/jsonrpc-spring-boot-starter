@@ -1,7 +1,7 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Serializes Java method results into JSON trees for JSON-RPC responses.

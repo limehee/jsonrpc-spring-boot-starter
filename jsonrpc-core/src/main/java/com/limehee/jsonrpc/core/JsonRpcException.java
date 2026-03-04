@@ -1,13 +1,13 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Runtime exception representing JSON-RPC domain errors.
  * <p>
- * Unlike generic runtime exceptions, this exception carries a JSON-RPC error code and optional
- * structured error data that can be propagated to clients.
+ * Unlike generic runtime exceptions, this exception carries a JSON-RPC error code and optional structured error data
+ * that can be propagated to clients.
  */
 public class JsonRpcException extends RuntimeException {
 
@@ -24,7 +24,7 @@ public class JsonRpcException extends RuntimeException {
     /**
      * Creates an exception with code/message and no data/cause.
      *
-     * @param code JSON-RPC error code
+     * @param code    JSON-RPC error code
      * @param message human-readable message
      */
     public JsonRpcException(int code, String message) {
@@ -34,9 +34,9 @@ public class JsonRpcException extends RuntimeException {
     /**
      * Creates an exception with code/message/data and no cause.
      *
-     * @param code JSON-RPC error code
+     * @param code    JSON-RPC error code
      * @param message human-readable message
-     * @param data optional error data payload
+     * @param data    optional error data payload
      */
     public JsonRpcException(int code, String message, @Nullable JsonNode data) {
         this(code, message, data, null);
@@ -45,10 +45,10 @@ public class JsonRpcException extends RuntimeException {
     /**
      * Creates an exception with code/message/data/cause.
      *
-     * @param code JSON-RPC error code
+     * @param code    JSON-RPC error code
      * @param message human-readable message
-     * @param data optional error data payload
-     * @param cause original cause
+     * @param data    optional error data payload
+     * @param cause   original cause
      */
     public JsonRpcException(int code, String message, @Nullable JsonNode data, @Nullable Throwable cause) {
         super(message, cause);

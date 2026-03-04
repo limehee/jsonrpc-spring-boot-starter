@@ -1,6 +1,7 @@
 # Spring Boot Guide
 
-This guide covers production-style Spring Boot usage, including registration strategies, conflict handling, and runtime customization.
+This guide covers production-style Spring Boot usage, including registration strategies, conflict handling, and runtime
+customization.
 
 ## 1. Dependency
 
@@ -152,7 +153,8 @@ Use this when you want compile-time DTO types and reuse the standard binder/writ
 Two registration phases exist in auto-configuration:
 
 1. `JsonRpcMethodRegistration` beans are applied while creating `JsonRpcDispatcher`.
-2. `@JsonRpcMethod` scanner (`JsonRpcAnnotatedMethodRegistrar`) runs after singleton initialization and registers annotated handlers.
+2. `@JsonRpcMethod` scanner (`JsonRpcAnnotatedMethodRegistrar`) runs after singleton initialization and registers
+   annotated handlers.
 
 Within manual registrations, `orderedStream()` is used, so `@Order` / `Ordered` can control order.
 
@@ -342,7 +344,8 @@ If the configured bean name is missing, startup fails with an explicit error.
 
 ## 9. Metrics
 
-If Micrometer `MeterRegistry` exists and `jsonrpc.metrics-enabled=true` (default), metrics interceptor/observer are enabled.
+If Micrometer `MeterRegistry` exists and `jsonrpc.metrics-enabled=true` (default), metrics interceptor/observer are
+enabled.
 
 Key metrics:
 

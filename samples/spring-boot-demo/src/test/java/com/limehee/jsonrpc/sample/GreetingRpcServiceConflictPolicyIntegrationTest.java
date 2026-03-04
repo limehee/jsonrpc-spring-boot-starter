@@ -38,8 +38,8 @@ class GreetingRpcServiceConflictPolicyIntegrationTest {
         try (ConfigurableApplicationContext context = runContext("REPLACE")) {
             JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
             JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                    {"jsonrpc":"2.0","method":"ping","id":1}
-                    """));
+                {"jsonrpc":"2.0","method":"ping","id":1}
+                """));
 
             assertEquals("pong", result.singleResponse().orElseThrow().result().asString());
         }
@@ -47,11 +47,11 @@ class GreetingRpcServiceConflictPolicyIntegrationTest {
 
     private ConfigurableApplicationContext runContext(String conflictPolicy) {
         return new SpringApplicationBuilder(ConflictPolicyTestApplication.class)
-                .properties(
-                        "spring.main.web-application-type=none",
-                        "jsonrpc.method-registration-conflict-policy=" + conflictPolicy
-                )
-                .run();
+            .properties(
+                "spring.main.web-application-type=none",
+                "jsonrpc.method-registration-conflict-policy=" + conflictPolicy
+            )
+            .run();
     }
 
     private Throwable rootCause(Throwable throwable) {
@@ -66,6 +66,7 @@ class GreetingRpcServiceConflictPolicyIntegrationTest {
     @EnableAutoConfiguration
     @ComponentScan(basePackageClasses = GreetingRpcService.class)
     static class ConflictPolicyTestApplication {
+
         @Bean
         JsonRpcMethodRegistration conflictingPingRegistration() {
             return JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("manual-ping"));

@@ -1,8 +1,16 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.limehee.jsonrpc.core.JsonRpcResponse;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcEndpoint;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
@@ -11,58 +19,51 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 class JsonRpcWebAutoConfigurationTest {
 
     private final WebApplicationContextRunner webContextRunner = new WebApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(JsonRpcAutoConfiguration.class));
+        .withConfiguration(AutoConfigurations.of(JsonRpcAutoConfiguration.class));
 
     @Test
     void createsWebMvcEndpointWhenEnabled() {
         webContextRunner.run(context ->
-                assertTrue(context.containsBean("jsonRpcWebMvcEndpoint")));
+            assertTrue(context.containsBean("jsonRpcWebMvcEndpoint")));
     }
 
     @Test
     void doesNotCreateWebMvcEndpointWhenDisabled() {
         webContextRunner
-                .withPropertyValues("jsonrpc.enabled=false")
-                .run(context -> assertFalse(context.containsBean("jsonRpcWebMvcEndpoint")));
+            .withPropertyValues("jsonrpc.enabled=false")
+            .run(context -> assertFalse(context.containsBean("jsonRpcWebMvcEndpoint")));
     }
 
     @Test
     void exposesJsonRpcWebMvcEndpointType() {
         webContextRunner.run(context ->
-                assertTrue(context.getBean("jsonRpcWebMvcEndpoint") instanceof JsonRpcWebMvcEndpoint));
+            assertInstanceOf(JsonRpcWebMvcEndpoint.class, context.getBean("jsonRpcWebMvcEndpoint")));
     }
 
     @Test
     void usesCustomHttpStatusStrategyBean() {
         webContextRunner
-                .withUserConfiguration(CustomHttpStatusStrategyConfig.class)
-                .run(context -> {
-                    JsonRpcWebMvcEndpoint endpoint = context.getBean(JsonRpcWebMvcEndpoint.class);
-                    HttpStatusCode status = endpoint.invoke("{".getBytes(StandardCharsets.UTF_8)).getStatusCode();
-                    assertEquals(HttpStatus.BAD_REQUEST.value(), status.value());
-                });
+            .withUserConfiguration(CustomHttpStatusStrategyConfig.class)
+            .run(context -> {
+                JsonRpcWebMvcEndpoint endpoint = context.getBean(JsonRpcWebMvcEndpoint.class);
+                HttpStatusCode status = endpoint.invoke("{".getBytes(StandardCharsets.UTF_8)).getStatusCode();
+                assertEquals(HttpStatus.BAD_REQUEST.value(), status.value());
+            });
     }
 
     @Test
     void rejectsMaxRequestBytesLessThanOne() {
         webContextRunner
-                .withPropertyValues("jsonrpc.max-request-bytes=0")
-                .run(context -> assertNotNull(context.getStartupFailure()));
+            .withPropertyValues("jsonrpc.max-request-bytes=0")
+            .run(context -> assertNotNull(context.getStartupFailure()));
     }
 
     @Configuration(proxyBeanMethods = false)
     static class CustomHttpStatusStrategyConfig {
+
         @Bean
         JsonRpcHttpStatusStrategy customJsonRpcHttpStatusStrategy() {
             return new JsonRpcHttpStatusStrategy() {

@@ -10,15 +10,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {
-        "jsonrpc.path=/rpc"
+    "jsonrpc.path=/rpc"
 })
 class GreetingRpcServiceCustomPathIntegrationTest extends AbstractJsonRpcIntegrationSupport {
 
     @Test
     void servesJsonRpcOnConfiguredPath() throws Exception {
         JsonNode body = invokeJsonRpc("/rpc", """
-                {"jsonrpc":"2.0","method":"ping","id":1}
-                """, 200);
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """, 200);
 
         assertEquals("pong", body.get("result").asString());
     }
@@ -26,10 +26,10 @@ class GreetingRpcServiceCustomPathIntegrationTest extends AbstractJsonRpcIntegra
     @Test
     void defaultPathIsNotMappedWhenCustomPathConfigured() throws Exception {
         mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"jsonrpc":"2.0","method":"ping","id":1}
-                                """))
-                .andExpect(status().isNotFound());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"jsonrpc":"2.0","method":"ping","id":1}
+                    """))
+            .andExpect(status().isNotFound());
     }
 }

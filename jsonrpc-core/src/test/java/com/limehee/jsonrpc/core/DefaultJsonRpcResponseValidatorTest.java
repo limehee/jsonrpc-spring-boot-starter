@@ -1,13 +1,13 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class DefaultJsonRpcResponseValidatorTest {
 
@@ -19,15 +19,15 @@ class DefaultJsonRpcResponseValidatorTest {
     @Test
     void validateAcceptsValidResultResponse() throws Exception {
         assertDoesNotThrow(() -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"result":{"ok":true}}
-                """)));
+            {"jsonrpc":"2.0","id":1,"result":{"ok":true}}
+            """)));
     }
 
     @Test
     void validateAcceptsValidErrorResponse() throws Exception {
         assertDoesNotThrow(() -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":"abc","error":{"code":-32000,"message":"x"}}
-                """)));
+            {"jsonrpc":"2.0","id":"abc","error":{"code":-32000,"message":"x"}}
+            """)));
     }
 
     @Test
@@ -39,201 +39,201 @@ class DefaultJsonRpcResponseValidatorTest {
     @Test
     void validateRejectsWrongProtocolVersionByDefault() throws Exception {
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
-                {"jsonrpc":"1.0","id":1,"result":1}
-                """)));
+            {"jsonrpc":"1.0","id":1,"result":1}
+            """)));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
     }
 
     @Test
     void validateAllowsWrongProtocolVersionWhenDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder()
-                        .requireJsonRpcVersion20(false)
-                        .build()
+            JsonRpcResponseValidationOptions.builder()
+                .requireJsonRpcVersion20(false)
+                .build()
         );
 
         assertDoesNotThrow(() -> custom.validate(incoming("""
-                {"jsonrpc":"1.0","id":1,"result":1}
-                """)));
+            {"jsonrpc":"1.0","id":1,"result":1}
+            """)));
     }
 
     @Test
     void validateRejectsMissingIdByDefault() throws Exception {
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","result":1}
-                """)));
+            {"jsonrpc":"2.0","result":1}
+            """)));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
     }
 
     @Test
     void validateAllowsMissingIdWhenRuleDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder()
-                        .requireResponseIdMember(false)
-                        .build()
+            JsonRpcResponseValidationOptions.builder()
+                .requireResponseIdMember(false)
+                .build()
         );
 
         assertDoesNotThrow(() -> custom.validate(incoming("""
-                {"jsonrpc":"2.0","result":1}
-                """)));
+            {"jsonrpc":"2.0","result":1}
+            """)));
     }
 
     @Test
     void validateRejectsInvalidIdTypes() throws Exception {
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":{"x":1},"result":1}
-                """)));
+            {"jsonrpc":"2.0","id":{"x":1},"result":1}
+            """)));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
     }
 
     @Test
     void validateRespectsIdTypeOptions() throws Exception {
         JsonRpcResponseValidator noNull = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder().allowNullResponseId(false).build()
+            JsonRpcResponseValidationOptions.builder().allowNullResponseId(false).build()
         );
         assertThrows(JsonRpcException.class, () -> noNull.validate(incoming("""
-                {"jsonrpc":"2.0","id":null,"result":1}
-                """)));
+            {"jsonrpc":"2.0","id":null,"result":1}
+            """)));
 
         JsonRpcResponseValidator noString = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder().allowStringResponseId(false).build()
+            JsonRpcResponseValidationOptions.builder().allowStringResponseId(false).build()
         );
         assertThrows(JsonRpcException.class, () -> noString.validate(incoming("""
-                {"jsonrpc":"2.0","id":"x","result":1}
-                """)));
+            {"jsonrpc":"2.0","id":"x","result":1}
+            """)));
 
         JsonRpcResponseValidator noNumeric = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder().allowNumericResponseId(false).build()
+            JsonRpcResponseValidationOptions.builder().allowNumericResponseId(false).build()
         );
         assertThrows(JsonRpcException.class, () -> noNumeric.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"result":1}
-                """)));
+            {"jsonrpc":"2.0","id":1,"result":1}
+            """)));
     }
 
     @Test
     void validateRejectsFractionalIdWhenDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder()
-                        .allowFractionalResponseId(false)
-                        .build()
+            JsonRpcResponseValidationOptions.builder()
+                .allowFractionalResponseId(false)
+                .build()
         );
 
         assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
-                {"jsonrpc":"2.0","id":1.5,"result":1}
-                """)));
+            {"jsonrpc":"2.0","id":1.5,"result":1}
+            """)));
     }
 
     @Test
     void validateRejectsInvalidResultAndErrorCombination() throws Exception {
         assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"result":1,"error":{"code":-32000,"message":"x"}}
-                """)));
+            {"jsonrpc":"2.0","id":1,"result":1,"error":{"code":-32000,"message":"x"}}
+            """)));
         assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":1}
-                """)));
+            {"jsonrpc":"2.0","id":1}
+            """)));
     }
 
     @Test
     void validateAllowsResultAndErrorCombinationWhenExclusiveRuleDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder()
-                        .requireExclusiveResultOrError(false)
-                        .build()
+            JsonRpcResponseValidationOptions.builder()
+                .requireExclusiveResultOrError(false)
+                .build()
         );
 
         assertDoesNotThrow(() -> custom.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"result":1,"error":{"code":-32000,"message":"x"}}
-                """)));
+            {"jsonrpc":"2.0","id":1,"result":1,"error":{"code":-32000,"message":"x"}}
+            """)));
     }
 
     @Test
     void validateAllowsMissingResultAndErrorWhenExclusiveRuleDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder()
-                        .requireExclusiveResultOrError(false)
-                        .build()
+            JsonRpcResponseValidationOptions.builder()
+                .requireExclusiveResultOrError(false)
+                .build()
         );
 
         assertDoesNotThrow(() -> custom.validate(incoming("""
-                {"jsonrpc":"2.0","id":1}
-                """)));
+            {"jsonrpc":"2.0","id":1}
+            """)));
     }
 
     @Test
     void validateRejectsInvalidErrorObjectStructure() throws Exception {
         assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"error":1}
-                """)));
+            {"jsonrpc":"2.0","id":1,"error":1}
+            """)));
         assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"error":{"code":-32000}}
-                """)));
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32000}}
+            """)));
         assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"error":{"code":1.5,"message":"x"}}
-                """)));
+            {"jsonrpc":"2.0","id":1,"error":{"code":1.5,"message":"x"}}
+            """)));
     }
 
     @Test
     void validateRejectsNonNumericErrorCodeAndNonStringErrorMessage() throws Exception {
         assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"error":{"code":"x","message":"err"}}
-                """)));
+            {"jsonrpc":"2.0","id":1,"error":{"code":"x","message":"err"}}
+            """)));
         assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":3}}
-                """)));
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":3}}
+            """)));
     }
 
     @Test
     void validateAllowsNonObjectErrorWhenObjectRuleIsDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder()
-                        .requireErrorObjectWhenPresent(false)
-                        .build()
+            JsonRpcResponseValidationOptions.builder()
+                .requireErrorObjectWhenPresent(false)
+                .build()
         );
 
         assertDoesNotThrow(() -> custom.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"error":1}
-                """)));
+            {"jsonrpc":"2.0","id":1,"error":1}
+            """)));
     }
 
     @Test
     void validateAllowsMissingErrorCodeAndMessageWhenRulesAreDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder()
-                        .requireIntegerErrorCode(false)
-                        .requireStringErrorMessage(false)
-                        .build()
+            JsonRpcResponseValidationOptions.builder()
+                .requireIntegerErrorCode(false)
+                .requireStringErrorMessage(false)
+                .build()
         );
 
         assertDoesNotThrow(() -> custom.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"error":{"data":{"x":1}}}
-                """)));
+            {"jsonrpc":"2.0","id":1,"error":{"data":{"x":1}}}
+            """)));
     }
 
     @Test
     void validateCanRejectRequestFieldsWhenOptionDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
-                JsonRpcResponseValidationOptions.builder()
-                        .allowRequestFieldsInResponse(false)
-                        .build()
+            JsonRpcResponseValidationOptions.builder()
+                .allowRequestFieldsInResponse(false)
+                .build()
         );
 
         assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"result":1,"method":"ping"}
-                """)));
+            {"jsonrpc":"2.0","id":1,"result":1,"method":"ping"}
+            """)));
     }
 
     @Test
     void validateAllowsRequestFieldsByDefault() throws Exception {
         assertDoesNotThrow(() -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":1,"result":1,"method":"ping","params":{"a":1}}
-                """)));
+            {"jsonrpc":"2.0","id":1,"result":1,"method":"ping","params":{"a":1}}
+            """)));
     }
 
     @Test
     void validateAllowsFractionalIdByDefault() throws Exception {
         assertDoesNotThrow(() -> validator.validate(incoming("""
-                {"jsonrpc":"2.0","id":1.5,"result":1}
-                """)));
+            {"jsonrpc":"2.0","id":1.5,"result":1}
+            """)));
     }
 
     @Test

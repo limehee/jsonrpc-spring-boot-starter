@@ -88,3 +88,20 @@ Action:
 
 - Increase limit if use case requires larger requests.
 - Consider splitting large payload into smaller calls.
+
+## Build Fails with NullAway Error
+
+Symptom:
+
+- `./gradlew check` fails with `[NullAway]` diagnostics.
+
+Cause:
+
+- Production source code violated null-safety contracts enforced at compile time.
+
+Checks:
+
+- Add `@Nullable` to parameters/returns/fields that can legitimately be null.
+- Add explicit null guard and fallback values before passing data into non-null APIs.
+- Align overridden method signatures with nullable contracts from super interfaces/classes.
+- For JSON-RPC request/response models, keep nullability aligned with protocol semantics.

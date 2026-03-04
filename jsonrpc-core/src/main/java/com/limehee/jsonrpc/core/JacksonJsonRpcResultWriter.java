@@ -1,8 +1,8 @@
 package com.limehee.jsonrpc.core;
 
+import org.jspecify.annotations.Nullable;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import org.jspecify.annotations.Nullable;
 
 /**
  * {@link JsonRpcResultWriter} backed by Jackson tree conversion.

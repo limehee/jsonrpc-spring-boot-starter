@@ -10,8 +10,8 @@ class InterceptorFlowExampleTest {
     @Test
     void recordsExpectedInterceptorOrderForSuccess() throws Exception {
         InterceptorFlowExample.Result result = InterceptorFlowExample.execute("""
-                {"jsonrpc":"2.0","method":"ping","id":1}
-                """);
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """);
 
         assertEquals(3, result.events().size());
         assertEquals("beforeValidate", result.events().get(0));
@@ -23,8 +23,8 @@ class InterceptorFlowExampleTest {
     @Test
     void recordsOnErrorAndKeepsResponseWhenHandlerFails() throws Exception {
         InterceptorFlowExample.Result result = InterceptorFlowExample.execute("""
-                {"jsonrpc":"2.0","method":"explode","id":2}
-                """);
+            {"jsonrpc":"2.0","method":"explode","id":2}
+            """);
 
         assertTrue(result.events().contains("onError:-32603"));
         assertEquals(-32603, result.dispatchResult().singleResponse().orElseThrow().error().code());
@@ -33,8 +33,8 @@ class InterceptorFlowExampleTest {
     @Test
     void recordsOnErrorForMethodResolutionFailure() throws Exception {
         InterceptorFlowExample.Result result = InterceptorFlowExample.execute("""
-                {"jsonrpc":"2.0","method":"missing","id":3}
-                """);
+            {"jsonrpc":"2.0","method":"missing","id":3}
+            """);
 
         assertTrue(result.events().contains("onError:-32601"));
         assertEquals(-32601, result.dispatchResult().singleResponse().orElseThrow().error().code());

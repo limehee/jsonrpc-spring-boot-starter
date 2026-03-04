@@ -1,27 +1,26 @@
 package com.limehee.jsonrpc.spring.webmvc;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * HTTP endpoint that exposes JSON-RPC 2.0 over Spring WebMVC.
  * <p>
  * The endpoint accepts {@code application/json} POST payloads, delegates request processing to
- * {@link JsonRpcDispatcher}, and serializes protocol-compliant JSON-RPC response payloads.
- * Notification-only requests return an HTTP response without a body.
+ * {@link JsonRpcDispatcher}, and serializes protocol-compliant JSON-RPC response payloads. Notification-only requests
+ * return an HTTP response without a body.
  * </p>
  */
 @RestController
@@ -36,41 +35,41 @@ public class JsonRpcWebMvcEndpoint {
     /**
      * Creates an endpoint with a no-op observer.
      *
-     * @param dispatcher dispatcher that performs JSON-RPC parsing, validation, and invocation
-     * @param objectMapper mapper used to parse request payloads and serialize responses
+     * @param dispatcher         dispatcher that performs JSON-RPC parsing, validation, and invocation
+     * @param objectMapper       mapper used to parse request payloads and serialize responses
      * @param httpStatusStrategy strategy that maps JSON-RPC outcomes to HTTP status codes
-     * @param maxRequestBytes maximum accepted request payload size in bytes
+     * @param maxRequestBytes    maximum accepted request payload size in bytes
      */
     public JsonRpcWebMvcEndpoint(
-            JsonRpcDispatcher dispatcher,
-            ObjectMapper objectMapper,
-            JsonRpcHttpStatusStrategy httpStatusStrategy,
-            int maxRequestBytes
+        JsonRpcDispatcher dispatcher,
+        ObjectMapper objectMapper,
+        JsonRpcHttpStatusStrategy httpStatusStrategy,
+        int maxRequestBytes
     ) {
         this(
-                dispatcher,
-                objectMapper,
-                httpStatusStrategy,
-                maxRequestBytes,
-                JsonRpcWebMvcObserver.noOp()
+            dispatcher,
+            objectMapper,
+            httpStatusStrategy,
+            maxRequestBytes,
+            JsonRpcWebMvcObserver.noOp()
         );
     }
 
     /**
      * Creates an endpoint with an explicit transport observer.
      *
-     * @param dispatcher dispatcher that performs JSON-RPC parsing, validation, and invocation
-     * @param objectMapper mapper used to parse request payloads and serialize responses
+     * @param dispatcher         dispatcher that performs JSON-RPC parsing, validation, and invocation
+     * @param objectMapper       mapper used to parse request payloads and serialize responses
      * @param httpStatusStrategy strategy that maps JSON-RPC outcomes to HTTP status codes
-     * @param maxRequestBytes maximum accepted request payload size in bytes
-     * @param observer observer receiving transport-level event callbacks
+     * @param maxRequestBytes    maximum accepted request payload size in bytes
+     * @param observer           observer receiving transport-level event callbacks
      */
     public JsonRpcWebMvcEndpoint(
-            JsonRpcDispatcher dispatcher,
-            ObjectMapper objectMapper,
-            JsonRpcHttpStatusStrategy httpStatusStrategy,
-            int maxRequestBytes,
-            JsonRpcWebMvcObserver observer
+        JsonRpcDispatcher dispatcher,
+        ObjectMapper objectMapper,
+        JsonRpcHttpStatusStrategy httpStatusStrategy,
+        int maxRequestBytes,
+        JsonRpcWebMvcObserver observer
     ) {
         this.dispatcher = dispatcher;
         this.objectMapper = objectMapper;
@@ -82,18 +81,18 @@ public class JsonRpcWebMvcEndpoint {
     /**
      * Handles JSON-RPC HTTP requests.
      * <p>
-     * Parsing errors, oversized payloads, and whitespace-only payloads produce a single JSON-RPC
-     * error response. Notification-only handling returns an empty HTTP response with a transport
-     * status from {@link JsonRpcHttpStatusStrategy#statusForNotificationOnly()}.
+     * Parsing errors, oversized payloads, and whitespace-only payloads produce a single JSON-RPC error response.
+     * Notification-only handling returns an empty HTTP response with a transport status from
+     * {@link JsonRpcHttpStatusStrategy#statusForNotificationOnly()}.
      * </p>
      *
      * @param body raw HTTP request payload bytes; may be {@code null} when request body is absent
      * @return HTTP response entity containing either serialized JSON-RPC payload or empty body
      */
     @PostMapping(
-            value = "${jsonrpc.path:/jsonrpc}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
+        value = "${jsonrpc.path:/jsonrpc}",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<String> invoke(@RequestBody(required = false) byte[] body) {
         if (body == null || body.length == 0) {
@@ -103,9 +102,9 @@ public class JsonRpcWebMvcEndpoint {
         if (body.length > maxRequestBytes) {
             observer.onRequestTooLarge(body.length, maxRequestBytes);
             JsonRpcResponse response = JsonRpcResponse.error(
-                    null,
-                    JsonRpcErrorCode.INVALID_REQUEST,
-                    "Request payload too large");
+                null,
+                JsonRpcErrorCode.INVALID_REQUEST,
+                "Request payload too large");
             return singleErrorResponse(response, httpStatusStrategy.statusForRequestTooLarge());
         }
         if (isJsonWhitespaceOnly(body)) {
@@ -146,7 +145,7 @@ public class JsonRpcWebMvcEndpoint {
      * Creates a single-error transport response.
      *
      * @param response JSON-RPC error response payload
-     * @param status HTTP status selected for that payload
+     * @param status   HTTP status selected for that payload
      * @return HTTP response entity containing serialized JSON-RPC error payload
      */
     private ResponseEntity<String> singleErrorResponse(JsonRpcResponse response, HttpStatus status) {
@@ -156,15 +155,15 @@ public class JsonRpcWebMvcEndpoint {
     /**
      * Serializes the given payload and builds an HTTP response entity.
      *
-     * @param status HTTP status to apply
+     * @param status  HTTP status to apply
      * @param payload payload object to serialize as JSON
      * @return HTTP response with JSON content type and serialized body
      */
     private ResponseEntity<String> jsonResponse(HttpStatus status, Object payload) {
         return ResponseEntity
-                .status(status)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(toJson(payload));
+            .status(status)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(toJson(payload));
     }
 
     /**

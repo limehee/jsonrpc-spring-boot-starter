@@ -1,10 +1,10 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.node.StringNode;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+import tools.jackson.databind.node.StringNode;
 
 class InMemoryJsonRpcMethodRegistryTest {
 
@@ -14,13 +14,13 @@ class InMemoryJsonRpcMethodRegistryTest {
 
         registry.register("ping", params -> StringNode.valueOf("pong1"));
         assertThrows(IllegalStateException.class,
-                () -> registry.register("ping", params -> StringNode.valueOf("pong2")));
+            () -> registry.register("ping", params -> StringNode.valueOf("pong2")));
     }
 
     @Test
     void replacesRegistrationWhenConfigured() {
         InMemoryJsonRpcMethodRegistry registry = new InMemoryJsonRpcMethodRegistry(
-                JsonRpcMethodRegistrationConflictPolicy.REPLACE
+            JsonRpcMethodRegistrationConflictPolicy.REPLACE
         );
 
         registry.register("ping", params -> StringNode.valueOf("pong1"));
@@ -32,11 +32,11 @@ class InMemoryJsonRpcMethodRegistryTest {
     @Test
     void alwaysRejectsReservedRpcPrefix() {
         InMemoryJsonRpcMethodRegistry registry = new InMemoryJsonRpcMethodRegistry(
-                JsonRpcMethodRegistrationConflictPolicy.REPLACE
+            JsonRpcMethodRegistrationConflictPolicy.REPLACE
         );
 
         assertThrows(IllegalArgumentException.class,
-                () -> registry.register("rpc.system", params -> StringNode.valueOf("ok")));
+            () -> registry.register("rpc.system", params -> StringNode.valueOf("ok")));
     }
 
     @Test

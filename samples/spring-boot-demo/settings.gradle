@@ -14,6 +14,6 @@ dependencyResolutionManagement {
 includeBuild("../..") {
     dependencySubstitution {
         substitute(module("io.github.limehee:jsonrpc-spring-boot-starter"))
-                .using(project(":jsonrpc-spring-boot-starter"))
+            .using(project(":jsonrpc-spring-boot-starter"))
     }
 }

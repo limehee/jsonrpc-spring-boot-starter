@@ -1,30 +1,30 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure.support;
 
-import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcConstants;
+import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcMethodHandler;
-import com.limehee.jsonrpc.core.JsonRpcParameterBinder;
 import com.limehee.jsonrpc.core.JsonRpcParam;
+import com.limehee.jsonrpc.core.JsonRpcParameterBinder;
 import com.limehee.jsonrpc.core.JsonRpcResultWriter;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.util.ClassUtils;
-import tools.jackson.databind.JsonNode;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.util.ClassUtils;
+import tools.jackson.databind.JsonNode;
 
 /**
- * Registers methods annotated with {@link JsonRpcMethod} into the dispatcher after Spring
- * singleton initialization is complete.
+ * Registers methods annotated with {@link JsonRpcMethod} into the dispatcher after Spring singleton initialization is
+ * complete.
  * <p>
  * Resolution rules:
  * </p>
@@ -50,18 +50,18 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
     /**
      * Creates a registrar that scans beans and wires annotated methods into the dispatcher.
      *
-     * @param beanFactory bean factory used to enumerate and resolve candidate beans
-     * @param dispatcher dispatcher where resolved methods are registered
+     * @param beanFactory               bean factory used to enumerate and resolve candidate beans
+     * @param dispatcher                dispatcher where resolved methods are registered
      * @param typedMethodHandlerFactory factory used for no-arg and unary handler creation
-     * @param parameterBinder binder used for parameter conversion from JSON values
-     * @param resultWriter writer used to serialize Java results into JSON nodes
+     * @param parameterBinder           binder used for parameter conversion from JSON values
+     * @param resultWriter              writer used to serialize Java results into JSON nodes
      */
     public JsonRpcAnnotatedMethodRegistrar(
-            ListableBeanFactory beanFactory,
-            JsonRpcDispatcher dispatcher,
-            JsonRpcTypedMethodHandlerFactory typedMethodHandlerFactory,
-            JsonRpcParameterBinder parameterBinder,
-            JsonRpcResultWriter resultWriter
+        ListableBeanFactory beanFactory,
+        JsonRpcDispatcher dispatcher,
+        JsonRpcTypedMethodHandlerFactory typedMethodHandlerFactory,
+        JsonRpcParameterBinder parameterBinder,
+        JsonRpcResultWriter resultWriter
     ) {
         this.beanFactory = beanFactory;
         this.dispatcher = dispatcher;
@@ -93,7 +93,8 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
             try {
                 bean = beanFactory.getBean(beanName);
             } catch (Exception ex) {
-                throw new IllegalStateException("Failed to initialize bean for @JsonRpcMethod scanning: " + beanName, ex);
+                throw new IllegalStateException("Failed to initialize bean for @JsonRpcMethod scanning: " + beanName,
+                    ex);
             }
 
             for (Method method : annotatedMethods) {
@@ -126,7 +127,7 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
     /**
      * Builds a method handler based on target method signature shape.
      *
-     * @param bean bean instance declaring the method
+     * @param bean   bean instance declaring the method
      * @param method method to expose as JSON-RPC handler
      * @return handler that performs binding, invocation, and result serialization
      */
@@ -149,12 +150,12 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
     /**
      * Invokes the target method with prepared arguments.
      *
-     * @param bean target bean
+     * @param bean   target bean
      * @param method method to invoke
-     * @param args invocation arguments
+     * @param args   invocation arguments
      * @return invocation result
      * @throws IllegalStateException when reflection access is unexpectedly denied
-     * @throws RuntimeException wrapping non-runtime target exceptions
+     * @throws RuntimeException      wrapping non-runtime target exceptions
      */
     private Object invoke(Object bean, Method method, Object... args) {
         try {
@@ -174,9 +175,9 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
      * Creates a unary handler that binds one parameter and invokes the target method.
      *
      * @param paramType method parameter type
-     * @param bean target bean
-     * @param method target method
-     * @param <T> static parameter type
+     * @param bean      target bean
+     * @param method    target method
+     * @param <T>       static parameter type
      * @return unary JSON-RPC method handler
      */
     @SuppressWarnings("unchecked")
@@ -191,7 +192,7 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
      * @param params JSON-RPC {@code params} value
      * @return bound method arguments
      */
-    private Object[] bindMethodParams(Method method, JsonNode params) {
+    private Object[] bindMethodParams(Method method, @Nullable JsonNode params) {
         if (params != null && params.isObject()) {
             return bindNamedParams(method, params);
         }
@@ -206,7 +207,7 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
      * @return bound arguments
      * @throws JsonRpcException when params are missing, not an array, or size does not match
      */
-    private Object[] bindPositionalParams(Method method, JsonNode params) {
+    private Object[] bindPositionalParams(Method method, @Nullable JsonNode params) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (params == null || !params.isArray() || params.size() != parameterTypes.length) {
             throw invalidParamsException();
@@ -288,7 +289,7 @@ public final class JsonRpcAnnotatedMethodRegistrar implements SmartInitializingS
     /**
      * Makes the method accessible for reflective invocation when necessary.
      *
-     * @param bean bean instance used for accessibility checks
+     * @param bean   bean instance used for accessibility checks
      * @param method method to make invocable
      */
     private void makeInvocable(Object bean, Method method) {

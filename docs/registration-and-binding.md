@@ -1,6 +1,7 @@
 # Registration and Binding
 
-This document explains every supported method registration style, how conflicts are resolved, and how parameters/results are bound.
+This document explains every supported method registration style, how conflicts are resolved, and how parameters/results
+are bound.
 
 ## 1. Registration Styles
 
@@ -86,12 +87,12 @@ Use this style when you want strict DTO-based mapping while still registering ma
 In Spring Boot auto-configuration, registration happens in two phases:
 
 1. During `JsonRpcDispatcher` bean creation:
-   - all `JsonRpcMethodRegistration` beans are registered
-   - registration uses `ObjectProvider.orderedStream()`
-   - `@Order` / `Ordered` affects order in this phase
+    - all `JsonRpcMethodRegistration` beans are registered
+    - registration uses `ObjectProvider.orderedStream()`
+    - `@Order` / `Ordered` affects order in this phase
 2. After singletons are instantiated:
-   - `JsonRpcAnnotatedMethodRegistrar` scans beans for `@JsonRpcMethod`
-   - annotated methods are registered
+    - `JsonRpcAnnotatedMethodRegistrar` scans beans for `@JsonRpcMethod`
+    - annotated methods are registered
 
 Priority summary:
 

@@ -1,12 +1,15 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.node.StringNode;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,23 +24,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.StringNode;
 
 @SpringBootTest(
-        classes = JsonRpcRegistrationStylesIntegrationTest.TestApplication.class,
-        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        properties = {
-                "jsonrpc.enabled=true",
-                "jsonrpc.path=/jsonrpc",
-                "jsonrpc.scan-annotated-methods=true"
-        }
+    classes = JsonRpcRegistrationStylesIntegrationTest.TestApplication.class,
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    properties = {
+        "jsonrpc.enabled=true",
+        "jsonrpc.path=/jsonrpc",
+        "jsonrpc.scan-annotated-methods=true"
+    }
 )
 class JsonRpcRegistrationStylesIntegrationTest {
 
@@ -56,8 +55,8 @@ class JsonRpcRegistrationStylesIntegrationTest {
     @Test
     void supportsAnnotationRegistrationWithClassParamAndRecordReturn() throws Exception {
         JsonNode body = invoke("""
-                {"jsonrpc":"2.0","method":"annot.user","params":{"id":7},"id":1}
-                """);
+            {"jsonrpc":"2.0","method":"annot.user","params":{"id":7},"id":1}
+            """);
 
         assertEquals(7, body.get("result").get("id").asInt());
         assertEquals("user-7", body.get("result").get("name").asString());
@@ -66,8 +65,8 @@ class JsonRpcRegistrationStylesIntegrationTest {
     @Test
     void supportsAnnotationRegistrationWithClassParamAndCollectionReturn() throws Exception {
         JsonNode body = invoke("""
-                {"jsonrpc":"2.0","method":"annot.range","params":{"start":2,"end":4},"id":2}
-                """);
+            {"jsonrpc":"2.0","method":"annot.range","params":{"start":2,"end":4},"id":2}
+            """);
 
         assertTrue(body.get("result").isArray());
         assertEquals(3, body.get("result").size());
@@ -78,8 +77,8 @@ class JsonRpcRegistrationStylesIntegrationTest {
     @Test
     void supportsManualJsonRpcMethodRegistration() throws Exception {
         JsonNode body = invoke("""
-                {"jsonrpc":"2.0","method":"manual.ping","id":3}
-                """);
+            {"jsonrpc":"2.0","method":"manual.ping","id":3}
+            """);
 
         assertEquals("pong-manual", body.get("result").asString());
     }
@@ -87,8 +86,8 @@ class JsonRpcRegistrationStylesIntegrationTest {
     @Test
     void supportsTypedFactoryRegistrationWithClassParamAndClassReturn() throws Exception {
         JsonNode body = invoke("""
-                {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"developer"},"id":4}
-                """);
+            {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"developer"},"id":4}
+            """);
 
         assertEquals("DEVELOPER", body.get("result").get("result").asString());
     }
@@ -96,8 +95,8 @@ class JsonRpcRegistrationStylesIntegrationTest {
     @Test
     void supportsTypedFactoryNoParamsReturningCollection() throws Exception {
         JsonNode body = invoke("""
-                {"jsonrpc":"2.0","method":"typed.tags","id":5}
-                """);
+            {"jsonrpc":"2.0","method":"typed.tags","id":5}
+            """);
 
         assertTrue(body.get("result").isArray());
         assertEquals("alpha", body.get("result").get(0).asString());
@@ -106,10 +105,10 @@ class JsonRpcRegistrationStylesIntegrationTest {
 
     private JsonNode invoke(String payload) throws Exception {
         MvcResult result = mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
-                .andExpect(status().isOk())
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload))
+            .andExpect(status().isOk())
+            .andReturn();
         return OBJECT_MAPPER.readTree(result.getResponse().getContentAsByteArray());
     }
 
@@ -117,10 +116,12 @@ class JsonRpcRegistrationStylesIntegrationTest {
     @EnableAutoConfiguration
     @Import(TestRpcConfiguration.class)
     static class TestApplication {
+
     }
 
     @Configuration(proxyBeanMethods = false)
     static class TestRpcConfiguration {
+
         @Bean
         RegistrationStyleAnnotatedService registrationStyleAnnotatedService() {
             return new RegistrationStyleAnnotatedService();
@@ -134,18 +135,19 @@ class JsonRpcRegistrationStylesIntegrationTest {
         @Bean
         JsonRpcMethodRegistration typedUpperRegistration(JsonRpcTypedMethodHandlerFactory factory) {
             return JsonRpcMethodRegistration.of("typed.upper",
-                    factory.unary(UpperInput.class, params -> new UpperOutput(
-                            params.value == null ? "" : params.value.toUpperCase())));
+                factory.unary(UpperInput.class, params -> new UpperOutput(
+                    params.value == null ? "" : params.value.toUpperCase())));
         }
 
         @Bean
         JsonRpcMethodRegistration typedTagsRegistration(JsonRpcTypedMethodHandlerFactory factory) {
             return JsonRpcMethodRegistration.of("typed.tags",
-                    factory.noParams(() -> List.of("alpha", "beta")));
+                factory.noParams(() -> List.of("alpha", "beta")));
         }
     }
 
     static class RegistrationStyleAnnotatedService {
+
         @JsonRpcMethod("annot.user")
         public UserResponse user(UserRequest request) {
             return new UserResponse(request.id, "user-" + request.id);
@@ -162,22 +164,27 @@ class JsonRpcRegistrationStylesIntegrationTest {
     }
 
     static class UserRequest {
+
         public int id;
     }
 
     record UserResponse(int id, String name) {
+
     }
 
     static class RangeRequest {
+
         public int start;
         public int end;
     }
 
     static class UpperInput {
+
         public String value;
     }
 
     static class UpperOutput {
+
         public String result;
 
         UpperOutput(String result) {

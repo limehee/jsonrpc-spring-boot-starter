@@ -1,7 +1,7 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Parses raw JSON payloads into incoming JSON-RPC response envelopes.

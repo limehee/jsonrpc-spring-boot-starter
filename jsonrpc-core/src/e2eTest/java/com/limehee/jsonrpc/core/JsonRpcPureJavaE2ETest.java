@@ -1,17 +1,16 @@
 package com.limehee.jsonrpc.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.StringNode;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonRpcPureJavaE2ETest {
 
@@ -21,13 +20,13 @@ class JsonRpcPureJavaE2ETest {
     void setUp() {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
         JsonRpcTypedMethodHandlerFactory typedFactory = new DefaultJsonRpcTypedMethodHandlerFactory(
-                new JacksonJsonRpcParameterBinder(PureJavaJsonRpcServer.OBJECT_MAPPER),
-                new JacksonJsonRpcResultWriter(PureJavaJsonRpcServer.OBJECT_MAPPER)
+            new JacksonJsonRpcParameterBinder(PureJavaJsonRpcServer.OBJECT_MAPPER),
+            new JacksonJsonRpcResultWriter(PureJavaJsonRpcServer.OBJECT_MAPPER)
         );
 
         dispatcher.register("manual.ping", params -> StringNode.valueOf("pong"));
         dispatcher.register("typed.upper", typedFactory.unary(UpperInput.class,
-                input -> new UpperOutput(input.value == null ? "" : input.value.toUpperCase())));
+            input -> new UpperOutput(input.value == null ? "" : input.value.toUpperCase())));
         dispatcher.register("typed.tags", typedFactory.noParams(() -> List.of("alpha", "beta")));
 
         server = new PureJavaJsonRpcServer(dispatcher);
@@ -36,11 +35,11 @@ class JsonRpcPureJavaE2ETest {
     @Test
     void e2eReturnsSuccessJsonForManualAndTypedMethods() throws Exception {
         JsonNode ping = parse(server.handle("""
-                {"jsonrpc":"2.0","method":"manual.ping","id":1}
-                """));
+            {"jsonrpc":"2.0","method":"manual.ping","id":1}
+            """));
         JsonNode upper = parse(server.handle("""
-                {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"core"},"id":2}
-                """));
+            {"jsonrpc":"2.0","method":"typed.upper","params":{"value":"core"},"id":2}
+            """));
 
         assertEquals("pong", ping.get("result").asString());
         assertEquals("CORE", upper.get("result").get("value").asString());
@@ -49,19 +48,19 @@ class JsonRpcPureJavaE2ETest {
     @Test
     void e2eReturnsNoBodyForNotification() throws Exception {
         String body = server.handle("""
-                {"jsonrpc":"2.0","method":"manual.ping"}
-                """);
+            {"jsonrpc":"2.0","method":"manual.ping"}
+            """);
         assertTrue(body.isEmpty());
     }
 
     @Test
     void e2eHandlesBatchAndParseError() throws Exception {
         JsonNode batch = parse(server.handle("""
-                [
-                  {"jsonrpc":"2.0","method":"typed.tags","id":3},
-                  {"jsonrpc":"2.0","method":"missing","id":4}
-                ]
-                """));
+            [
+              {"jsonrpc":"2.0","method":"typed.tags","id":3},
+              {"jsonrpc":"2.0","method":"missing","id":4}
+            ]
+            """));
         JsonNode parseError = parse(server.handle("{"));
 
         assertTrue(batch.isArray());
@@ -76,10 +75,12 @@ class JsonRpcPureJavaE2ETest {
     }
 
     static class UpperInput {
+
         public String value;
     }
 
     static class UpperOutput {
+
         public String value;
 
         UpperOutput(String value) {
@@ -88,6 +89,7 @@ class JsonRpcPureJavaE2ETest {
     }
 
     static class PureJavaJsonRpcServer {
+
         private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
         private final JsonRpcDispatcher dispatcher;

@@ -1,9 +1,9 @@
 package com.limehee.jsonrpc.core;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 class JsonRpcResponseValidationOptionsTest {
 
@@ -27,18 +27,18 @@ class JsonRpcResponseValidationOptionsTest {
     @Test
     void builderAllowsOverridingEachFlag() {
         JsonRpcResponseValidationOptions options = JsonRpcResponseValidationOptions.builder()
-                .requireJsonRpcVersion20(false)
-                .requireResponseIdMember(false)
-                .allowNullResponseId(false)
-                .allowStringResponseId(false)
-                .allowNumericResponseId(false)
-                .allowFractionalResponseId(false)
-                .requireExclusiveResultOrError(false)
-                .requireErrorObjectWhenPresent(false)
-                .requireIntegerErrorCode(false)
-                .requireStringErrorMessage(false)
-                .allowRequestFieldsInResponse(false)
-                .build();
+            .requireJsonRpcVersion20(false)
+            .requireResponseIdMember(false)
+            .allowNullResponseId(false)
+            .allowStringResponseId(false)
+            .allowNumericResponseId(false)
+            .allowFractionalResponseId(false)
+            .requireExclusiveResultOrError(false)
+            .requireErrorObjectWhenPresent(false)
+            .requireIntegerErrorCode(false)
+            .requireStringErrorMessage(false)
+            .allowRequestFieldsInResponse(false)
+            .build();
 
         assertFalse(options.requireJsonRpcVersion20());
         assertFalse(options.requireResponseIdMember());

@@ -19,22 +19,24 @@ public class SampleRegistrationConfig {
     @Bean
     JsonRpcMethodRegistration typedUpperRegistration(JsonRpcTypedMethodHandlerFactory factory) {
         return JsonRpcMethodRegistration.of(
-                "typed.upper",
-                factory.unary(UpperInput.class, input -> new UpperOutput(input.value().toUpperCase()))
+            "typed.upper",
+            factory.unary(UpperInput.class, input -> new UpperOutput(input.value().toUpperCase()))
         );
     }
 
     @Bean
     JsonRpcMethodRegistration typedTagsRegistration(JsonRpcTypedMethodHandlerFactory factory) {
         return JsonRpcMethodRegistration.of(
-                "typed.tags",
-                factory.noParams(() -> List.of("alpha", "beta"))
+            "typed.tags",
+            factory.noParams(() -> List.of("alpha", "beta"))
         );
     }
 
     record UpperInput(String value) {
+
     }
 
     record UpperOutput(String value) {
+
     }
 }

@@ -1,26 +1,25 @@
 package com.limehee.jsonrpc.spring.webmvc;
 
-import org.springframework.http.HttpStatus;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
-import com.limehee.jsonrpc.core.JsonRpcDispatcher;
-import com.limehee.jsonrpc.core.JsonRpcErrorCode;
-import com.limehee.jsonrpc.core.JsonRpcResponse;
-import tools.jackson.databind.node.StringNode;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.limehee.jsonrpc.core.JsonRpcDispatcher;
+import com.limehee.jsonrpc.core.JsonRpcErrorCode;
+import com.limehee.jsonrpc.core.JsonRpcResponse;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.StringNode;
 
 class JsonRpcWebMvcEndpointTest {
 
@@ -34,10 +33,10 @@ class JsonRpcWebMvcEndpointTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
         JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
-                dispatcher,
-                OBJECT_MAPPER,
-                new DefaultJsonRpcHttpStatusStrategy(),
-                1024 * 1024
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            1024 * 1024
         );
 
         mockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
@@ -46,48 +45,52 @@ class JsonRpcWebMvcEndpointTest {
     @Test
     void returnsParseErrorForInvalidJson() throws Exception {
         MvcResult result = mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{"))
-                .andExpect(status().isOk())
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{"))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(),
+            JsonRpcResponse.class);
         assertEquals(JsonRpcErrorCode.PARSE_ERROR, response.error().code());
     }
 
     @Test
     void returnsParseErrorForEmptyBody() throws Exception {
         MvcResult result = mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new byte[0]))
-                .andExpect(status().isOk())
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new byte[0]))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(),
+            JsonRpcResponse.class);
         assertEquals(JsonRpcErrorCode.PARSE_ERROR, response.error().code());
     }
 
     @Test
     void returnsParseErrorForWhitespaceOnlyBody() throws Exception {
         MvcResult result = mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("   "))
-                .andExpect(status().isOk())
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("   "))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(),
+            JsonRpcResponse.class);
         assertEquals(JsonRpcErrorCode.PARSE_ERROR, response.error().code());
     }
 
     @Test
     void returnsSingleSuccessResponseForRequest() throws Exception {
         MvcResult result = mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
-                .andExpect(status().isOk())
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(),
+            JsonRpcResponse.class);
         assertEquals("pong", response.result().asString());
         assertEquals(1, response.id().asInt());
     }
@@ -95,37 +98,37 @@ class JsonRpcWebMvcEndpointTest {
     @Test
     void returnsNoContentForNotification() throws Exception {
         mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\"}"))
-                .andExpect(status().isNoContent());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\"}"))
+            .andExpect(status().isNoContent());
     }
 
     @Test
     void returnsNoContentForNotificationOnlyBatch() throws Exception {
         mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                [
-                                  {"jsonrpc":"2.0","method":"ping"},
-                                  {"jsonrpc":"2.0","method":"ping"}
-                                ]
-                                """))
-                .andExpect(status().isNoContent());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    [
+                      {"jsonrpc":"2.0","method":"ping"},
+                      {"jsonrpc":"2.0","method":"ping"}
+                    ]
+                    """))
+            .andExpect(status().isNoContent());
     }
 
     @Test
     void returnsBatchResponseWithoutNotifications() throws Exception {
         MvcResult result = mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                [
-                                  {"jsonrpc":"2.0","method":"ping","id":1},
-                                  {"jsonrpc":"2.0","method":"ping"},
-                                  {"jsonrpc":"2.0","method":"missing","id":2}
-                                ]
-                                """))
-                .andExpect(status().isOk())
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    [
+                      {"jsonrpc":"2.0","method":"ping","id":1},
+                      {"jsonrpc":"2.0","method":"ping"},
+                      {"jsonrpc":"2.0","method":"missing","id":2}
+                    ]
+                    """))
+            .andExpect(status().isOk())
+            .andReturn();
 
         JsonNode response = OBJECT_MAPPER.readTree(result.getResponse().getContentAsByteArray());
         assertTrue(response.isArray());
@@ -139,20 +142,21 @@ class JsonRpcWebMvcEndpointTest {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
         JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
-                dispatcher,
-                OBJECT_MAPPER,
-                new DefaultJsonRpcHttpStatusStrategy(),
-                8
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            8
         );
         MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
 
         MvcResult result = localMockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
-                .andExpect(status().isOk())
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(),
+            JsonRpcResponse.class);
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
     }
 
@@ -160,29 +164,30 @@ class JsonRpcWebMvcEndpointTest {
     void returnsInvalidRequestWhenWhitespacePayloadExceedsLimit() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
         JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
-                dispatcher,
-                OBJECT_MAPPER,
-                new DefaultJsonRpcHttpStatusStrategy(),
-                2
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            2
         );
         MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
 
         MvcResult result = localMockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("   "))
-                .andExpect(status().isOk())
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("   "))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(), JsonRpcResponse.class);
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(),
+            JsonRpcResponse.class);
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
     }
 
     @Test
     void rejectsNonJsonContentType() throws Exception {
         mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.TEXT_PLAIN)
-                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
-                .andExpect(status().isUnsupportedMediaType());
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+            .andExpect(status().isUnsupportedMediaType());
     }
 
     @Test
@@ -217,22 +222,22 @@ class JsonRpcWebMvcEndpointTest {
         };
 
         JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
-                dispatcher,
-                OBJECT_MAPPER,
-                strategy,
-                8
+            dispatcher,
+            OBJECT_MAPPER,
+            strategy,
+            8
         );
         MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
 
         localMockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{"))
-                .andExpect(status().isBadRequest());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{"))
+            .andExpect(status().isBadRequest());
 
         localMockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
-                .andExpect(result -> assertEquals(413, result.getResponse().getStatus()));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+            .andExpect(result -> assertEquals(413, result.getResponse().getStatus()));
     }
 
     @Test
@@ -241,28 +246,28 @@ class JsonRpcWebMvcEndpointTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
         RecordingObserver observer = new RecordingObserver();
         JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
-                dispatcher,
-                OBJECT_MAPPER,
-                new DefaultJsonRpcHttpStatusStrategy(),
-                64,
-                observer
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            64,
+            observer
         );
         MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
 
         localMockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{"))
-                .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{"))
+            .andExpect(status().isOk());
         localMockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"jsonrpc":"2.0","method":"ping","params":{"value":"abcdefghijklmnopqrstuvwxyz"},"id":1}
-                                """))
-                .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"jsonrpc":"2.0","method":"ping","params":{"value":"abcdefghijklmnopqrstuvwxyz"},"id":1}
+                    """))
+            .andExpect(status().isOk());
         localMockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\"}"))
-                .andExpect(status().isNoContent());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\"}"))
+            .andExpect(status().isNoContent());
 
         assertEquals(1, observer.parseErrors);
         assertEquals(1, observer.requestTooLarge);
@@ -276,28 +281,28 @@ class JsonRpcWebMvcEndpointTest {
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
         RecordingObserver observer = new RecordingObserver();
         JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
-                dispatcher,
-                OBJECT_MAPPER,
-                new DefaultJsonRpcHttpStatusStrategy(),
-                1024 * 1024,
-                observer
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            1024 * 1024,
+            observer
         );
         MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
 
         localMockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
-                .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+            .andExpect(status().isOk());
         localMockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                [
-                                  {"jsonrpc":"2.0","method":"ping","id":1},
-                                  {"jsonrpc":"2.0","method":"ping"},
-                                  {"jsonrpc":"2.0","method":"missing","id":2}
-                                ]
-                                """))
-                .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    [
+                      {"jsonrpc":"2.0","method":"ping","id":1},
+                      {"jsonrpc":"2.0","method":"ping"},
+                      {"jsonrpc":"2.0","method":"missing","id":2}
+                    ]
+                    """))
+            .andExpect(status().isOk());
 
         assertEquals(1, observer.singleResponses);
         assertEquals(1, observer.batchResponses);
@@ -306,6 +311,7 @@ class JsonRpcWebMvcEndpointTest {
     }
 
     private static final class RecordingObserver implements JsonRpcWebMvcObserver {
+
         int parseErrors;
         int requestTooLarge;
         int notificationOnly;

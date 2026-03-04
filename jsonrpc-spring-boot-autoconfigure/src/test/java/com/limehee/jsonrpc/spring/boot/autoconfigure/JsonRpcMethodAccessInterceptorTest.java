@@ -1,18 +1,17 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
-import tools.jackson.databind.node.IntNode;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
 import com.limehee.jsonrpc.spring.boot.autoconfigure.support.JsonRpcMethodAccessInterceptor;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.Ordered;
-
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import tools.jackson.databind.node.IntNode;
 
 class JsonRpcMethodAccessInterceptorTest {
 

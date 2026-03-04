@@ -1,16 +1,15 @@
 package com.limehee.jsonrpc.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.StringNode;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonRpcPureJavaIntegrationTest {
 
@@ -23,24 +22,24 @@ class JsonRpcPureJavaIntegrationTest {
         dispatcher = new JsonRpcDispatcher();
 
         JsonRpcTypedMethodHandlerFactory typedFactory = new DefaultJsonRpcTypedMethodHandlerFactory(
-                new JacksonJsonRpcParameterBinder(OBJECT_MAPPER),
-                new JacksonJsonRpcResultWriter(OBJECT_MAPPER)
+            new JacksonJsonRpcParameterBinder(OBJECT_MAPPER),
+            new JacksonJsonRpcResultWriter(OBJECT_MAPPER)
         );
 
         dispatcher.register("manual.ping", params -> StringNode.valueOf("pong"));
         dispatcher.register("typed.user", typedFactory.unary(UserRequest.class,
-                request -> new UserResponse(request.id, "user-" + request.id)));
+            request -> new UserResponse(request.id, "user-" + request.id)));
         dispatcher.register("typed.tags", typedFactory.noParams(() -> List.of("alpha", "beta")));
     }
 
     @Test
     void supportsManualAndTypedRegistrationsWithoutSpring() throws Exception {
         JsonNode ping = call("""
-                {"jsonrpc":"2.0","method":"manual.ping","id":1}
-                """);
+            {"jsonrpc":"2.0","method":"manual.ping","id":1}
+            """);
         JsonNode user = call("""
-                {"jsonrpc":"2.0","method":"typed.user","params":{"id":7},"id":2}
-                """);
+            {"jsonrpc":"2.0","method":"typed.user","params":{"id":7},"id":2}
+            """);
 
         assertEquals("pong", ping.get("result").asString());
         assertEquals(7, user.get("result").get("id").asInt());
@@ -50,8 +49,8 @@ class JsonRpcPureJavaIntegrationTest {
     @Test
     void supportsClassParamRecordReturnAndCollectionReturn() throws Exception {
         JsonNode tags = call("""
-                {"jsonrpc":"2.0","method":"typed.tags","id":3}
-                """);
+            {"jsonrpc":"2.0","method":"typed.tags","id":3}
+            """);
 
         assertTrue(tags.get("result").isArray());
         assertEquals(2, tags.get("result").size());
@@ -62,12 +61,12 @@ class JsonRpcPureJavaIntegrationTest {
     @Test
     void supportsBatchInPureJavaEnvironment() throws Exception {
         JsonNode batchResult = call("""
-                [
-                  {"jsonrpc":"2.0","method":"manual.ping","id":1},
-                  {"jsonrpc":"2.0","method":"manual.ping"},
-                  {"jsonrpc":"2.0","method":"missing","id":2}
-                ]
-                """);
+            [
+              {"jsonrpc":"2.0","method":"manual.ping","id":1},
+              {"jsonrpc":"2.0","method":"manual.ping"},
+              {"jsonrpc":"2.0","method":"missing","id":2}
+            ]
+            """);
 
         assertTrue(batchResult.isArray());
         assertEquals(2, batchResult.size());
@@ -88,9 +87,11 @@ class JsonRpcPureJavaIntegrationTest {
     }
 
     static class UserRequest {
+
         public int id;
     }
 
     record UserResponse(int id, String name) {
+
     }
 }

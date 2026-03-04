@@ -1,14 +1,14 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class DefaultJsonRpcRequestParserTest {
 
@@ -34,8 +34,8 @@ class DefaultJsonRpcRequestParserTest {
     @Test
     void parseExtractsRequestFields() throws Exception {
         JsonRpcRequest request = parser.parse(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping","params":{"value":1},"id":"abc"}
-                """));
+            {"jsonrpc":"2.0","method":"ping","params":{"value":1},"id":"abc"}
+            """));
 
         assertEquals("2.0", request.jsonrpc());
         assertEquals("ping", request.method());
@@ -48,8 +48,8 @@ class DefaultJsonRpcRequestParserTest {
     @Test
     void parseTreatsMissingIdAsNotification() throws Exception {
         JsonRpcRequest request = parser.parse(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping"}
-                """));
+            {"jsonrpc":"2.0","method":"ping"}
+            """));
 
         assertFalse(request.idPresent());
         assertNull(request.id());
@@ -59,8 +59,8 @@ class DefaultJsonRpcRequestParserTest {
     @Test
     void parseDistinguishesExplicitNullIdFromAbsentId() throws Exception {
         JsonRpcRequest request = parser.parse(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping","id":null}
-                """));
+            {"jsonrpc":"2.0","method":"ping","id":null}
+            """));
 
         assertTrue(request.idPresent());
         assertTrue(request.id().isNull());
@@ -70,8 +70,8 @@ class DefaultJsonRpcRequestParserTest {
     @Test
     void parseConvertsNonTextJsonrpcAndMethodToNull() throws Exception {
         JsonRpcRequest request = parser.parse(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":2.0,"method":true,"id":1}
-                """));
+            {"jsonrpc":2.0,"method":true,"id":1}
+            """));
 
         assertNull(request.jsonrpc());
         assertNull(request.method());

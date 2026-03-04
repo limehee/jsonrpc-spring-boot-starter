@@ -1,16 +1,16 @@
 package com.limehee.jsonrpc.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.NullNode;
 import tools.jackson.databind.node.StringNode;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JacksonJsonRpcParameterBinderTest {
 
@@ -31,6 +31,7 @@ class JacksonJsonRpcParameterBinderTest {
 
         assertSame(node, binder.bind(node, JsonNode.class));
         assertSame(NullNode.getInstance(), binder.bind(NullNode.getInstance(), JsonNode.class));
+        assertSame(NullNode.getInstance(), binder.bind(null, JsonNode.class));
     }
 
     @Test
@@ -49,12 +50,13 @@ class JacksonJsonRpcParameterBinderTest {
     @Test
     void bindThrowsInvalidParamsWhenConversionFails() {
         JsonRpcException ex = assertThrows(JsonRpcException.class,
-                () -> binder.bind(StringNode.valueOf("bad"), PingParams.class));
+            () -> binder.bind(StringNode.valueOf("bad"), PingParams.class));
 
         assertEquals(JsonRpcErrorCode.INVALID_PARAMS, ex.getCode());
         assertEquals(JsonRpcConstants.MESSAGE_INVALID_PARAMS, ex.getMessage());
     }
 
     record PingParams(String name) {
+
     }
 }

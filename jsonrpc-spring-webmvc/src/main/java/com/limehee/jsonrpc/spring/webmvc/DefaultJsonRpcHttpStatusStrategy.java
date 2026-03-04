@@ -1,17 +1,16 @@
 package com.limehee.jsonrpc.spring.webmvc;
 
 import com.limehee.jsonrpc.core.JsonRpcResponse;
-import org.springframework.http.HttpStatus;
-
 import java.util.List;
+import org.springframework.http.HttpStatus;
 
 /**
  * Default HTTP status strategy for JSON-RPC over HTTP.
  * <p>
- * This implementation intentionally returns {@code 200 OK} for all JSON-RPC response payloads,
- * including error payloads, and returns {@code 204 NO_CONTENT} for notification-only requests.
- * This behavior aligns with common JSON-RPC-over-HTTP conventions where protocol-level errors are
- * represented inside the JSON-RPC response body rather than by transport status codes.
+ * This implementation intentionally returns {@code 200 OK} for all JSON-RPC response payloads, including error
+ * payloads, and returns {@code 204 NO_CONTENT} for notification-only requests. This behavior aligns with common
+ * JSON-RPC-over-HTTP conventions where protocol-level errors are represented inside the JSON-RPC response body rather
+ * than by transport status codes.
  * </p>
  */
 public class DefaultJsonRpcHttpStatusStrategy implements JsonRpcHttpStatusStrategy {

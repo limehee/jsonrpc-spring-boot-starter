@@ -5,14 +5,14 @@ import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcObserver;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
-
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Micrometer-backed observer for transport-level JSON-RPC WebMVC events.
  * <p>
- * This observer tracks parsing failures, request size violations, notification-only handling,
- * and batch-level composition details.
+ * This observer tracks parsing failures, request size violations, notification-only handling, and batch-level
+ * composition details.
  * </p>
  */
 public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver {
@@ -39,35 +39,42 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
     /**
      * Creates a WebMVC observer that records transport and batch metrics.
      *
-     * @param meterRegistry registry where metrics are published
+     * @param meterRegistry           registry where metrics are published
      * @param latencyHistogramEnabled whether histogram distribution is enabled for batch sizes
-     * @param latencyPercentiles configured percentiles for batch size distribution
+     * @param latencyPercentiles      configured percentiles for batch size distribution
      */
     public JsonRpcWebMvcMetricsObserver(
-            MeterRegistry meterRegistry,
-            boolean latencyHistogramEnabled,
-            double[] latencyPercentiles
+        MeterRegistry meterRegistry,
+        boolean latencyHistogramEnabled,
+        double[] latencyPercentiles
     ) {
-        this.parseErrorCounter = meterRegistry.counter(TRANSPORT_ERRORS_METRIC, "reason", "parse_error");
-        this.requestTooLargeCounter = meterRegistry.counter(TRANSPORT_ERRORS_METRIC, "reason", "request_too_large");
-        this.singleNotificationCounter = meterRegistry.counter(NOTIFICATION_METRIC, "mode", "single");
-        this.batchNotificationCounter = meterRegistry.counter(NOTIFICATION_METRIC, "mode", "batch");
-        this.batchRequestAllSuccessCounter = meterRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "all_success");
-        this.batchRequestAllErrorCounter = meterRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "all_error");
-        this.batchRequestMixedCounter = meterRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "mixed");
-        this.batchRequestNotificationOnlyCounter = meterRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "notification_only");
-        this.batchEntrySuccessCounter = meterRegistry.counter(BATCH_ENTRY_METRIC, "outcome", "success");
-        this.batchEntryErrorCounter = meterRegistry.counter(BATCH_ENTRY_METRIC, "outcome", "error");
-        this.batchEntryNotificationCounter = meterRegistry.counter(BATCH_ENTRY_METRIC, "outcome", "notification");
+        MeterRegistry targetRegistry = Objects.requireNonNull(meterRegistry, "meterRegistry");
+        double[] configuredPercentiles = Objects.requireNonNull(latencyPercentiles, "latencyPercentiles");
+
+        this.parseErrorCounter = targetRegistry.counter(TRANSPORT_ERRORS_METRIC, "reason", "parse_error");
+        this.requestTooLargeCounter = targetRegistry.counter(TRANSPORT_ERRORS_METRIC, "reason", "request_too_large");
+        this.singleNotificationCounter = targetRegistry.counter(NOTIFICATION_METRIC, "mode", "single");
+        this.batchNotificationCounter = targetRegistry.counter(NOTIFICATION_METRIC, "mode", "batch");
+        this.batchRequestAllSuccessCounter = targetRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "all_success");
+        this.batchRequestAllErrorCounter = targetRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "all_error");
+        this.batchRequestMixedCounter = targetRegistry.counter(BATCH_REQUEST_METRIC, "outcome", "mixed");
+        this.batchRequestNotificationOnlyCounter = targetRegistry.counter(
+            BATCH_REQUEST_METRIC,
+            "outcome",
+            "notification_only"
+        );
+        this.batchEntrySuccessCounter = targetRegistry.counter(BATCH_ENTRY_METRIC, "outcome", "success");
+        this.batchEntryErrorCounter = targetRegistry.counter(BATCH_ENTRY_METRIC, "outcome", "error");
+        this.batchEntryNotificationCounter = targetRegistry.counter(BATCH_ENTRY_METRIC, "outcome", "notification");
 
         DistributionSummary.Builder summaryBuilder = DistributionSummary.builder(BATCH_SIZE_METRIC);
         if (latencyHistogramEnabled) {
             summaryBuilder.publishPercentileHistogram();
         }
-        if (latencyPercentiles != null && latencyPercentiles.length > 0) {
-            summaryBuilder.publishPercentiles(latencyPercentiles);
+        if (configuredPercentiles.length > 0) {
+            summaryBuilder.publishPercentiles(configuredPercentiles);
         }
-        this.batchSizeSummary = summaryBuilder.register(meterRegistry);
+        this.batchSizeSummary = summaryBuilder.register(targetRegistry);
     }
 
     /**
@@ -82,7 +89,7 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
      * Increments oversized request counter.
      *
      * @param actualBytes actual request payload size in bytes
-     * @param maxBytes configured maximum payload size in bytes
+     * @param maxBytes    configured maximum payload size in bytes
      */
     @Override
     public void onRequestTooLarge(int actualBytes, int maxBytes) {
@@ -93,7 +100,7 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
      * Records batch composition metrics for success, error, and notification outcomes.
      *
      * @param requestCount number of entries in the incoming batch payload
-     * @param responses emitted JSON-RPC responses for that batch
+     * @param responses    emitted JSON-RPC responses for that batch
      */
     @Override
     public void onBatchResponse(int requestCount, List<JsonRpcResponse> responses) {
@@ -129,7 +136,7 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
     /**
      * Records notification-only request handling counts.
      *
-     * @param batch {@code true} if the original payload was a batch array
+     * @param batch        {@code true} if the original payload was a batch array
      * @param requestCount number of request entries in the payload
      */
     @Override
@@ -145,7 +152,7 @@ public final class JsonRpcWebMvcMetricsObserver implements JsonRpcWebMvcObserver
      * Increments batch entry counters by outcome type.
      *
      * @param outcome outcome label ({@code success}, {@code error}, or {@code notification})
-     * @param count number of entries to increment
+     * @param count   number of entries to increment
      */
     private void incrementByOutcome(String outcome, int count) {
         if (count <= 0) {

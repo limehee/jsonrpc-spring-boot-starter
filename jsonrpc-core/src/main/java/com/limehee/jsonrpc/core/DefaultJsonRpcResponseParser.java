@@ -1,10 +1,9 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Default parser for incoming JSON-RPC response payloads.
@@ -40,7 +39,7 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
      * @return parsed incoming response
      */
     private JsonRpcIncomingResponse parseObject(JsonNode node) {
-        if (node == null || !node.isObject()) {
+        if (!node.isObject()) {
             throw invalidResponseEnvelope();
         }
 
@@ -57,14 +56,14 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
         JsonNode error = node.get("error");
 
         return new JsonRpcIncomingResponse(
-                node,
-                jsonrpc,
-                id,
-                idPresent,
-                result,
-                resultPresent,
-                error,
-                errorPresent
+            node,
+            jsonrpc,
+            id,
+            idPresent,
+            result,
+            resultPresent,
+            error,
+            errorPresent
         );
     }
 

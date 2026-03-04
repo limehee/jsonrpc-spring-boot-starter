@@ -7,8 +7,8 @@ import com.limehee.jsonrpc.core.JsonRpcException;
 /**
  * Exception raised when a JSON-RPC method is rejected by allowlist/denylist rules.
  * <p>
- * The exception intentionally maps to {@link JsonRpcErrorCode#METHOD_NOT_FOUND} so callers do
- * not learn whether the method exists but is blocked by policy.
+ * The exception intentionally maps to {@link JsonRpcErrorCode#METHOD_NOT_FOUND} so callers do not learn whether the
+ * method exists but is blocked by policy.
  * </p>
  */
 public final class JsonRpcMethodAccessDeniedException extends JsonRpcException {
