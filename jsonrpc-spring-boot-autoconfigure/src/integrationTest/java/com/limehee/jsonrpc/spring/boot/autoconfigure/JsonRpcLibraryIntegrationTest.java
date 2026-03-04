@@ -1,8 +1,13 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
@@ -21,24 +26,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
-        classes = JsonRpcLibraryIntegrationTest.TestApplication.class,
-        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        properties = {
-                "jsonrpc.enabled=true",
-                "jsonrpc.path=/jsonrpc",
-                "jsonrpc.scan-annotated-methods=true",
-                "jsonrpc.max-request-bytes=64"
-        }
+    classes = JsonRpcLibraryIntegrationTest.TestApplication.class,
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    properties = {
+        "jsonrpc.enabled=true",
+        "jsonrpc.path=/jsonrpc",
+        "jsonrpc.scan-annotated-methods=true",
+        "jsonrpc.max-request-bytes=64"
+    }
 )
 class JsonRpcLibraryIntegrationTest {
 
@@ -60,8 +60,8 @@ class JsonRpcLibraryIntegrationTest {
     @Test
     void integrationWiresDispatcherAndAnnotatedMethodRegistration() throws Exception {
         JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"echo","params":{"value":"x"},"id":1}
-                """));
+            {"jsonrpc":"2.0","method":"echo","params":{"value":"x"},"id":1}
+            """));
 
         JsonRpcResponse response = result.singleResponse().orElseThrow();
         assertEquals("echo:x", response.result().asString());
@@ -70,12 +70,12 @@ class JsonRpcLibraryIntegrationTest {
     @Test
     void integrationInvokesEndpointAndReturnsJsonRpcPayload() throws Exception {
         MvcResult result = mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"jsonrpc":"2.0","method":"ping","id":2}
-                                """))
-                .andExpect(status().isOk())
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"jsonrpc":"2.0","method":"ping","id":2}
+                    """))
+            .andExpect(status().isOk())
+            .andReturn();
 
         JsonNode body = OBJECT_MAPPER.readTree(result.getResponse().getContentAsByteArray());
         assertEquals("2.0", body.get("jsonrpc").asString());
@@ -86,23 +86,23 @@ class JsonRpcLibraryIntegrationTest {
     @Test
     void integrationReturnsNoContentForNotification() throws Exception {
         mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"jsonrpc":"2.0","method":"ping"}
-                                """))
-                .andExpect(status().isNoContent())
-                .andExpect(content().string(""));
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"jsonrpc":"2.0","method":"ping"}
+                    """))
+            .andExpect(status().isNoContent())
+            .andExpect(content().string(""));
     }
 
     @Test
     void integrationRespectsRequestSizeLimit() throws Exception {
         MvcResult result = mockMvc.perform(post("/jsonrpc")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"jsonrpc":"2.0","method":"echo","params":{"value":"abcdefghijklmnopqrstuvwxyz"},"id":3}
-                                """))
-                .andExpect(status().isOk())
-                .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"jsonrpc":"2.0","method":"echo","params":{"value":"abcdefghijklmnopqrstuvwxyz"},"id":3}
+                    """))
+            .andExpect(status().isOk())
+            .andReturn();
 
         JsonNode body = OBJECT_MAPPER.readTree(result.getResponse().getContentAsByteArray());
         assertNotNull(body.get("error"));
@@ -115,10 +115,12 @@ class JsonRpcLibraryIntegrationTest {
     @EnableAutoConfiguration
     @Import(TestRpcConfiguration.class)
     static class TestApplication {
+
     }
 
     @Configuration(proxyBeanMethods = false)
     static class TestRpcConfiguration {
+
         @Bean
         IntegrationRpcService integrationRpcService() {
             return new IntegrationRpcService();
@@ -126,6 +128,7 @@ class JsonRpcLibraryIntegrationTest {
     }
 
     static class IntegrationRpcService {
+
         @JsonRpcMethod("ping")
         public String ping() {
             return "pong";
@@ -137,6 +140,7 @@ class JsonRpcLibraryIntegrationTest {
         }
 
         record EchoParams(String value) {
+
         }
     }
 }

@@ -1,12 +1,11 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
-import com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
+import com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Externalized Spring Boot configuration properties for JSON-RPC auto-configuration.
@@ -107,8 +106,8 @@ public class JsonRpcProperties {
     }
 
     /**
-     * Indicates whether {@link com.limehee.jsonrpc.core.JsonRpcMethod}-annotated methods are
-     * scanned and auto-registered.
+     * Indicates whether {@link com.limehee.jsonrpc.core.JsonRpcMethod}-annotated methods are scanned and
+     * auto-registered.
      *
      * @return {@code true} when annotation scanning is enabled
      */
@@ -191,8 +190,8 @@ public class JsonRpcProperties {
     /**
      * Sets configured latency percentiles to publish for supported metrics.
      *
-     * @param metricsLatencyPercentiles percentile list; each value must be greater than
-     *                                  {@code 0.0} and less than {@code 1.0}
+     * @param metricsLatencyPercentiles percentile list; each value must be greater than {@code 0.0} and less than
+     *                                  {@code 1.0}
      */
     public void setMetricsLatencyPercentiles(List<Double> metricsLatencyPercentiles) {
         this.metricsLatencyPercentiles = metricsLatencyPercentiles;
@@ -219,8 +218,8 @@ public class JsonRpcProperties {
     /**
      * Indicates whether notification handling should prefer an executor-backed path.
      * <p>
-     * When enabled, auto-configuration attempts to choose a Spring {@link java.util.concurrent.Executor}.
-     * If no suitable executor is resolved, handling falls back to direct execution.
+     * When enabled, auto-configuration attempts to choose a Spring {@link java.util.concurrent.Executor}. If no
+     * suitable executor is resolved, handling falls back to direct execution.
      * </p>
      *
      * @return {@code true} when executor-backed notification handling is enabled
@@ -239,8 +238,7 @@ public class JsonRpcProperties {
     }
 
     /**
-     * Returns the preferred Spring {@link java.util.concurrent.Executor} bean name for
-     * notification execution.
+     * Returns the preferred Spring {@link java.util.concurrent.Executor} bean name for notification execution.
      *
      * @return executor bean name, or empty when auto-selection should be used
      */
@@ -249,8 +247,7 @@ public class JsonRpcProperties {
     }
 
     /**
-     * Sets the preferred Spring {@link java.util.concurrent.Executor} bean name for
-     * notification execution.
+     * Sets the preferred Spring {@link java.util.concurrent.Executor} bean name for notification execution.
      *
      * @param notificationExecutorBeanName preferred executor bean name, or empty for auto-selection
      */
@@ -273,7 +270,7 @@ public class JsonRpcProperties {
      * @param methodRegistrationConflictPolicy conflict policy used by method registry
      */
     public void setMethodRegistrationConflictPolicy(
-            JsonRpcMethodRegistrationConflictPolicy methodRegistrationConflictPolicy
+        JsonRpcMethodRegistrationConflictPolicy methodRegistrationConflictPolicy
     ) {
         this.methodRegistrationConflictPolicy = methodRegistrationConflictPolicy;
     }
@@ -382,11 +379,11 @@ public class JsonRpcProperties {
         public static final class Request {
 
             private JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy =
-                    JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS;
+                JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS;
 
             /**
-             * Returns the error-code mapping policy used when request {@code params} exists but is
-             * neither an object nor an array.
+             * Returns the error-code mapping policy used when request {@code params} exists but is neither an object
+             * nor an array.
              *
              * @return params-type violation error-code policy
              */
@@ -395,17 +392,17 @@ public class JsonRpcProperties {
             }
 
             /**
-             * Sets the error-code mapping policy used when request {@code params} exists but is
-             * neither an object nor an array.
+             * Sets the error-code mapping policy used when request {@code params} exists but is neither an object nor
+             * an array.
              *
              * @param paramsTypeViolationCodePolicy params-type violation error-code policy
              */
             public void setParamsTypeViolationCodePolicy(
-                    JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy
+                JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy
             ) {
                 this.paramsTypeViolationCodePolicy = Objects.requireNonNull(
-                        paramsTypeViolationCodePolicy,
-                        "paramsTypeViolationCodePolicy"
+                    paramsTypeViolationCodePolicy,
+                    "paramsTypeViolationCodePolicy"
                 );
             }
         }
@@ -608,8 +605,8 @@ public class JsonRpcProperties {
             }
 
             /**
-             * Indicates whether request-only fields like {@code method}/{@code params} are
-             * allowed in response objects.
+             * Indicates whether request-only fields like {@code method}/{@code params} are allowed in response
+             * objects.
              *
              * @return {@code true} when request fields are tolerated in responses
              */
@@ -618,8 +615,7 @@ public class JsonRpcProperties {
             }
 
             /**
-             * Sets whether request-only fields like {@code method}/{@code params} are allowed in
-             * response objects.
+             * Sets whether request-only fields like {@code method}/{@code params} are allowed in response objects.
              *
              * @param allowRequestFieldsInResponse {@code true} to allow request fields in response
              */

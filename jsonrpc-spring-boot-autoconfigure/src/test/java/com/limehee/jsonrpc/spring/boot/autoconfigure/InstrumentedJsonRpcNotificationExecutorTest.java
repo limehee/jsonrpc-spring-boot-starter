@@ -1,15 +1,14 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.limehee.jsonrpc.core.JsonRpcNotificationExecutor;
 import com.limehee.jsonrpc.spring.boot.autoconfigure.support.InstrumentedJsonRpcNotificationExecutor;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
 
 class InstrumentedJsonRpcNotificationExecutorTest {
 
@@ -22,10 +21,10 @@ class InstrumentedJsonRpcNotificationExecutorTest {
             task.run();
         };
         InstrumentedJsonRpcNotificationExecutor executor = new InstrumentedJsonRpcNotificationExecutor(
-                delegate,
-                meterRegistry,
-                false,
-                new double[0]
+            delegate,
+            meterRegistry,
+            false,
+            new double[0]
         );
 
         executor.execute(() -> {
@@ -43,16 +42,16 @@ class InstrumentedJsonRpcNotificationExecutorTest {
         MeterRegistry meterRegistry = new SimpleMeterRegistry();
         JsonRpcNotificationExecutor delegate = Runnable::run;
         InstrumentedJsonRpcNotificationExecutor executor = new InstrumentedJsonRpcNotificationExecutor(
-                delegate,
-                meterRegistry,
-                false,
-                new double[0]
+            delegate,
+            meterRegistry,
+            false,
+            new double[0]
         );
 
         assertThrows(IllegalStateException.class, () ->
-                executor.execute(() -> {
-                    throw new IllegalStateException("boom");
-                }));
+            executor.execute(() -> {
+                throw new IllegalStateException("boom");
+            }));
 
         assertEquals(1.0, meterRegistry.counter("jsonrpc.server.notification.submitted").count());
         assertEquals(1.0, meterRegistry.counter("jsonrpc.server.notification.failed").count());

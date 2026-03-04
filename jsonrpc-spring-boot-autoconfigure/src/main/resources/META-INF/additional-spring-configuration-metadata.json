@@ -164,45 +164,73 @@
     {
       "name": "jsonrpc.path",
       "values": [
-        { "value": "/jsonrpc" },
-        { "value": "/api/jsonrpc" }
+        {
+          "value": "/jsonrpc"
+        },
+        {
+          "value": "/api/jsonrpc"
+        }
       ]
     },
     {
       "name": "jsonrpc.method-registration-conflict-policy",
       "values": [
-        { "value": "REJECT" },
-        { "value": "REPLACE" }
+        {
+          "value": "REJECT"
+        },
+        {
+          "value": "REPLACE"
+        }
       ]
     },
     {
       "name": "jsonrpc.validation.request.params-type-violation-code-policy",
       "values": [
-        { "value": "INVALID_PARAMS" },
-        { "value": "INVALID_REQUEST" }
+        {
+          "value": "INVALID_PARAMS"
+        },
+        {
+          "value": "INVALID_REQUEST"
+        }
       ]
     },
     {
       "name": "jsonrpc.notification-executor-bean-name",
       "values": [
-        { "value": "applicationTaskExecutor" }
+        {
+          "value": "applicationTaskExecutor"
+        }
       ]
     },
     {
       "name": "jsonrpc.metrics-latency-percentiles",
       "values": [
-        { "value": 0.5 },
-        { "value": 0.9 },
-        { "value": 0.95 },
-        { "value": 0.99 }
+        {
+          "value": 0.5
+        },
+        {
+          "value": 0.9
+        },
+        {
+          "value": 0.95
+        },
+        {
+          "value": 0.99
+        }
       ]
     },
     {
       "name": "jsonrpc.metrics-max-method-tag-values",
       "values": [
-        { "value": 50 },
-        { "value": 100 },
-        { "value": 200 }
+        {
+          "value": 50
+        },
+        {
+          "value": 100
+        },
+        {
+          "value": 200
+        }
       ]
     }
   ]
