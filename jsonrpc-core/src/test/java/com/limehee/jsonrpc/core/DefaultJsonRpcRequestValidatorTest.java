@@ -1,15 +1,15 @@
 package com.limehee.jsonrpc.core;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.IntNode;
 import tools.jackson.databind.node.NullNode;
 import tools.jackson.databind.node.StringNode;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DefaultJsonRpcRequestValidatorTest {
 
@@ -43,11 +43,11 @@ class DefaultJsonRpcRequestValidatorTest {
     @Test
     void validateRejectsInvalidIdType() {
         JsonRpcRequest request = new JsonRpcRequest(
-                "2.0",
-                OBJECT_MAPPER.createObjectNode().put("x", 1),
-                "ping",
-                null,
-                true
+            "2.0",
+            OBJECT_MAPPER.createObjectNode().put("x", 1),
+            "ping",
+            null,
+            true
         );
 
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(request));
@@ -65,7 +65,7 @@ class DefaultJsonRpcRequestValidatorTest {
     @Test
     void validateRejectsPrimitiveParamsAsInvalidRequestWhenPolicyIsConfigured() {
         DefaultJsonRpcRequestValidator strictShapeValidator = new DefaultJsonRpcRequestValidator(
-                JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST
+            JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST
         );
         JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping", IntNode.valueOf(3), true);
 
@@ -76,37 +76,37 @@ class DefaultJsonRpcRequestValidatorTest {
     @Test
     void constructorRejectsNullParamsTypeViolationPolicy() {
         assertThrows(
-                NullPointerException.class,
-                () -> new DefaultJsonRpcRequestValidator(null)
+            NullPointerException.class,
+            () -> new DefaultJsonRpcRequestValidator(null)
         );
     }
 
     @Test
     void validateAllowsTextOrNumberOrNullId() {
         assertDoesNotThrow(() -> validator.validate(
-                new JsonRpcRequest("2.0", StringNode.valueOf("abc"), "ping", null, true)));
+            new JsonRpcRequest("2.0", StringNode.valueOf("abc"), "ping", null, true)));
         assertDoesNotThrow(() -> validator.validate(
-                new JsonRpcRequest("2.0", IntNode.valueOf(7), "ping", null, true)));
+            new JsonRpcRequest("2.0", IntNode.valueOf(7), "ping", null, true)));
         assertDoesNotThrow(() -> validator.validate(
-                new JsonRpcRequest("2.0", NullNode.getInstance(), "ping", null, true)));
+            new JsonRpcRequest("2.0", NullNode.getInstance(), "ping", null, true)));
     }
 
     @Test
     void validateAllowsObjectAndArrayParams() throws Exception {
         assertDoesNotThrow(() -> validator.validate(new JsonRpcRequest(
-                "2.0",
-                IntNode.valueOf(1),
-                "ping",
-                OBJECT_MAPPER.readTree("{\"x\":1}"),
-                true
+            "2.0",
+            IntNode.valueOf(1),
+            "ping",
+            OBJECT_MAPPER.readTree("{\"x\":1}"),
+            true
         )));
 
         assertDoesNotThrow(() -> validator.validate(new JsonRpcRequest(
-                "2.0",
-                IntNode.valueOf(2),
-                "ping",
-                OBJECT_MAPPER.readTree("[1,2,3]"),
-                true
+            "2.0",
+            IntNode.valueOf(2),
+            "ping",
+            OBJECT_MAPPER.readTree("[1,2,3]"),
+            true
         )));
     }
 

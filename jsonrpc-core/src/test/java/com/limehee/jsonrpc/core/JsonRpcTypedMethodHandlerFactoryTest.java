@@ -1,20 +1,20 @@
 package com.limehee.jsonrpc.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.StringNode;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JsonRpcTypedMethodHandlerFactoryTest {
 
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final JsonRpcTypedMethodHandlerFactory factory = new DefaultJsonRpcTypedMethodHandlerFactory(
-            new JacksonJsonRpcParameterBinder(OBJECT_MAPPER),
-            new JacksonJsonRpcResultWriter(OBJECT_MAPPER)
+        new JacksonJsonRpcParameterBinder(OBJECT_MAPPER),
+        new JacksonJsonRpcResultWriter(OBJECT_MAPPER)
     );
 
     @Test
@@ -45,11 +45,12 @@ class JsonRpcTypedMethodHandlerFactoryTest {
         JsonRpcMethodHandler handler = factory.unary(PingParams.class, params -> "hello " + params.name());
 
         JsonRpcException ex = assertThrows(JsonRpcException.class,
-                () -> handler.handle(StringNode.valueOf("bad")));
+            () -> handler.handle(StringNode.valueOf("bad")));
         assertEquals(JsonRpcErrorCode.INVALID_PARAMS, ex.getCode());
         assertEquals(JsonRpcConstants.MESSAGE_INVALID_PARAMS, ex.getMessage());
     }
 
     record PingParams(String name) {
+
     }
 }

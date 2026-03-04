@@ -34,8 +34,8 @@ public final class JsonRpcResponseValidationOptions {
     /**
      * Returns default validation options.
      * <p>
-     * RFC MUST rules are enabled by default. Compatibility-related rules are also configured with
-     * permissive defaults unless explicitly restricted through builder switches.
+     * RFC MUST rules are enabled by default. Compatibility-related rules are also configured with permissive defaults
+     * unless explicitly restricted through builder switches.
      *
      * @return default options
      */
@@ -123,8 +123,8 @@ public final class JsonRpcResponseValidationOptions {
     }
 
     /**
-     * @return whether response objects may include request-only fields such as {@code method}/{@code params};
-     * this is a compatibility policy and not an RFC MUST rule
+     * @return whether response objects may include request-only fields such as {@code method}/{@code params}; this is a
+     * compatibility policy and not an RFC MUST rule
      */
     public boolean allowRequestFieldsInResponse() {
         return allowRequestFieldsInResponse;

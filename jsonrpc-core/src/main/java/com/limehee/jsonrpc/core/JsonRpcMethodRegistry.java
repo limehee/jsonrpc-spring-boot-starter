@@ -10,7 +10,7 @@ public interface JsonRpcMethodRegistry {
     /**
      * Registers a handler for a method name.
      *
-     * @param method JSON-RPC method name
+     * @param method  JSON-RPC method name
      * @param handler handler to register
      */
     void register(String method, JsonRpcMethodHandler handler);

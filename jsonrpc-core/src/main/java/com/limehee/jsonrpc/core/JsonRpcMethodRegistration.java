@@ -3,7 +3,7 @@ package com.limehee.jsonrpc.core;
 /**
  * Immutable method registration entry used for programmatic registration.
  *
- * @param method JSON-RPC method name
+ * @param method  JSON-RPC method name
  * @param handler handler implementation for the method
  */
 public record JsonRpcMethodRegistration(String method, JsonRpcMethodHandler handler) {
@@ -11,7 +11,7 @@ public record JsonRpcMethodRegistration(String method, JsonRpcMethodHandler hand
     /**
      * Creates a registration entry.
      *
-     * @param method JSON-RPC method name
+     * @param method  JSON-RPC method name
      * @param handler handler implementation for the method
      * @return registration entry
      */

@@ -1,8 +1,8 @@
 package com.limehee.jsonrpc.core;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import tools.jackson.databind.JsonNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * JSON-RPC response payload model.
@@ -10,27 +10,26 @@ import org.jspecify.annotations.Nullable;
  * Exactly one of {@code result} or {@code error} must be present.
  *
  * @param jsonrpc protocol version string
- * @param id request id echoed back to caller; may be {@code null}
- * @param result success payload; may be {@code null} when {@code error} is present
- * @param error error payload; may be {@code null} when {@code result} is present
+ * @param id      request id echoed back to caller; may be {@code null}
+ * @param result  success payload; may be {@code null} when {@code error} is present
+ * @param error   error payload; may be {@code null} when {@code result} is present
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record JsonRpcResponse(
-        String jsonrpc,
-        @JsonInclude(JsonInclude.Include.ALWAYS) @Nullable JsonNode id,
-        @Nullable JsonNode result,
-        @Nullable JsonRpcError error
+    String jsonrpc,
+    @JsonInclude(JsonInclude.Include.ALWAYS) @Nullable JsonNode id,
+    @Nullable JsonNode result,
+    @Nullable JsonRpcError error
 ) {
 
     /**
      * Validates canonical response invariants.
      *
      * @param jsonrpc protocol version string
-     * @param id request id echoed back to caller; may be {@code null}
-     * @param result success payload; must be non-null when {@code error} is {@code null}
-     * @param error error payload; must be non-null when {@code result} is {@code null}
-     * @throws IllegalArgumentException when both {@code result} and {@code error} are present or
-     *                                  when both are absent
+     * @param id      request id echoed back to caller; may be {@code null}
+     * @param result  success payload; must be non-null when {@code error} is {@code null}
+     * @param error   error payload; must be non-null when {@code result} is {@code null}
+     * @throws IllegalArgumentException when both {@code result} and {@code error} are present or when both are absent
      */
     public JsonRpcResponse {
         boolean hasResult = result != null;
@@ -43,7 +42,7 @@ public record JsonRpcResponse(
     /**
      * Creates a successful response.
      *
-     * @param id request id; may be {@code null}
+     * @param id     request id; may be {@code null}
      * @param result success payload
      * @return success response
      */
@@ -54,8 +53,8 @@ public record JsonRpcResponse(
     /**
      * Creates an error response from code/message.
      *
-     * @param id request id; may be {@code null}
-     * @param code JSON-RPC error code
+     * @param id      request id; may be {@code null}
+     * @param code    JSON-RPC error code
      * @param message JSON-RPC error message
      * @return error response
      */
@@ -66,7 +65,7 @@ public record JsonRpcResponse(
     /**
      * Creates an error response from a prebuilt error object.
      *
-     * @param id request id; may be {@code null}
+     * @param id    request id; may be {@code null}
      * @param error error payload
      * @return error response
      */

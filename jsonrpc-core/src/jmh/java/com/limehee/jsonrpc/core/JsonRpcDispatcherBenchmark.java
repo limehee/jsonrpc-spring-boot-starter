@@ -1,16 +1,16 @@
 package com.limehee.jsonrpc.core;
 
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.node.StringNode;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
 
 @State(Scope.Benchmark)
 public class JsonRpcDispatcherBenchmark {
@@ -42,27 +42,27 @@ public class JsonRpcDispatcherBenchmark {
         });
 
         singlePayload = OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping","id":1}
-                """);
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """);
         methodNotFoundPayload = OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"missing","id":9}
-                """);
+            {"jsonrpc":"2.0","method":"missing","id":9}
+            """);
         invalidParamsPayload = OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"strict.object","params":"wrong","id":10}
-                """);
+            {"jsonrpc":"2.0","method":"strict.object","params":"wrong","id":10}
+            """);
         invalidRequestPayload = OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"1.0","method":"ping","id":11}
-                """);
+            {"jsonrpc":"1.0","method":"ping","id":11}
+            """);
         notificationPayload = OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","method":"ping"}
-                """);
+            {"jsonrpc":"2.0","method":"ping"}
+            """);
         batchPayload = OBJECT_MAPPER.readTree("""
-                [
-                  {"jsonrpc":"2.0","method":"ping","id":1},
-                  {"jsonrpc":"2.0","method":"ping"},
-                  {"jsonrpc":"2.0","method":"ping","id":2}
-                ]
-                """);
+            [
+              {"jsonrpc":"2.0","method":"ping","id":1},
+              {"jsonrpc":"2.0","method":"ping"},
+              {"jsonrpc":"2.0","method":"ping","id":2}
+            ]
+            """);
         batchAllSuccessLargePayload = buildLargeBatchPayload("ping", LARGE_BATCH_SIZE, false);
         batchAllErrorsLargePayload = buildLargeBatchPayload("missing", LARGE_BATCH_SIZE, false);
         batchMixedLargePayload = buildMixedLargeBatchPayload(LARGE_BATCH_SIZE);

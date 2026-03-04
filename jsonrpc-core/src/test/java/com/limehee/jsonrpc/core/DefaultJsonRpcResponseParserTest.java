@@ -1,14 +1,14 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class DefaultJsonRpcResponseParserTest {
 
@@ -19,8 +19,8 @@ class DefaultJsonRpcResponseParserTest {
     @Test
     void parseParsesSingleResponseObject() throws Exception {
         JsonRpcIncomingResponseEnvelope envelope = parser.parse(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","id":1,"result":{"ok":true}}
-                """));
+            {"jsonrpc":"2.0","id":1,"result":{"ok":true}}
+            """));
 
         assertFalse(envelope.isBatch());
         JsonRpcIncomingResponse response = envelope.singleResponse().orElseThrow();
@@ -33,11 +33,11 @@ class DefaultJsonRpcResponseParserTest {
     @Test
     void parseParsesBatchResponseArray() throws Exception {
         JsonRpcIncomingResponseEnvelope envelope = parser.parse(OBJECT_MAPPER.readTree("""
-                [
-                  {"jsonrpc":"2.0","id":"a","result":1},
-                  {"jsonrpc":"2.0","id":"b","error":{"code":-32000,"message":"x"}}
-                ]
-                """));
+            [
+              {"jsonrpc":"2.0","id":"a","result":1},
+              {"jsonrpc":"2.0","id":"b","error":{"code":-32000,"message":"x"}}
+            ]
+            """));
 
         assertTrue(envelope.isBatch());
         assertEquals(2, envelope.responses().size());
@@ -46,8 +46,8 @@ class DefaultJsonRpcResponseParserTest {
     @Test
     void parseStoresNullVersionWhenJsonrpcFieldIsNotString() throws Exception {
         JsonRpcIncomingResponseEnvelope envelope = parser.parse(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":2,"id":1,"result":true}
-                """));
+            {"jsonrpc":2,"id":1,"result":true}
+            """));
 
         JsonRpcIncomingResponse response = envelope.singleResponse().orElseThrow();
         assertNull(response.jsonrpc());
@@ -56,8 +56,8 @@ class DefaultJsonRpcResponseParserTest {
     @Test
     void parsePreservesFieldPresenceForNullValues() throws Exception {
         JsonRpcIncomingResponseEnvelope envelope = parser.parse(OBJECT_MAPPER.readTree("""
-                {"jsonrpc":"2.0","id":null,"result":null}
-                """));
+            {"jsonrpc":"2.0","id":null,"result":null}
+            """));
 
         JsonRpcIncomingResponse response = envelope.singleResponse().orElseThrow();
         assertTrue(response.idPresent());
@@ -76,7 +76,7 @@ class DefaultJsonRpcResponseParserTest {
         assertThrows(JsonRpcException.class, () -> parser.parse(OBJECT_MAPPER.readTree("1")));
         assertThrows(JsonRpcException.class, () -> parser.parse(OBJECT_MAPPER.readTree("[]")));
         assertThrows(JsonRpcException.class, () -> parser.parse(OBJECT_MAPPER.readTree("""
-                [{"jsonrpc":"2.0","id":1,"result":1}, 2]
-                """)));
+            [{"jsonrpc":"2.0","id":1,"result":1}, 2]
+            """)));
     }
 }

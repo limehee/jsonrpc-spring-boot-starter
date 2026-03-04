@@ -1,7 +1,7 @@
 package com.limehee.jsonrpc.core;
 
-import tools.jackson.databind.JsonNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Intercepts dispatcher lifecycle events.
@@ -30,7 +30,7 @@ public interface JsonRpcInterceptor {
      * Called right after a method handler returns successfully.
      *
      * @param request validated request model
-     * @param result result payload returned by the handler
+     * @param result  result payload returned by the handler
      */
     default void afterInvoke(JsonRpcRequest request, JsonNode result) {
     }
@@ -38,8 +38,8 @@ public interface JsonRpcInterceptor {
     /**
      * Called when any error is mapped to a JSON-RPC error.
      *
-     * @param request request model when available; {@code null} when parsing failed before request construction
-     * @param throwable original exception
+     * @param request     request model when available; {@code null} when parsing failed before request construction
+     * @param throwable   original exception
      * @param mappedError mapped JSON-RPC error object
      */
     default void onError(@Nullable JsonRpcRequest request, Throwable throwable, JsonRpcError mappedError) {

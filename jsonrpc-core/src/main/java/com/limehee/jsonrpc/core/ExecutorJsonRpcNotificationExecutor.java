@@ -1,7 +1,7 @@
 package com.limehee.jsonrpc.core;
 
-import java.util.concurrent.Executor;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 
 /**
  * Notification executor that delegates execution to a supplied {@link Executor}.
