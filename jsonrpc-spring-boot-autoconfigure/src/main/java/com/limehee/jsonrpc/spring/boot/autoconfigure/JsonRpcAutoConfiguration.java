@@ -21,7 +21,9 @@ import com.limehee.jsonrpc.core.JsonRpcMethodRegistry;
 import com.limehee.jsonrpc.core.JsonRpcNotificationExecutor;
 import com.limehee.jsonrpc.core.JsonRpcParameterBinder;
 import com.limehee.jsonrpc.core.JsonRpcRequestParser;
+import com.limehee.jsonrpc.core.JsonRpcRequestValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcRequestValidator;
+import com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcResponseComposer;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
@@ -92,14 +94,14 @@ public class JsonRpcAutoConfiguration {
     }
 
     /**
-     * Creates request validator for JSON-RPC structural checks.
+     * Creates request-validation options bound from external configuration.
      *
      * @param properties bound JSON-RPC properties
-     * @return request validator
+     * @return request-validation options
      */
     @Bean
     @ConditionalOnMissingBean
-    public JsonRpcRequestValidator jsonRpcRequestValidator(JsonRpcProperties properties) {
+    public JsonRpcRequestValidationOptions jsonRpcRequestValidationOptions(JsonRpcProperties properties) {
         JsonRpcProperties.Validation validation = properties.getValidation();
         if (validation == null) {
             throw new IllegalArgumentException("jsonrpc.validation must not be null");
@@ -113,9 +115,28 @@ public class JsonRpcAutoConfiguration {
                 "jsonrpc.validation.request.params-type-violation-code-policy must not be null"
             );
         }
-        return new DefaultJsonRpcRequestValidator(
-            request.getParamsTypeViolationCodePolicy()
-        );
+        return JsonRpcRequestValidationOptions.builder()
+            .requireJsonRpcVersion20(request.isRequireJsonRpcVersion20())
+            .requireIdMember(request.isRequireIdMember())
+            .allowNullId(request.isAllowNullId())
+            .allowStringId(request.isAllowStringId())
+            .allowNumericId(request.isAllowNumericId())
+            .allowFractionalId(request.isAllowFractionalId())
+            .rejectResponseFields(request.isRejectResponseFields())
+            .paramsTypeViolationCodePolicy(request.getParamsTypeViolationCodePolicy())
+            .build();
+    }
+
+    /**
+     * Creates request validator for JSON-RPC structural checks.
+     *
+     * @param options request-validation options
+     * @return request validator
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public JsonRpcRequestValidator jsonRpcRequestValidator(JsonRpcRequestValidationOptions options) {
+        return new DefaultJsonRpcRequestValidator(options);
     }
 
     /**
@@ -135,18 +156,33 @@ public class JsonRpcAutoConfiguration {
         if (response == null) {
             throw new IllegalArgumentException("jsonrpc.validation.response must not be null");
         }
+        JsonRpcProperties.Validation.Response.ErrorCode errorCode = response.getErrorCode();
+        if (errorCode == null) {
+            throw new IllegalArgumentException("jsonrpc.validation.response.error-code must not be null");
+        }
+        if (errorCode.getPolicy() == null) {
+            throw new IllegalArgumentException("jsonrpc.validation.response.error-code.policy must not be null");
+        }
+        JsonRpcProperties.Validation.Response.ErrorCode.Range range = errorCode.getRange();
+        if (range == null) {
+            throw new IllegalArgumentException("jsonrpc.validation.response.error-code.range must not be null");
+        }
         return JsonRpcResponseValidationOptions.builder()
             .requireJsonRpcVersion20(response.isRequireJsonRpcVersion20())
-            .requireResponseIdMember(response.isRequireResponseIdMember())
-            .allowNullResponseId(response.isAllowNullResponseId())
-            .allowStringResponseId(response.isAllowStringResponseId())
-            .allowNumericResponseId(response.isAllowNumericResponseId())
-            .allowFractionalResponseId(response.isAllowFractionalResponseId())
+            .requireIdMember(response.isRequireIdMember())
+            .allowNullId(response.isAllowNullId())
+            .allowStringId(response.isAllowStringId())
+            .allowNumericId(response.isAllowNumericId())
+            .allowFractionalId(response.isAllowFractionalId())
             .requireExclusiveResultOrError(response.isRequireExclusiveResultOrError())
             .requireErrorObjectWhenPresent(response.isRequireErrorObjectWhenPresent())
             .requireIntegerErrorCode(response.isRequireIntegerErrorCode())
             .requireStringErrorMessage(response.isRequireStringErrorMessage())
-            .allowRequestFieldsInResponse(response.isAllowRequestFieldsInResponse())
+            .rejectRequestFields(response.isRejectRequestFields())
+            .rejectDuplicateMembers(response.isRejectDuplicateMembers())
+            .errorCodePolicy(errorCode.getPolicy())
+            .errorCodeRangeMin(range.getMin())
+            .errorCodeRangeMax(range.getMax())
             .build();
     }
 
@@ -469,7 +505,8 @@ public class JsonRpcAutoConfiguration {
             objectMapper,
             httpStatusStrategy,
             properties.getMaxRequestBytes(),
-            webMvcObserver
+            webMvcObserver,
+            properties.getValidation().getRequest().isRejectDuplicateMembers()
         );
     }
 
@@ -537,6 +574,36 @@ public class JsonRpcAutoConfiguration {
         }
         if (properties.getValidation().getResponse() == null) {
             throw new IllegalArgumentException("jsonrpc.validation.response must not be null");
+        }
+        if (properties.getValidation().getResponse().getErrorCode() == null) {
+            throw new IllegalArgumentException("jsonrpc.validation.response.error-code must not be null");
+        }
+        if (properties.getValidation().getResponse().getErrorCode().getPolicy() == null) {
+            throw new IllegalArgumentException("jsonrpc.validation.response.error-code.policy must not be null");
+        }
+        if (properties.getValidation().getResponse().getErrorCode().getRange() == null) {
+            throw new IllegalArgumentException("jsonrpc.validation.response.error-code.range must not be null");
+        }
+        JsonRpcResponseErrorCodePolicy errorCodePolicy = properties.getValidation().getResponse().getErrorCode().getPolicy();
+        Integer errorCodeMin = properties.getValidation().getResponse().getErrorCode().getRange().getMin();
+        Integer errorCodeMax = properties.getValidation().getResponse().getErrorCode().getRange().getMax();
+        if (!properties.getValidation().getResponse().isRequireIntegerErrorCode()
+            && errorCodePolicy != JsonRpcResponseErrorCodePolicy.ANY_INTEGER) {
+            throw new IllegalArgumentException(
+                "jsonrpc.validation.response.error-code.policy requires jsonrpc.validation.response.require-integer-error-code=true"
+            );
+        }
+        if (errorCodePolicy == JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE) {
+            if (errorCodeMin == null || errorCodeMax == null) {
+                throw new IllegalArgumentException(
+                    "jsonrpc.validation.response.error-code.range.min and range.max are required for CUSTOM_RANGE"
+                );
+            }
+            if (errorCodeMin > errorCodeMax) {
+                throw new IllegalArgumentException(
+                    "jsonrpc.validation.response.error-code.range.min must be less than or equal to range.max"
+                );
+            }
         }
 
         validateMethodList("jsonrpc.method-allowlist", properties.getMethodAllowlist());

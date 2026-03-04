@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.StreamReadFeature;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -28,6 +29,7 @@ public class JsonRpcWebMvcEndpoint {
 
     private final JsonRpcDispatcher dispatcher;
     private final ObjectMapper objectMapper;
+    private final ObjectMapper requestObjectMapper;
     private final JsonRpcHttpStatusStrategy httpStatusStrategy;
     private final int maxRequestBytes;
     private final JsonRpcWebMvcObserver observer;
@@ -51,7 +53,8 @@ public class JsonRpcWebMvcEndpoint {
             objectMapper,
             httpStatusStrategy,
             maxRequestBytes,
-            JsonRpcWebMvcObserver.noOp()
+            JsonRpcWebMvcObserver.noOp(),
+            false
         );
     }
 
@@ -71,8 +74,39 @@ public class JsonRpcWebMvcEndpoint {
         int maxRequestBytes,
         JsonRpcWebMvcObserver observer
     ) {
+        this(
+            dispatcher,
+            objectMapper,
+            httpStatusStrategy,
+            maxRequestBytes,
+            observer,
+            false
+        );
+    }
+
+    /**
+     * Creates an endpoint with explicit transport observer and request duplicate-member policy.
+     *
+     * @param dispatcher               dispatcher that performs JSON-RPC parsing, validation, and invocation
+     * @param objectMapper             mapper used to parse request payloads and serialize responses
+     * @param httpStatusStrategy       strategy that maps JSON-RPC outcomes to HTTP status codes
+     * @param maxRequestBytes          maximum accepted request payload size in bytes
+     * @param observer                 observer receiving transport-level event callbacks
+     * @param rejectDuplicateMembers   {@code true} to reject duplicate request members during JSON parsing
+     */
+    public JsonRpcWebMvcEndpoint(
+        JsonRpcDispatcher dispatcher,
+        ObjectMapper objectMapper,
+        JsonRpcHttpStatusStrategy httpStatusStrategy,
+        int maxRequestBytes,
+        JsonRpcWebMvcObserver observer,
+        boolean rejectDuplicateMembers
+    ) {
         this.dispatcher = dispatcher;
         this.objectMapper = objectMapper;
+        this.requestObjectMapper = rejectDuplicateMembers
+            ? objectMapper.rebuild().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION).build()
+            : objectMapper;
         this.httpStatusStrategy = httpStatusStrategy;
         this.maxRequestBytes = maxRequestBytes;
         this.observer = observer;
@@ -114,7 +148,7 @@ public class JsonRpcWebMvcEndpoint {
 
         JsonNode payload;
         try {
-            payload = objectMapper.readTree(body);
+            payload = requestObjectMapper.readTree(body);
         } catch (JacksonException ex) {
             observer.onParseError();
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());

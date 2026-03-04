@@ -13,7 +13,9 @@ import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcParam;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
+import com.limehee.jsonrpc.core.JsonRpcRequestValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
+import com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
@@ -621,6 +623,40 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void bindsDefaultRequestValidationOptions() {
+        contextRunner.run(context -> {
+            JsonRpcRequestValidationOptions options = context.getBean(JsonRpcRequestValidationOptions.class);
+            JsonRpcRequestValidationOptions coreDefaults = JsonRpcRequestValidationOptions.defaults();
+
+            assertEquals(coreDefaults.requireJsonRpcVersion20(), options.requireJsonRpcVersion20());
+            assertEquals(coreDefaults.requireIdMember(), options.requireIdMember());
+            assertEquals(coreDefaults.allowNullId(), options.allowNullId());
+            assertEquals(coreDefaults.allowStringId(), options.allowStringId());
+            assertEquals(coreDefaults.allowNumericId(), options.allowNumericId());
+            assertEquals(coreDefaults.allowFractionalId(), options.allowFractionalId());
+            assertEquals(coreDefaults.rejectResponseFields(), options.rejectResponseFields());
+            assertEquals(coreDefaults.paramsTypeViolationCodePolicy(), options.paramsTypeViolationCodePolicy());
+        });
+    }
+
+    @Test
+    void appliesConfiguredRequestValidationOptions() {
+        contextRunner
+            .withPropertyValues(
+                "jsonrpc.validation.request.require-id-member=true",
+                "jsonrpc.validation.request.allow-fractional-id=false",
+                "jsonrpc.validation.request.reject-response-fields=true"
+            )
+            .run(context -> {
+                JsonRpcRequestValidationOptions options = context.getBean(JsonRpcRequestValidationOptions.class);
+
+                assertTrue(options.requireIdMember());
+                assertFalse(options.allowFractionalId());
+                assertTrue(options.rejectResponseFields());
+            });
+    }
+
+    @Test
     void bindsDefaultResponseValidationOptions() {
         contextRunner.run(context -> {
             JsonRpcResponseValidationOptions options = context.getBean(JsonRpcResponseValidationOptions.class);
@@ -628,16 +664,19 @@ class JsonRpcAutoConfigurationTest {
             JsonRpcResponseValidationOptions coreDefaults = JsonRpcResponseValidationOptions.defaults();
 
             assertEquals(coreDefaults.requireJsonRpcVersion20(), options.requireJsonRpcVersion20());
-            assertEquals(coreDefaults.requireResponseIdMember(), options.requireResponseIdMember());
-            assertEquals(coreDefaults.allowNullResponseId(), options.allowNullResponseId());
-            assertEquals(coreDefaults.allowStringResponseId(), options.allowStringResponseId());
-            assertEquals(coreDefaults.allowNumericResponseId(), options.allowNumericResponseId());
-            assertEquals(coreDefaults.allowFractionalResponseId(), options.allowFractionalResponseId());
+            assertEquals(coreDefaults.requireIdMember(), options.requireIdMember());
+            assertEquals(coreDefaults.allowNullId(), options.allowNullId());
+            assertEquals(coreDefaults.allowStringId(), options.allowStringId());
+            assertEquals(coreDefaults.allowNumericId(), options.allowNumericId());
+            assertEquals(coreDefaults.allowFractionalId(), options.allowFractionalId());
             assertEquals(coreDefaults.requireExclusiveResultOrError(), options.requireExclusiveResultOrError());
             assertEquals(coreDefaults.requireErrorObjectWhenPresent(), options.requireErrorObjectWhenPresent());
             assertEquals(coreDefaults.requireIntegerErrorCode(), options.requireIntegerErrorCode());
             assertEquals(coreDefaults.requireStringErrorMessage(), options.requireStringErrorMessage());
-            assertEquals(coreDefaults.allowRequestFieldsInResponse(), options.allowRequestFieldsInResponse());
+            assertEquals(coreDefaults.rejectRequestFields(), options.rejectRequestFields());
+            assertEquals(coreDefaults.errorCodePolicy(), options.errorCodePolicy());
+            assertEquals(coreDefaults.errorCodeRangeMin(), options.errorCodeRangeMin());
+            assertEquals(coreDefaults.errorCodeRangeMax(), options.errorCodeRangeMax());
             assertNotNull(responseValidator);
         });
     }
@@ -646,17 +685,51 @@ class JsonRpcAutoConfigurationTest {
     void appliesConfiguredResponseValidationOptions() {
         contextRunner
             .withPropertyValues(
-                "jsonrpc.validation.response.require-response-id-member=false",
-                "jsonrpc.validation.response.allow-fractional-response-id=false",
-                "jsonrpc.validation.response.allow-request-fields-in-response=false"
+                "jsonrpc.validation.response.require-id-member=false",
+                "jsonrpc.validation.response.allow-fractional-id=false",
+                "jsonrpc.validation.response.reject-request-fields=true",
+                "jsonrpc.validation.response.error-code.policy=CUSTOM_RANGE",
+                "jsonrpc.validation.response.error-code.range.min=-45000",
+                "jsonrpc.validation.response.error-code.range.max=-44000"
             )
             .run(context -> {
                 JsonRpcResponseValidationOptions options = context.getBean(JsonRpcResponseValidationOptions.class);
 
-                assertFalse(options.requireResponseIdMember());
-                assertFalse(options.allowFractionalResponseId());
-                assertFalse(options.allowRequestFieldsInResponse());
+                assertFalse(options.requireIdMember());
+                assertFalse(options.allowFractionalId());
+                assertTrue(options.rejectRequestFields());
+                assertTrue(options.errorCodePolicy() == JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE);
+                assertEquals(-45000, options.errorCodeRangeMin());
+                assertEquals(-44000, options.errorCodeRangeMax());
             });
+    }
+
+    @Test
+    void rejectsResponseErrorCodePolicyWithoutIntegerCodeValidation() {
+        contextRunner
+            .withPropertyValues(
+                "jsonrpc.validation.response.require-integer-error-code=false",
+                "jsonrpc.validation.response.error-code.policy=STANDARD_ONLY"
+            )
+            .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void rejectsCustomRangePolicyWhenBoundsAreMissing() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.error-code.policy=CUSTOM_RANGE")
+            .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void rejectsCustomRangePolicyWhenBoundsAreInverted() {
+        contextRunner
+            .withPropertyValues(
+                "jsonrpc.validation.response.error-code.policy=CUSTOM_RANGE",
+                "jsonrpc.validation.response.error-code.range.min=-32000",
+                "jsonrpc.validation.response.error-code.range.max=-32100"
+            )
+            .run(context -> assertNotNull(context.getStartupFailure()));
     }
 
     @Test

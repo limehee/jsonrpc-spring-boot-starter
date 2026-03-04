@@ -191,6 +191,45 @@ class JsonRpcWebMvcEndpointTest {
     }
 
     @Test
+    void allowsDuplicateRequestMembersWhenDuplicateRejectionIsDisabled() throws Exception {
+        MvcResult result = mockMvc.perform(post("/jsonrpc")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1,\"id\":2}"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(),
+            JsonRpcResponse.class);
+        assertEquals("pong", response.result().asString());
+        assertEquals(2, response.id().asInt());
+    }
+
+    @Test
+    void rejectsDuplicateRequestMembersWhenDuplicateRejectionIsEnabled() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
+        JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            1024 * 1024,
+            JsonRpcWebMvcObserver.noOp(),
+            true
+        );
+        MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
+
+        MvcResult result = localMockMvc.perform(post("/jsonrpc")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1,\"id\":2}"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(),
+            JsonRpcResponse.class);
+        assertEquals(JsonRpcErrorCode.PARSE_ERROR, response.error().code());
+    }
+
+    @Test
     void usesCustomStatusStrategyForParseErrorAndPayloadLimit() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
