@@ -3,6 +3,7 @@ package com.limehee.jsonrpc.spring.webmvc;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
+import com.limehee.jsonrpc.core.JsonRpcPayloadReader;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
 import java.util.List;
 import java.util.Objects;
@@ -12,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.core.StreamReadFeature;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -30,7 +30,7 @@ public class JsonRpcWebMvcEndpoint {
 
     private final JsonRpcDispatcher dispatcher;
     private final ObjectMapper objectMapper;
-    private final ObjectMapper requestObjectMapper;
+    private final JsonRpcPayloadReader requestPayloadReader;
     private final JsonRpcHttpStatusStrategy httpStatusStrategy;
     private final int maxRequestBytes;
     private final JsonRpcWebMvcObserver observer;
@@ -111,9 +111,7 @@ public class JsonRpcWebMvcEndpoint {
         if (maxRequestBytes <= 0) {
             throw new IllegalArgumentException("maxRequestBytes must be greater than 0");
         }
-        this.requestObjectMapper = rejectDuplicateMembers
-            ? objectMapper.rebuild().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION).build()
-            : objectMapper;
+        this.requestPayloadReader = new JsonRpcPayloadReader(objectMapper, rejectDuplicateMembers);
         this.httpStatusStrategy = Objects.requireNonNull(httpStatusStrategy, "httpStatusStrategy");
         this.maxRequestBytes = maxRequestBytes;
         this.observer = Objects.requireNonNull(observer, "observer");
@@ -155,7 +153,7 @@ public class JsonRpcWebMvcEndpoint {
 
         JsonNode payload;
         try {
-            payload = requestObjectMapper.readTree(body);
+            payload = requestPayloadReader.readTree(body);
         } catch (JacksonException ex) {
             observer.onParseError();
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());

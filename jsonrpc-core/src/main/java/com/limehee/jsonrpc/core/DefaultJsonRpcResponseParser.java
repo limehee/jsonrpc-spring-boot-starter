@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
-import tools.jackson.core.StreamReadFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -15,9 +14,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
 
-    private final ObjectMapper objectMapper;
-    private final ObjectMapper strictObjectMapper;
-    private final boolean rejectDuplicateMembers;
+    private final JsonRpcPayloadReader payloadReader;
 
     /**
      * Creates a parser with a default ObjectMapper and duplicate-member rejection disabled.
@@ -42,11 +39,10 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
      * @param rejectDuplicateMembers  {@code true} to reject duplicate members while parsing raw JSON input
      */
     public DefaultJsonRpcResponseParser(ObjectMapper objectMapper, boolean rejectDuplicateMembers) {
-        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
-        this.strictObjectMapper = objectMapper.rebuild()
-            .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
-            .build();
-        this.rejectDuplicateMembers = rejectDuplicateMembers;
+        this.payloadReader = new JsonRpcPayloadReader(
+            Objects.requireNonNull(objectMapper, "objectMapper"),
+            rejectDuplicateMembers
+        );
     }
 
     /**
@@ -61,7 +57,7 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
             throw invalidResponseEnvelope();
         }
         try {
-            JsonNode node = parserMapper().readTree(payload);
+            JsonNode node = payloadReader.readTree(payload);
             return parse(node);
         } catch (JacksonException ex) {
             throw invalidResponseEnvelope();
@@ -80,7 +76,7 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
             throw invalidResponseEnvelope();
         }
         try {
-            JsonNode node = parserMapper().readTree(payload);
+            JsonNode node = payloadReader.readTree(payload);
             return parse(node);
         } catch (JacksonException ex) {
             throw invalidResponseEnvelope();
@@ -153,12 +149,4 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
         return new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, "Invalid response envelope");
     }
 
-    /**
-     * Returns the mapper configured according to duplicate-member policy.
-     *
-     * @return mapper used for parsing raw payloads
-     */
-    private ObjectMapper parserMapper() {
-        return rejectDuplicateMembers ? strictObjectMapper : objectMapper;
-    }
 }
