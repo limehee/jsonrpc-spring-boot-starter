@@ -269,6 +269,35 @@ class DefaultJsonRpcResponseValidatorTest {
     }
 
     @Test
+    void validateAllowsServerErrorRangeBoundariesWhenPolicyConfigured() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.STANDARD_OR_SERVER_ERROR_RANGE)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32099,"message":"server"}}
+            """)));
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"server"}}
+            """)));
+    }
+
+    @Test
+    void validateRejectsOutsideServerErrorRangeWhenPolicyConfigured() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.STANDARD_OR_SERVER_ERROR_RANGE)
+                .build()
+        );
+
+        assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32100,"message":"server"}}
+            """)));
+    }
+
+    @Test
     void validateRejectsOutOfRangeCustomErrorCode() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
             JsonRpcResponseValidationOptions.builder()

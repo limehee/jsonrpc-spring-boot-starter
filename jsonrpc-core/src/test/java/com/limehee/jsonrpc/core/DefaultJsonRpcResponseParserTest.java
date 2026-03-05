@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -98,6 +99,12 @@ class DefaultJsonRpcResponseParserTest {
     }
 
     @Test
+    void parseStringRejectsNullPayload() {
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> parser.parse((String) null));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
     void parseStringRejectsDuplicateMembersWhenEnabled() {
         DefaultJsonRpcResponseParser strictParser = new DefaultJsonRpcResponseParser(true);
 
@@ -120,6 +127,43 @@ class DefaultJsonRpcResponseParserTest {
     @Test
     void parseBytesRejectsMalformedJson() {
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> parser.parse("{".getBytes()));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void parseBytesParsesSingleResponseObject() {
+        JsonRpcIncomingResponseEnvelope envelope = parser.parse("""
+            {"jsonrpc":"2.0","id":1,"result":{"ok":true}}
+            """.getBytes(StandardCharsets.UTF_8));
+
+        assertFalse(envelope.isBatch());
+        JsonRpcIncomingResponse response = envelope.singleResponse().orElseThrow();
+        assertEquals(1, response.id().asInt());
+    }
+
+    @Test
+    void parseBytesRejectsDuplicateMembersWhenEnabled() {
+        DefaultJsonRpcResponseParser strictParser = new DefaultJsonRpcResponseParser(true);
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> strictParser.parse("""
+            {"jsonrpc":"2.0","id":1,"id":2,"result":1}
+            """.getBytes(StandardCharsets.UTF_8)));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void parseBytesAllowsDuplicateMembersWhenDisabled() {
+        JsonRpcIncomingResponseEnvelope envelope = parser.parse("""
+            {"jsonrpc":"2.0","id":1,"id":2,"result":1}
+            """.getBytes(StandardCharsets.UTF_8));
+
+        JsonRpcIncomingResponse response = envelope.singleResponse().orElseThrow();
+        assertEquals(2, response.id().asInt());
+    }
+
+    @Test
+    void parseBytesRejectsNullPayload() {
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> parser.parse((byte[]) null));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
     }
 }

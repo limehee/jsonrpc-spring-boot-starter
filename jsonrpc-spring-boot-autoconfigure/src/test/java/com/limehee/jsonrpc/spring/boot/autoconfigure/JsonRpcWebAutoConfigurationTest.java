@@ -18,8 +18,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class JsonRpcWebAutoConfigurationTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final WebApplicationContextRunner webContextRunner = new WebApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(JsonRpcAutoConfiguration.class));
@@ -59,6 +63,36 @@ class JsonRpcWebAutoConfigurationTest {
         webContextRunner
             .withPropertyValues("jsonrpc.max-request-bytes=0")
             .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void keepsRequestDuplicateMemberAcceptanceWhenRequestPolicyIsDisabled() throws Exception {
+        webContextRunner
+            .withPropertyValues("jsonrpc.validation.request.reject-duplicate-members=false")
+            .run(context -> {
+                JsonRpcWebMvcEndpoint endpoint = context.getBean(JsonRpcWebMvcEndpoint.class);
+                HttpStatusCode status = endpoint.invoke(
+                    "{\"jsonrpc\":\"2.0\",\"method\":\"missing\",\"id\":1,\"id\":2}".getBytes(StandardCharsets.UTF_8)
+                ).getStatusCode();
+
+                assertEquals(HttpStatus.OK.value(), status.value());
+            });
+    }
+
+    @Test
+    void rejectsRequestDuplicateMembersWhenRequestPolicyIsEnabled() throws Exception {
+        webContextRunner
+            .withPropertyValues("jsonrpc.validation.request.reject-duplicate-members=true")
+            .run(context -> {
+                JsonRpcWebMvcEndpoint endpoint = context.getBean(JsonRpcWebMvcEndpoint.class);
+                String body = endpoint.invoke(
+                    "{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1,\"id\":2}".getBytes(StandardCharsets.UTF_8)
+                ).getBody();
+
+                assertNotNull(body);
+                int code = OBJECT_MAPPER.readTree(body).get("error").get("code").asInt();
+                assertEquals(-32700, code);
+            });
     }
 
     @Configuration(proxyBeanMethods = false)

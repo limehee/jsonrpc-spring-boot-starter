@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.DefaultJsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcException;
+import com.limehee.jsonrpc.core.JsonRpcIncomingResponse;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
@@ -663,6 +664,50 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void enforcesRequireIdMemberForNotificationLikeRequestWhenConfigured() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.request.require-id-member=true")
+            .withBean("ping", JsonRpcMethodRegistration.class,
+                () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
+            .run(context -> {
+                JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                    "2.0",
+                    null,
+                    "ping",
+                    null,
+                    false
+                ));
+
+                assertNotNull(response.error());
+                assertEquals(-32600, response.error().code());
+                assertNull(response.id());
+            });
+    }
+
+    @Test
+    void enforcesRejectResponseFieldsForRequestWhenConfigured() throws Exception {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.request.reject-response-fields=true")
+            .withBean("ping", JsonRpcMethodRegistration.class,
+                () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
+            .run(context -> {
+                JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                    "2.0",
+                    IntNode.valueOf(41),
+                    "ping",
+                    null,
+                    true,
+                    new ObjectMapper().readTree("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":41,\"result\":1}")
+                ));
+
+                assertNotNull(response.error());
+                assertEquals(-32600, response.error().code());
+            });
+    }
+
+    @Test
     void bindsDefaultResponseValidationOptions() {
         contextRunner.run(context -> {
             JsonRpcResponseValidationOptions options = context.getBean(JsonRpcResponseValidationOptions.class);
@@ -707,6 +752,28 @@ class JsonRpcAutoConfigurationTest {
                 assertTrue(options.errorCodePolicy() == JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE);
                 assertEquals(-45000, options.errorCodeRangeMin());
                 assertEquals(-44000, options.errorCodeRangeMax());
+            });
+    }
+
+    @Test
+    void appliesStandardOnlyErrorCodePolicyToResponseValidatorBean() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.error-code.policy=STANDARD_ONLY")
+            .run(context -> {
+                JsonRpcResponseValidator validator = context.getBean(JsonRpcResponseValidator.class);
+                DefaultJsonRpcResponseParser parser = new DefaultJsonRpcResponseParser();
+
+                JsonRpcIncomingResponse standard = parser
+                    .parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32603,\"message\":\"x\"}}")
+                    .singleResponse()
+                    .orElseThrow();
+                JsonRpcIncomingResponse nonStandard = parser
+                    .parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32000,\"message\":\"x\"}}")
+                    .singleResponse()
+                    .orElseThrow();
+
+                validator.validate(standard);
+                assertThrows(JsonRpcException.class, () -> validator.validate(nonStandard));
             });
     }
 
