@@ -54,6 +54,14 @@ class DefaultJsonRpcRequestValidatorTest {
     }
 
     @Test
+    void validateRejectsReservedMethodNamespace() {
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "rpc.system", null, true);
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(request));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
     void validateRejectsInvalidIdType() {
         JsonRpcRequest request = new JsonRpcRequest(
             "2.0",

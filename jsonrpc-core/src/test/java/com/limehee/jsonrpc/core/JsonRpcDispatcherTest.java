@@ -8,7 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
@@ -307,6 +310,28 @@ class JsonRpcDispatcherTest {
     }
 
     @Test
+    void dispatchRejectsReservedMethodNamespaceEvenWhenCustomRegistryAllowsIt() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+            new PermissiveMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of()
+        );
+        dispatcher.register("rpc.system", params -> StringNode.valueOf("ok"));
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"rpc.system","id":1}
+            """));
+
+        JsonRpcResponse response = result.singleResponse().orElseThrow();
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
+    }
+
+    @Test
     void legacyDispatchMethodSupportsSingleRequest() {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
@@ -485,6 +510,33 @@ class JsonRpcDispatcherTest {
             """)));
     }
 
+    @Test
+    void constructorRejectsNonPositiveMaxBatchSize() {
+        assertThrows(IllegalArgumentException.class, () -> new JsonRpcDispatcher(
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            0,
+            List.of(),
+            new DirectJsonRpcNotificationExecutor()
+        ));
+
+        assertThrows(IllegalArgumentException.class, () -> new JsonRpcDispatcher(
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            -1,
+            List.of(),
+            new DirectJsonRpcNotificationExecutor()
+        ));
+    }
+
     private static final class RecordingInterceptor implements JsonRpcInterceptor {
 
         private final List<String> events = new ArrayList<>();
@@ -518,6 +570,21 @@ class JsonRpcDispatcherTest {
         public void execute(Runnable task) {
             executeCount++;
             task.run();
+        }
+    }
+
+    private static final class PermissiveMethodRegistry implements JsonRpcMethodRegistry {
+
+        private final Map<String, JsonRpcMethodHandler> handlers = new HashMap<>();
+
+        @Override
+        public void register(String method, JsonRpcMethodHandler handler) {
+            handlers.put(method, handler);
+        }
+
+        @Override
+        public Optional<JsonRpcMethodHandler> find(String method) {
+            return Optional.ofNullable(handlers.get(method));
         }
     }
 }

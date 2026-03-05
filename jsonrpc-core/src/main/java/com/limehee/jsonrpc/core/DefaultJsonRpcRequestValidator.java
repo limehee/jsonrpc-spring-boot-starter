@@ -41,7 +41,7 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
     }
 
     /**
-     * Validates protocol version, method presence, id shape, and params type.
+     * Validates protocol version, method presence, reserved method namespace, id shape, and params type.
      *
      * @param request parsed request model
      * @throws JsonRpcException when request violates JSON-RPC 2.0 constraints
@@ -57,6 +57,9 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
         }
 
         if (request.method() == null || request.method().isBlank()) {
+            throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+        }
+        if (request.method().startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX)) {
             throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
         }
 

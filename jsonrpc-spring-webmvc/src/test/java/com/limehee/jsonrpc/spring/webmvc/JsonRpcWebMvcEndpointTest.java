@@ -1,6 +1,7 @@
 package com.limehee.jsonrpc.spring.webmvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -347,6 +348,25 @@ class JsonRpcWebMvcEndpointTest {
         assertEquals(1, observer.batchResponses);
         assertEquals(3, observer.lastBatchRequestCount);
         assertEquals(2, observer.lastBatchResponseCount);
+    }
+
+    @Test
+    void constructorRejectsNonPositiveMaxRequestBytes() {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        assertThrows(IllegalArgumentException.class, () -> new JsonRpcWebMvcEndpoint(
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            0
+        ));
+
+        assertThrows(IllegalArgumentException.class, () -> new JsonRpcWebMvcEndpoint(
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            -1
+        ));
     }
 
     private static final class RecordingObserver implements JsonRpcWebMvcObserver {

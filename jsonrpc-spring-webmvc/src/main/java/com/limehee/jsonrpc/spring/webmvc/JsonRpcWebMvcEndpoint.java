@@ -5,6 +5,7 @@ import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,7 @@ public class JsonRpcWebMvcEndpoint {
      * @param objectMapper       mapper used to parse request payloads and serialize responses
      * @param httpStatusStrategy strategy that maps JSON-RPC outcomes to HTTP status codes
      * @param maxRequestBytes    maximum accepted request payload size in bytes
+     * @throws IllegalArgumentException if {@code maxRequestBytes <= 0}
      */
     public JsonRpcWebMvcEndpoint(
         JsonRpcDispatcher dispatcher,
@@ -66,6 +68,7 @@ public class JsonRpcWebMvcEndpoint {
      * @param httpStatusStrategy strategy that maps JSON-RPC outcomes to HTTP status codes
      * @param maxRequestBytes    maximum accepted request payload size in bytes
      * @param observer           observer receiving transport-level event callbacks
+     * @throws IllegalArgumentException if {@code maxRequestBytes <= 0}
      */
     public JsonRpcWebMvcEndpoint(
         JsonRpcDispatcher dispatcher,
@@ -93,6 +96,7 @@ public class JsonRpcWebMvcEndpoint {
      * @param maxRequestBytes          maximum accepted request payload size in bytes
      * @param observer                 observer receiving transport-level event callbacks
      * @param rejectDuplicateMembers   {@code true} to reject duplicate request members during JSON parsing
+     * @throws IllegalArgumentException if {@code maxRequestBytes <= 0}
      */
     public JsonRpcWebMvcEndpoint(
         JsonRpcDispatcher dispatcher,
@@ -102,14 +106,17 @@ public class JsonRpcWebMvcEndpoint {
         JsonRpcWebMvcObserver observer,
         boolean rejectDuplicateMembers
     ) {
-        this.dispatcher = dispatcher;
-        this.objectMapper = objectMapper;
+        this.dispatcher = Objects.requireNonNull(dispatcher, "dispatcher");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
+        if (maxRequestBytes <= 0) {
+            throw new IllegalArgumentException("maxRequestBytes must be greater than 0");
+        }
         this.requestObjectMapper = rejectDuplicateMembers
             ? objectMapper.rebuild().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION).build()
             : objectMapper;
-        this.httpStatusStrategy = httpStatusStrategy;
+        this.httpStatusStrategy = Objects.requireNonNull(httpStatusStrategy, "httpStatusStrategy");
         this.maxRequestBytes = maxRequestBytes;
-        this.observer = observer;
+        this.observer = Objects.requireNonNull(observer, "observer");
     }
 
     /**
