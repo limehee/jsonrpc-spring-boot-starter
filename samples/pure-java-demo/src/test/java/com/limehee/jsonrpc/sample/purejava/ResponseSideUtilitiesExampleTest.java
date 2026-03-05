@@ -69,4 +69,30 @@ class ResponseSideUtilitiesExampleTest {
             {"jsonrpc":"2.0","id":1,"error":{"code":"bad","message":1}}
             """));
     }
+
+    @Test
+    void rejectsDuplicateMembersWhenConfigured() {
+        ResponseSideUtilitiesExample example = new ResponseSideUtilitiesExample(
+            JsonRpcResponseValidationOptions.builder()
+                .rejectDuplicateMembers(true)
+                .build()
+        );
+
+        assertThrows(JsonRpcException.class, () -> example.inspect("""
+            {"jsonrpc":"2.0","id":1,"id":2,"result":"pong"}
+            """));
+    }
+
+    @Test
+    void rejectsRequestFieldsInsideResponseWhenConfigured() {
+        ResponseSideUtilitiesExample example = new ResponseSideUtilitiesExample(
+            JsonRpcResponseValidationOptions.builder()
+                .rejectRequestFields(true)
+                .build()
+        );
+
+        assertThrows(JsonRpcException.class, () -> example.inspect("""
+            {"jsonrpc":"2.0","id":1,"result":"pong","method":"ping"}
+            """));
+    }
 }

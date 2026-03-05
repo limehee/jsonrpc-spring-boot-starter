@@ -130,6 +130,31 @@ curl -s http://localhost:8080/jsonrpc \
 - Custom exception mapping path (`JsonRpcExceptionResolver` override) is covered by
   `GreetingRpcServiceCustomExceptionResolverIntegrationTest`.
 
+## Validation Profile Scenarios
+
+Spring sample also demonstrates request/response validation key symmetry through properties:
+
+```yaml
+jsonrpc:
+  validation:
+    request:
+      require-id-member: true
+      allow-fractional-id: false
+      reject-response-fields: true
+      reject-duplicate-members: true
+    response:
+      reject-request-fields: true
+      reject-duplicate-members: true
+      error-code:
+        policy: STANDARD_ONLY
+```
+
+Covered by `GreetingRpcServiceValidationProfilesIntegrationTest`:
+
+- request-side validation at the HTTP endpoint (`require-id-member`, fractional ID, polluted request fields, duplicate
+  members)
+- response-side parser/validator beans (`reject-duplicate-members`, `reject-request-fields`, `error-code.policy`)
+
 ## Test Coverage Entry Points
 
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceIntegrationTest.java`
@@ -140,3 +165,4 @@ curl -s http://localhost:8080/jsonrpc \
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceConflictPolicyIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceErrorDataExposureIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceCustomExceptionResolverIntegrationTest.java`
+- `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceValidationProfilesIntegrationTest.java`
