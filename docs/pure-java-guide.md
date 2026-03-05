@@ -207,6 +207,7 @@ JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
 ```
 
 This keeps protocol behavior while letting you customize policy and implementation.
+`maxBatchSize` must be greater than `0` (fail-fast `IllegalArgumentException` otherwise).
 
 `JsonRpcParamsTypeViolationCodePolicy` controls which code is used when request `params` is present but not
 an object/array:

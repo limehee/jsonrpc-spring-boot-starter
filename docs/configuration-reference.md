@@ -93,7 +93,8 @@ Rules:
 
 - denylist always overrides allowlist
 - if allowlist is non-empty, methods not in allowlist are denied
-- `rpc.*` methods are blocked by registry independently of allow/deny lists
+- `rpc.*` methods are blocked by request validation, and also by the default registry independently of allow/deny
+  lists
 
 ### 3.2 Notification executor resolution
 
@@ -232,7 +233,11 @@ This enables:
 
 - property key completion
 - enum value suggestions (`REJECT`, `REPLACE`, `INVALID_PARAMS`, `INVALID_REQUEST`, error-code policy values)
+- example numeric suggestions for `jsonrpc.validation.response.error-code.range.min/max`
 - metadata hints in IntelliJ and Spring-aware tooling
+
+Hints are suggestions for IDE completion only. They do not restrict allowed runtime values unless validation rules
+explicitly enforce constraints.
 
 ## 8. Related References
 

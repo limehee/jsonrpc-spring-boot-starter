@@ -114,8 +114,9 @@ This library does not expose predefined strict/lenient modes; policy is controll
 
 ## Reserved Method Namespace
 
-Methods starting with `rpc.` are rejected at registration (`IllegalArgumentException`) to preserve reserved namespace
-semantics.
+Methods starting with `rpc.` are treated as invalid requests during request validation (`-32600`).
+Default in-memory registration also rejects `rpc.*` method names (`IllegalArgumentException`), so both registration and
+dispatch paths preserve reserved namespace semantics.
 
 ## HTTP Mapping Notes
 

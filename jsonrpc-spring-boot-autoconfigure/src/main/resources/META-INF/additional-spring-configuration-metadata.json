@@ -51,6 +51,7 @@
     {
       "name": "jsonrpc.metrics-latency-percentiles",
       "type": "java.util.List<java.lang.Double>",
+      "defaultValue": [],
       "description": "Optional latency percentiles to publish (each value must be between 0.0 and 1.0, exclusive)."
     },
     {
@@ -222,11 +223,13 @@
     {
       "name": "jsonrpc.method-allowlist",
       "type": "java.util.List<java.lang.String>",
+      "defaultValue": [],
       "description": "Allowed JSON-RPC method names. Empty list means allow all. Blank entries are invalid."
     },
     {
       "name": "jsonrpc.method-denylist",
       "type": "java.util.List<java.lang.String>",
+      "defaultValue": [],
       "description": "Denied JSON-RPC method names. Denylist takes precedence over allowlist membership. Blank entries are invalid."
     }
   ],
@@ -278,6 +281,28 @@
         },
         {
           "value": "CUSTOM_RANGE"
+        }
+      ]
+    },
+    {
+      "name": "jsonrpc.validation.response.error-code.range.min",
+      "values": [
+        {
+          "value": -32099
+        },
+        {
+          "value": -32603
+        }
+      ]
+    },
+    {
+      "name": "jsonrpc.validation.response.error-code.range.max",
+      "values": [
+        {
+          "value": -32000
+        },
+        {
+          "value": -32001
         }
       ]
     },

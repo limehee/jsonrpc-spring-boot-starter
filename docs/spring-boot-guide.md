@@ -330,7 +330,8 @@ Rules:
 1. Empty allowlist means all methods are allowed unless denied.
 2. Non-empty allowlist means only listed methods are allowed.
 3. Denylist always wins over allowlist.
-4. `rpc.*` methods are blocked by registry regardless of allow/deny lists.
+4. `rpc.*` methods are blocked by JSON-RPC request validation and by the default registry regardless of
+   allow/deny lists.
 
 ## 8. Notification Execution Strategy
 
