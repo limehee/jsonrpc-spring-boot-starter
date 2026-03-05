@@ -4,3 +4,29 @@ server:
 jsonrpc:
   path: /jsonrpc
   include-error-data: false
+  validation:
+    request:
+      require-json-rpc-version-20: true
+      require-id-member: false
+      allow-null-id: true
+      allow-string-id: true
+      allow-numeric-id: true
+      allow-fractional-id: true
+      reject-response-fields: false
+      reject-duplicate-members: false
+      params-type-violation-code-policy: INVALID_PARAMS
+    response:
+      require-json-rpc-version-20: true
+      require-id-member: true
+      allow-null-id: true
+      allow-string-id: true
+      allow-numeric-id: true
+      allow-fractional-id: true
+      require-exclusive-result-or-error: true
+      require-error-object-when-present: true
+      require-integer-error-code: true
+      require-string-error-message: true
+      reject-request-fields: false
+      reject-duplicate-members: false
+      error-code:
+        policy: ANY_INTEGER

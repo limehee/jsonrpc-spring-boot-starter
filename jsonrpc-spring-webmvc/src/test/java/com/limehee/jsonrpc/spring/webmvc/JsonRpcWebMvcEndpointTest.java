@@ -1,6 +1,7 @@
 package com.limehee.jsonrpc.spring.webmvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -191,6 +192,45 @@ class JsonRpcWebMvcEndpointTest {
     }
 
     @Test
+    void allowsDuplicateRequestMembersWhenDuplicateRejectionIsDisabled() throws Exception {
+        MvcResult result = mockMvc.perform(post("/jsonrpc")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1,\"id\":2}"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(),
+            JsonRpcResponse.class);
+        assertEquals("pong", response.result().asString());
+        assertEquals(2, response.id().asInt());
+    }
+
+    @Test
+    void rejectsDuplicateRequestMembersWhenDuplicateRejectionIsEnabled() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
+        JsonRpcWebMvcEndpoint endpoint = new JsonRpcWebMvcEndpoint(
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            1024 * 1024,
+            JsonRpcWebMvcObserver.noOp(),
+            true
+        );
+        MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
+
+        MvcResult result = localMockMvc.perform(post("/jsonrpc")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1,\"id\":2}"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonRpcResponse response = OBJECT_MAPPER.readValue(result.getResponse().getContentAsByteArray(),
+            JsonRpcResponse.class);
+        assertEquals(JsonRpcErrorCode.PARSE_ERROR, response.error().code());
+    }
+
+    @Test
     void usesCustomStatusStrategyForParseErrorAndPayloadLimit() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
@@ -308,6 +348,25 @@ class JsonRpcWebMvcEndpointTest {
         assertEquals(1, observer.batchResponses);
         assertEquals(3, observer.lastBatchRequestCount);
         assertEquals(2, observer.lastBatchResponseCount);
+    }
+
+    @Test
+    void constructorRejectsNonPositiveMaxRequestBytes() {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        assertThrows(IllegalArgumentException.class, () -> new JsonRpcWebMvcEndpoint(
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            0
+        ));
+
+        assertThrows(IllegalArgumentException.class, () -> new JsonRpcWebMvcEndpoint(
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            -1
+        ));
     }
 
     private static final class RecordingObserver implements JsonRpcWebMvcObserver {

@@ -2,9 +2,11 @@ package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy;
 import com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy;
+import com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -378,8 +380,160 @@ public class JsonRpcProperties {
          */
         public static final class Request {
 
+            private boolean requireJsonRpcVersion20 = true;
+            private boolean requireIdMember = false;
+            private boolean allowNullId = true;
+            private boolean allowStringId = true;
+            private boolean allowNumericId = true;
+            private boolean allowFractionalId = true;
+            private boolean rejectResponseFields = false;
+            private boolean rejectDuplicateMembers = false;
             private JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy =
                 JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS;
+
+            /**
+             * Indicates whether {@code jsonrpc == "2.0"} is required on incoming requests.
+             *
+             * @return {@code true} when version enforcement is enabled
+             */
+            public boolean isRequireJsonRpcVersion20() {
+                return requireJsonRpcVersion20;
+            }
+
+            /**
+             * Sets whether {@code jsonrpc == "2.0"} is required on incoming requests.
+             *
+             * @param requireJsonRpcVersion20 {@code true} to enforce version field
+             */
+            public void setRequireJsonRpcVersion20(boolean requireJsonRpcVersion20) {
+                this.requireJsonRpcVersion20 = requireJsonRpcVersion20;
+            }
+
+            /**
+             * Indicates whether incoming requests must include an {@code id} member.
+             *
+             * @return {@code true} when request {@code id} member is required
+             */
+            public boolean isRequireIdMember() {
+                return requireIdMember;
+            }
+
+            /**
+             * Sets whether incoming requests must include an {@code id} member.
+             *
+             * @param requireIdMember {@code true} to require request {@code id}
+             */
+            public void setRequireIdMember(boolean requireIdMember) {
+                this.requireIdMember = requireIdMember;
+            }
+
+            /**
+             * Indicates whether {@code id: null} is allowed in incoming requests.
+             *
+             * @return {@code true} when null IDs are accepted
+             */
+            public boolean isAllowNullId() {
+                return allowNullId;
+            }
+
+            /**
+             * Sets whether {@code id: null} is allowed in incoming requests.
+             *
+             * @param allowNullId {@code true} to accept null IDs
+             */
+            public void setAllowNullId(boolean allowNullId) {
+                this.allowNullId = allowNullId;
+            }
+
+            /**
+             * Indicates whether textual request IDs are allowed.
+             *
+             * @return {@code true} when string IDs are accepted
+             */
+            public boolean isAllowStringId() {
+                return allowStringId;
+            }
+
+            /**
+             * Sets whether textual request IDs are allowed.
+             *
+             * @param allowStringId {@code true} to accept string IDs
+             */
+            public void setAllowStringId(boolean allowStringId) {
+                this.allowStringId = allowStringId;
+            }
+
+            /**
+             * Indicates whether numeric request IDs are allowed.
+             *
+             * @return {@code true} when numeric IDs are accepted
+             */
+            public boolean isAllowNumericId() {
+                return allowNumericId;
+            }
+
+            /**
+             * Sets whether numeric request IDs are allowed.
+             *
+             * @param allowNumericId {@code true} to accept numeric IDs
+             */
+            public void setAllowNumericId(boolean allowNumericId) {
+                this.allowNumericId = allowNumericId;
+            }
+
+            /**
+             * Indicates whether fractional numeric request IDs are allowed.
+             *
+             * @return {@code true} when fractional numeric IDs are accepted
+             */
+            public boolean isAllowFractionalId() {
+                return allowFractionalId;
+            }
+
+            /**
+             * Sets whether fractional numeric request IDs are allowed.
+             *
+             * @param allowFractionalId {@code true} to accept fractional numeric IDs
+             */
+            public void setAllowFractionalId(boolean allowFractionalId) {
+                this.allowFractionalId = allowFractionalId;
+            }
+
+            /**
+             * Indicates whether response-only fields ({@code result}/{@code error}) are rejected in request payloads.
+             *
+             * @return {@code true} when response fields in requests are rejected
+             */
+            public boolean isRejectResponseFields() {
+                return rejectResponseFields;
+            }
+
+            /**
+             * Sets whether response-only fields ({@code result}/{@code error}) are rejected in request payloads.
+             *
+             * @param rejectResponseFields {@code true} to reject response-only fields in requests
+             */
+            public void setRejectResponseFields(boolean rejectResponseFields) {
+                this.rejectResponseFields = rejectResponseFields;
+            }
+
+            /**
+             * Indicates whether duplicate members are rejected in request payload parsing.
+             *
+             * @return {@code true} when duplicate members are rejected
+             */
+            public boolean isRejectDuplicateMembers() {
+                return rejectDuplicateMembers;
+            }
+
+            /**
+             * Sets whether duplicate members are rejected in request payload parsing.
+             *
+             * @param rejectDuplicateMembers {@code true} to reject duplicate members
+             */
+            public void setRejectDuplicateMembers(boolean rejectDuplicateMembers) {
+                this.rejectDuplicateMembers = rejectDuplicateMembers;
+            }
 
             /**
              * Returns the error-code mapping policy used when request {@code params} exists but is neither an object
@@ -413,16 +567,18 @@ public class JsonRpcProperties {
         public static final class Response {
 
             private boolean requireJsonRpcVersion20 = true;
-            private boolean requireResponseIdMember = true;
-            private boolean allowNullResponseId = true;
-            private boolean allowStringResponseId = true;
-            private boolean allowNumericResponseId = true;
-            private boolean allowFractionalResponseId = true;
+            private boolean requireIdMember = true;
+            private boolean allowNullId = true;
+            private boolean allowStringId = true;
+            private boolean allowNumericId = true;
+            private boolean allowFractionalId = true;
             private boolean requireExclusiveResultOrError = true;
             private boolean requireErrorObjectWhenPresent = true;
             private boolean requireIntegerErrorCode = true;
             private boolean requireStringErrorMessage = true;
-            private boolean allowRequestFieldsInResponse = true;
+            private boolean rejectRequestFields = false;
+            private boolean rejectDuplicateMembers = false;
+            private ErrorCode errorCode = new ErrorCode();
 
             /**
              * Indicates whether {@code jsonrpc == "2.0"} is required on incoming responses.
@@ -447,17 +603,17 @@ public class JsonRpcProperties {
              *
              * @return {@code true} when response {@code id} member is required
              */
-            public boolean isRequireResponseIdMember() {
-                return requireResponseIdMember;
+            public boolean isRequireIdMember() {
+                return requireIdMember;
             }
 
             /**
              * Sets whether incoming responses must include an {@code id} member.
              *
-             * @param requireResponseIdMember {@code true} to require response {@code id}
+             * @param requireIdMember {@code true} to require response {@code id}
              */
-            public void setRequireResponseIdMember(boolean requireResponseIdMember) {
-                this.requireResponseIdMember = requireResponseIdMember;
+            public void setRequireIdMember(boolean requireIdMember) {
+                this.requireIdMember = requireIdMember;
             }
 
             /**
@@ -465,17 +621,17 @@ public class JsonRpcProperties {
              *
              * @return {@code true} when null IDs are accepted
              */
-            public boolean isAllowNullResponseId() {
-                return allowNullResponseId;
+            public boolean isAllowNullId() {
+                return allowNullId;
             }
 
             /**
              * Sets whether {@code id: null} is allowed in incoming responses.
              *
-             * @param allowNullResponseId {@code true} to accept null IDs
+             * @param allowNullId {@code true} to accept null IDs
              */
-            public void setAllowNullResponseId(boolean allowNullResponseId) {
-                this.allowNullResponseId = allowNullResponseId;
+            public void setAllowNullId(boolean allowNullId) {
+                this.allowNullId = allowNullId;
             }
 
             /**
@@ -483,17 +639,17 @@ public class JsonRpcProperties {
              *
              * @return {@code true} when string IDs are accepted
              */
-            public boolean isAllowStringResponseId() {
-                return allowStringResponseId;
+            public boolean isAllowStringId() {
+                return allowStringId;
             }
 
             /**
              * Sets whether textual response IDs are allowed.
              *
-             * @param allowStringResponseId {@code true} to accept string IDs
+             * @param allowStringId {@code true} to accept string IDs
              */
-            public void setAllowStringResponseId(boolean allowStringResponseId) {
-                this.allowStringResponseId = allowStringResponseId;
+            public void setAllowStringId(boolean allowStringId) {
+                this.allowStringId = allowStringId;
             }
 
             /**
@@ -501,17 +657,17 @@ public class JsonRpcProperties {
              *
              * @return {@code true} when numeric IDs are accepted
              */
-            public boolean isAllowNumericResponseId() {
-                return allowNumericResponseId;
+            public boolean isAllowNumericId() {
+                return allowNumericId;
             }
 
             /**
              * Sets whether numeric response IDs are allowed.
              *
-             * @param allowNumericResponseId {@code true} to accept numeric IDs
+             * @param allowNumericId {@code true} to accept numeric IDs
              */
-            public void setAllowNumericResponseId(boolean allowNumericResponseId) {
-                this.allowNumericResponseId = allowNumericResponseId;
+            public void setAllowNumericId(boolean allowNumericId) {
+                this.allowNumericId = allowNumericId;
             }
 
             /**
@@ -519,17 +675,17 @@ public class JsonRpcProperties {
              *
              * @return {@code true} when fractional numeric IDs are accepted
              */
-            public boolean isAllowFractionalResponseId() {
-                return allowFractionalResponseId;
+            public boolean isAllowFractionalId() {
+                return allowFractionalId;
             }
 
             /**
              * Sets whether fractional numeric response IDs are allowed.
              *
-             * @param allowFractionalResponseId {@code true} to accept fractional numeric IDs
+             * @param allowFractionalId {@code true} to accept fractional numeric IDs
              */
-            public void setAllowFractionalResponseId(boolean allowFractionalResponseId) {
-                this.allowFractionalResponseId = allowFractionalResponseId;
+            public void setAllowFractionalId(boolean allowFractionalId) {
+                this.allowFractionalId = allowFractionalId;
             }
 
             /**
@@ -605,22 +761,148 @@ public class JsonRpcProperties {
             }
 
             /**
-             * Indicates whether request-only fields like {@code method}/{@code params} are allowed in response
+             * Indicates whether request-only fields like {@code method}/{@code params} are rejected in response
              * objects.
              *
-             * @return {@code true} when request fields are tolerated in responses
+             * @return {@code true} when request fields are rejected in responses
              */
-            public boolean isAllowRequestFieldsInResponse() {
-                return allowRequestFieldsInResponse;
+            public boolean isRejectRequestFields() {
+                return rejectRequestFields;
             }
 
             /**
-             * Sets whether request-only fields like {@code method}/{@code params} are allowed in response objects.
+             * Sets whether request-only fields like {@code method}/{@code params} are rejected in response objects.
              *
-             * @param allowRequestFieldsInResponse {@code true} to allow request fields in response
+             * @param rejectRequestFields {@code true} to reject request fields in response
              */
-            public void setAllowRequestFieldsInResponse(boolean allowRequestFieldsInResponse) {
-                this.allowRequestFieldsInResponse = allowRequestFieldsInResponse;
+            public void setRejectRequestFields(boolean rejectRequestFields) {
+                this.rejectRequestFields = rejectRequestFields;
+            }
+
+            /**
+             * Indicates whether duplicate members are rejected in response payload parsing.
+             *
+             * @return {@code true} when duplicate members are rejected
+             */
+            public boolean isRejectDuplicateMembers() {
+                return rejectDuplicateMembers;
+            }
+
+            /**
+             * Sets whether duplicate members are rejected in response payload parsing.
+             *
+             * @param rejectDuplicateMembers {@code true} to reject duplicate members
+             */
+            public void setRejectDuplicateMembers(boolean rejectDuplicateMembers) {
+                this.rejectDuplicateMembers = rejectDuplicateMembers;
+            }
+
+            /**
+             * Returns response error-code validation settings under {@code jsonrpc.validation.response.error-code.*}.
+             *
+             * @return response error-code settings
+             */
+            public ErrorCode getErrorCode() {
+                return errorCode;
+            }
+
+            /**
+             * Sets response error-code validation settings under {@code jsonrpc.validation.response.error-code.*}.
+             *
+             * @param errorCode response error-code settings; must not be {@code null}
+             */
+            public void setErrorCode(ErrorCode errorCode) {
+                this.errorCode = Objects.requireNonNull(errorCode, "errorCode");
+            }
+
+            /**
+             * Response error-code validation settings.
+             */
+            public static final class ErrorCode {
+
+                private JsonRpcResponseErrorCodePolicy policy = JsonRpcResponseErrorCodePolicy.ANY_INTEGER;
+                private Range range = new Range();
+
+                /**
+                 * Returns accepted error-code policy.
+                 *
+                 * @return error-code policy
+                 */
+                public JsonRpcResponseErrorCodePolicy getPolicy() {
+                    return policy;
+                }
+
+                /**
+                 * Sets accepted error-code policy.
+                 *
+                 * @param policy error-code policy
+                 */
+                public void setPolicy(JsonRpcResponseErrorCodePolicy policy) {
+                    this.policy = Objects.requireNonNull(policy, "policy");
+                }
+
+                /**
+                 * Returns custom range configuration for {@code CUSTOM_RANGE} policy.
+                 *
+                 * @return custom range configuration
+                 */
+                public Range getRange() {
+                    return range;
+                }
+
+                /**
+                 * Sets custom range configuration for {@code CUSTOM_RANGE} policy.
+                 *
+                 * @param range custom range configuration; must not be {@code null}
+                 */
+                public void setRange(Range range) {
+                    this.range = Objects.requireNonNull(range, "range");
+                }
+
+                /**
+                 * Range configuration for custom response error-code policy.
+                 */
+                public static final class Range {
+
+                    private @Nullable Integer min;
+                    private @Nullable Integer max;
+
+                    /**
+                     * Returns inclusive minimum of allowed error-code range.
+                     *
+                     * @return inclusive minimum, or {@code null} when unspecified
+                     */
+                    public @Nullable Integer getMin() {
+                        return min;
+                    }
+
+                    /**
+                     * Sets inclusive minimum of allowed error-code range.
+                     *
+                     * @param min inclusive minimum, or {@code null} when unspecified
+                     */
+                    public void setMin(@Nullable Integer min) {
+                        this.min = min;
+                    }
+
+                    /**
+                     * Returns inclusive maximum of allowed error-code range.
+                     *
+                     * @return inclusive maximum, or {@code null} when unspecified
+                     */
+                    public @Nullable Integer getMax() {
+                        return max;
+                    }
+
+                    /**
+                     * Sets inclusive maximum of allowed error-code range.
+                     *
+                     * @param max inclusive maximum, or {@code null} when unspecified
+                     */
+                    public void setMax(@Nullable Integer max) {
+                        this.max = max;
+                    }
+                }
             }
         }
     }

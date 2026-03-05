@@ -27,7 +27,12 @@
 - Failure diagnosis and fixes: [`troubleshooting.md`](troubleshooting.md)
 - Release and publish flow: [`release-checklist.md`](release-checklist.md)
 
-## 5. Repository-Level Docs
+## 5. Samples
+
+- Spring Boot sample: [`../samples/spring-boot-demo/README.md`](../samples/spring-boot-demo/README.md)
+- Pure Java sample: [`../samples/pure-java-demo/README.md`](../samples/pure-java-demo/README.md)
+
+## 6. Repository-Level Docs
 
 - Project overview: [`../README.md`](../README.md)
 - Contribution workflow: [`../CONTRIBUTING.md`](../CONTRIBUTING.md)

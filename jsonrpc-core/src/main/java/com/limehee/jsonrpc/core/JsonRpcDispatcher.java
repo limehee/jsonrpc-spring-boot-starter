@@ -65,6 +65,7 @@ public class JsonRpcDispatcher {
      * @param exceptionResolver exception resolver
      * @param responseComposer  response composer
      * @param maxBatchSize      maximum number of elements allowed in batch payloads
+     * @throws IllegalArgumentException if {@code maxBatchSize <= 0}
      */
     public JsonRpcDispatcher(
         JsonRpcMethodRegistry methodRegistry,
@@ -99,6 +100,7 @@ public class JsonRpcDispatcher {
      * @param responseComposer  response composer
      * @param maxBatchSize      maximum number of elements allowed in batch payloads
      * @param interceptors      interceptor chain executed around request handling
+     * @throws IllegalArgumentException if {@code maxBatchSize <= 0}
      */
     public JsonRpcDispatcher(
         JsonRpcMethodRegistry methodRegistry,
@@ -135,6 +137,7 @@ public class JsonRpcDispatcher {
      * @param maxBatchSize         maximum number of elements allowed in batch payloads
      * @param interceptors         interceptor chain executed around request handling
      * @param notificationExecutor executor used for notification invocations
+     * @throws IllegalArgumentException if {@code maxBatchSize <= 0}
      */
     public JsonRpcDispatcher(
         JsonRpcMethodRegistry methodRegistry,
@@ -153,6 +156,9 @@ public class JsonRpcDispatcher {
         this.methodInvoker = Objects.requireNonNull(methodInvoker, "methodInvoker");
         this.exceptionResolver = Objects.requireNonNull(exceptionResolver, "exceptionResolver");
         this.responseComposer = Objects.requireNonNull(responseComposer, "responseComposer");
+        if (maxBatchSize <= 0) {
+            throw new IllegalArgumentException("maxBatchSize must be greater than 0");
+        }
         this.maxBatchSize = maxBatchSize;
         this.interceptors = List.copyOf(Objects.requireNonNull(interceptors, "interceptors"));
         this.hasInterceptors = !this.interceptors.isEmpty();

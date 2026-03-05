@@ -51,6 +51,7 @@
     {
       "name": "jsonrpc.metrics-latency-percentiles",
       "type": "java.util.List<java.lang.Double>",
+      "defaultValue": [],
       "description": "Optional latency percentiles to publish (each value must be between 0.0 and 1.0, exclusive)."
     },
     {
@@ -78,6 +79,54 @@
       "description": "Policy used when a method name is registered more than once."
     },
     {
+      "name": "jsonrpc.validation.request.require-json-rpc-version-20",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Require incoming request jsonrpc to equal \"2.0\"."
+    },
+    {
+      "name": "jsonrpc.validation.request.require-id-member",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Require incoming requests to include an id member."
+    },
+    {
+      "name": "jsonrpc.validation.request.allow-null-id",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Allow id:null in incoming requests."
+    },
+    {
+      "name": "jsonrpc.validation.request.allow-string-id",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Allow string ids in incoming requests."
+    },
+    {
+      "name": "jsonrpc.validation.request.allow-numeric-id",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Allow numeric ids in incoming requests."
+    },
+    {
+      "name": "jsonrpc.validation.request.allow-fractional-id",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Allow fractional numeric ids in incoming requests."
+    },
+    {
+      "name": "jsonrpc.validation.request.reject-response-fields",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Reject request objects containing response-only fields (result/error)."
+    },
+    {
+      "name": "jsonrpc.validation.request.reject-duplicate-members",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Reject duplicate members when parsing raw JSON request payloads."
+    },
+    {
       "name": "jsonrpc.validation.request.params-type-violation-code-policy",
       "type": "com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy",
       "defaultValue": "INVALID_PARAMS",
@@ -90,31 +139,31 @@
       "description": "Require incoming response jsonrpc to equal \"2.0\"."
     },
     {
-      "name": "jsonrpc.validation.response.require-response-id-member",
+      "name": "jsonrpc.validation.response.require-id-member",
       "type": "java.lang.Boolean",
       "defaultValue": true,
       "description": "Require incoming responses to include an id member."
     },
     {
-      "name": "jsonrpc.validation.response.allow-null-response-id",
+      "name": "jsonrpc.validation.response.allow-null-id",
       "type": "java.lang.Boolean",
       "defaultValue": true,
       "description": "Allow id:null in incoming responses."
     },
     {
-      "name": "jsonrpc.validation.response.allow-string-response-id",
+      "name": "jsonrpc.validation.response.allow-string-id",
       "type": "java.lang.Boolean",
       "defaultValue": true,
       "description": "Allow string ids in incoming responses."
     },
     {
-      "name": "jsonrpc.validation.response.allow-numeric-response-id",
+      "name": "jsonrpc.validation.response.allow-numeric-id",
       "type": "java.lang.Boolean",
       "defaultValue": true,
       "description": "Allow numeric ids in incoming responses."
     },
     {
-      "name": "jsonrpc.validation.response.allow-fractional-response-id",
+      "name": "jsonrpc.validation.response.allow-fractional-id",
       "type": "java.lang.Boolean",
       "defaultValue": true,
       "description": "Allow fractional numeric ids in incoming responses."
@@ -144,19 +193,43 @@
       "description": "Require error.message to be a string when validated."
     },
     {
-      "name": "jsonrpc.validation.response.allow-request-fields-in-response",
+      "name": "jsonrpc.validation.response.reject-request-fields",
       "type": "java.lang.Boolean",
-      "defaultValue": true,
-      "description": "Allow request-only fields (method/params) in incoming responses."
+      "defaultValue": false,
+      "description": "Reject response objects containing request-only fields (method/params)."
+    },
+    {
+      "name": "jsonrpc.validation.response.reject-duplicate-members",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Reject duplicate members when parsing raw JSON response payloads."
+    },
+    {
+      "name": "jsonrpc.validation.response.error-code.policy",
+      "type": "com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy",
+      "defaultValue": "ANY_INTEGER",
+      "description": "Accepted integer range policy for incoming response error.code values."
+    },
+    {
+      "name": "jsonrpc.validation.response.error-code.range.min",
+      "type": "java.lang.Integer",
+      "description": "Inclusive minimum value for CUSTOM_RANGE error-code policy."
+    },
+    {
+      "name": "jsonrpc.validation.response.error-code.range.max",
+      "type": "java.lang.Integer",
+      "description": "Inclusive maximum value for CUSTOM_RANGE error-code policy."
     },
     {
       "name": "jsonrpc.method-allowlist",
       "type": "java.util.List<java.lang.String>",
+      "defaultValue": [],
       "description": "Allowed JSON-RPC method names. Empty list means allow all. Blank entries are invalid."
     },
     {
       "name": "jsonrpc.method-denylist",
       "type": "java.util.List<java.lang.String>",
+      "defaultValue": [],
       "description": "Denied JSON-RPC method names. Denylist takes precedence over allowlist membership. Blank entries are invalid."
     }
   ],
@@ -191,6 +264,45 @@
         },
         {
           "value": "INVALID_REQUEST"
+        }
+      ]
+    },
+    {
+      "name": "jsonrpc.validation.response.error-code.policy",
+      "values": [
+        {
+          "value": "ANY_INTEGER"
+        },
+        {
+          "value": "STANDARD_ONLY"
+        },
+        {
+          "value": "STANDARD_OR_SERVER_ERROR_RANGE"
+        },
+        {
+          "value": "CUSTOM_RANGE"
+        }
+      ]
+    },
+    {
+      "name": "jsonrpc.validation.response.error-code.range.min",
+      "values": [
+        {
+          "value": -32099
+        },
+        {
+          "value": -32603
+        }
+      ]
+    },
+    {
+      "name": "jsonrpc.validation.response.error-code.range.max",
+      "values": [
+        {
+          "value": -32000
+        },
+        {
+          "value": -32001
         }
       ]
     },

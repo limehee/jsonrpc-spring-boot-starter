@@ -3,8 +3,10 @@ package com.limehee.jsonrpc.spring.webmvc;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
+import com.limehee.jsonrpc.core.JsonRpcPayloadReader;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,7 @@ public class JsonRpcWebMvcEndpoint {
 
     private final JsonRpcDispatcher dispatcher;
     private final ObjectMapper objectMapper;
+    private final JsonRpcPayloadReader requestPayloadReader;
     private final JsonRpcHttpStatusStrategy httpStatusStrategy;
     private final int maxRequestBytes;
     private final JsonRpcWebMvcObserver observer;
@@ -39,6 +42,7 @@ public class JsonRpcWebMvcEndpoint {
      * @param objectMapper       mapper used to parse request payloads and serialize responses
      * @param httpStatusStrategy strategy that maps JSON-RPC outcomes to HTTP status codes
      * @param maxRequestBytes    maximum accepted request payload size in bytes
+     * @throws IllegalArgumentException if {@code maxRequestBytes <= 0}
      */
     public JsonRpcWebMvcEndpoint(
         JsonRpcDispatcher dispatcher,
@@ -51,7 +55,8 @@ public class JsonRpcWebMvcEndpoint {
             objectMapper,
             httpStatusStrategy,
             maxRequestBytes,
-            JsonRpcWebMvcObserver.noOp()
+            JsonRpcWebMvcObserver.noOp(),
+            false
         );
     }
 
@@ -63,6 +68,7 @@ public class JsonRpcWebMvcEndpoint {
      * @param httpStatusStrategy strategy that maps JSON-RPC outcomes to HTTP status codes
      * @param maxRequestBytes    maximum accepted request payload size in bytes
      * @param observer           observer receiving transport-level event callbacks
+     * @throws IllegalArgumentException if {@code maxRequestBytes <= 0}
      */
     public JsonRpcWebMvcEndpoint(
         JsonRpcDispatcher dispatcher,
@@ -71,11 +77,44 @@ public class JsonRpcWebMvcEndpoint {
         int maxRequestBytes,
         JsonRpcWebMvcObserver observer
     ) {
-        this.dispatcher = dispatcher;
-        this.objectMapper = objectMapper;
-        this.httpStatusStrategy = httpStatusStrategy;
+        this(
+            dispatcher,
+            objectMapper,
+            httpStatusStrategy,
+            maxRequestBytes,
+            observer,
+            false
+        );
+    }
+
+    /**
+     * Creates an endpoint with explicit transport observer and request duplicate-member policy.
+     *
+     * @param dispatcher             dispatcher that performs JSON-RPC parsing, validation, and invocation
+     * @param objectMapper           mapper used to parse request payloads and serialize responses
+     * @param httpStatusStrategy     strategy that maps JSON-RPC outcomes to HTTP status codes
+     * @param maxRequestBytes        maximum accepted request payload size in bytes
+     * @param observer               observer receiving transport-level event callbacks
+     * @param rejectDuplicateMembers {@code true} to reject duplicate request members during JSON parsing
+     * @throws IllegalArgumentException if {@code maxRequestBytes <= 0}
+     */
+    public JsonRpcWebMvcEndpoint(
+        JsonRpcDispatcher dispatcher,
+        ObjectMapper objectMapper,
+        JsonRpcHttpStatusStrategy httpStatusStrategy,
+        int maxRequestBytes,
+        JsonRpcWebMvcObserver observer,
+        boolean rejectDuplicateMembers
+    ) {
+        this.dispatcher = Objects.requireNonNull(dispatcher, "dispatcher");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
+        if (maxRequestBytes <= 0) {
+            throw new IllegalArgumentException("maxRequestBytes must be greater than 0");
+        }
+        this.requestPayloadReader = new JsonRpcPayloadReader(objectMapper, rejectDuplicateMembers);
+        this.httpStatusStrategy = Objects.requireNonNull(httpStatusStrategy, "httpStatusStrategy");
         this.maxRequestBytes = maxRequestBytes;
-        this.observer = observer;
+        this.observer = Objects.requireNonNull(observer, "observer");
     }
 
     /**
@@ -114,7 +153,7 @@ public class JsonRpcWebMvcEndpoint {
 
         JsonNode payload;
         try {
-            payload = objectMapper.readTree(body);
+            payload = requestPayloadReader.readTree(body);
         } catch (JacksonException ex) {
             observer.onParseError();
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());

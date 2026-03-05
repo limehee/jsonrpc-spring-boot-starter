@@ -55,6 +55,9 @@ Implementation constants are in `JsonRpcErrorCode` and messages in `JsonRpcConst
 - `JsonRpcResponseValidator`
 - `JsonRpcResponseValidationOptions`
 
+`DefaultJsonRpcResponseParser` can parse from `JsonNode`, `String`, or `byte[]`, and can optionally reject duplicate
+members during raw JSON parsing.
+
 These APIs are transport-agnostic and useful for bidirectional channels (for example WebSocket) where
 request/response envelopes may arrive on the same connection.
 
@@ -79,18 +82,21 @@ This library does not expose predefined strict/lenient modes; policy is controll
 `JsonRpcResponseValidationOptions` exposes per-rule switches:
 
 - `requireJsonRpcVersion20` (default: `true`)
-- `requireResponseIdMember` (default: `true`)
-- `allowNullResponseId` (default: `true`)
-- `allowStringResponseId` (default: `true`)
-- `allowNumericResponseId` (default: `true`)
-- `allowFractionalResponseId` (default: `true`)
+- `requireIdMember` (default: `true`)
+- `allowNullId` (default: `true`)
+- `allowStringId` (default: `true`)
+- `allowNumericId` (default: `true`)
+- `allowFractionalId` (default: `true`)
 - `requireExclusiveResultOrError` (default: `true`)
 - `requireErrorObjectWhenPresent` (default: `true`)
 - `requireIntegerErrorCode` (default: `true`)
 - `requireStringErrorMessage` (default: `true`)
-- `allowRequestFieldsInResponse` (default: `true`)
+- `rejectRequestFields` (default: `false`)
+- `rejectDuplicateMembers` (default: `false`)
+- `errorCodePolicy` (default: `ANY_INTEGER`)
+- `errorCodeRangeMin` / `errorCodeRangeMax` (default: `null`, used with `CUSTOM_RANGE`)
 
-`allowRequestFieldsInResponse=true` is a compatibility default and is not an RFC MUST rule.
+`rejectRequestFields=false` is a compatibility default and is not an RFC MUST rule.
 
 ## `id` Handling Details
 
@@ -108,8 +114,9 @@ This library does not expose predefined strict/lenient modes; policy is controll
 
 ## Reserved Method Namespace
 
-Methods starting with `rpc.` are rejected at registration (`IllegalArgumentException`) to preserve reserved namespace
-semantics.
+Methods starting with `rpc.` are treated as invalid requests during request validation (`-32600`).
+Default in-memory registration also rejects `rpc.*` method names (`IllegalArgumentException`), so both registration and
+dispatch paths preserve reserved namespace semantics.
 
 ## HTTP Mapping Notes
 

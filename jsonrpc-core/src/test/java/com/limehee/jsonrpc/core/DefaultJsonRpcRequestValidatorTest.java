@@ -14,6 +14,7 @@ import tools.jackson.databind.node.StringNode;
 class DefaultJsonRpcRequestValidatorTest {
 
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
+    private static final JsonRpcRequestParser REQUEST_PARSER = new DefaultJsonRpcRequestParser();
 
     private final DefaultJsonRpcRequestValidator validator = new DefaultJsonRpcRequestValidator();
 
@@ -30,11 +31,32 @@ class DefaultJsonRpcRequestValidatorTest {
 
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(request));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+        assertEquals(JsonRpcConstants.MESSAGE_INVALID_REQUEST, ex.getMessage());
+    }
+
+    @Test
+    void validateAllowsWrongProtocolVersionWhenDisabled() {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .requireJsonRpcVersion20(false)
+                .build()
+        );
+        JsonRpcRequest request = new JsonRpcRequest("1.0", IntNode.valueOf(1), "ping", null, true);
+
+        assertDoesNotThrow(() -> custom.validate(request));
     }
 
     @Test
     void validateRejectsMissingMethod() {
         JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), " ", null, true);
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(request));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateRejectsReservedMethodNamespace() {
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "rpc.system", null, true);
 
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(request));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
@@ -52,6 +74,133 @@ class DefaultJsonRpcRequestValidatorTest {
 
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(request));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateRejectsMissingIdWhenConfigured() {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .requireIdMember(true)
+                .build()
+        );
+
+        JsonRpcRequest request = new JsonRpcRequest("2.0", null, "ping", null, false);
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(request));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateRejectsNullIdWhenDisabled() {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .allowNullId(false)
+                .build()
+        );
+        JsonRpcRequest request = new JsonRpcRequest("2.0", NullNode.getInstance(), "ping", null, true);
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(request));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateRejectsStringIdWhenDisabled() {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .allowStringId(false)
+                .build()
+        );
+        JsonRpcRequest request = new JsonRpcRequest("2.0", StringNode.valueOf("abc"), "ping", null, true);
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(request));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateRejectsNumericIdWhenDisabled() {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .allowNumericId(false)
+                .build()
+        );
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(7), "ping", null, true);
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(request));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateRejectsFractionalIdWhenDisabled() throws Exception {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .allowFractionalId(false)
+                .build()
+        );
+        JsonRpcRequest request = REQUEST_PARSER.parse(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"ping","id":1.5}
+            """));
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(request));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateAllowsNullIdWhenOptionIsExplicitlyEnabled() {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .allowNullId(true)
+                .allowStringId(false)
+                .allowNumericId(false)
+                .build()
+        );
+        JsonRpcRequest request = new JsonRpcRequest("2.0", NullNode.getInstance(), "ping", null, true);
+
+        assertDoesNotThrow(() -> custom.validate(request));
+    }
+
+    @Test
+    void validateAllowsStringIdWhenOptionIsExplicitlyEnabled() {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .allowNullId(false)
+                .allowStringId(true)
+                .allowNumericId(false)
+                .build()
+        );
+        JsonRpcRequest request = new JsonRpcRequest("2.0", StringNode.valueOf("abc"), "ping", null, true);
+
+        assertDoesNotThrow(() -> custom.validate(request));
+    }
+
+    @Test
+    void validateAllowsNumericIdWhenOptionIsExplicitlyEnabled() {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .allowNullId(false)
+                .allowStringId(false)
+                .allowNumericId(true)
+                .allowFractionalId(false)
+                .build()
+        );
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(7), "ping", null, true);
+
+        assertDoesNotThrow(() -> custom.validate(request));
+    }
+
+    @Test
+    void validateAllowsFractionalIdWhenOptionIsExplicitlyEnabled() throws Exception {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .allowNullId(false)
+                .allowStringId(false)
+                .allowNumericId(true)
+                .allowFractionalId(true)
+                .build()
+        );
+        JsonRpcRequest request = REQUEST_PARSER.parse(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"ping","id":1.5}
+            """));
+
+        assertDoesNotThrow(() -> custom.validate(request));
     }
 
     @Test
@@ -77,7 +226,15 @@ class DefaultJsonRpcRequestValidatorTest {
     void constructorRejectsNullParamsTypeViolationPolicy() {
         assertThrows(
             NullPointerException.class,
-            () -> new DefaultJsonRpcRequestValidator(null)
+            () -> new DefaultJsonRpcRequestValidator((JsonRpcParamsTypeViolationCodePolicy) null)
+        );
+    }
+
+    @Test
+    void constructorRejectsNullOptions() {
+        assertThrows(
+            NullPointerException.class,
+            () -> new DefaultJsonRpcRequestValidator((JsonRpcRequestValidationOptions) null)
         );
     }
 
@@ -113,6 +270,41 @@ class DefaultJsonRpcRequestValidatorTest {
     @Test
     void validateAllowsNotificationWithoutId() {
         JsonRpcRequest request = new JsonRpcRequest("2.0", null, "ping", null, false);
+        assertDoesNotThrow(() -> validator.validate(request));
+    }
+
+    @Test
+    void validateRejectsRequestContainingResponseFieldsWhenConfigured() throws Exception {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .rejectResponseFields(true)
+                .build()
+        );
+        JsonRpcRequest request = REQUEST_PARSER.parse(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"ping","id":1,"result":1}
+            """));
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(request));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateSkipsResponseFieldRejectionWhenSourceIsUnavailable() {
+        DefaultJsonRpcRequestValidator custom = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder()
+                .rejectResponseFields(true)
+                .build()
+        );
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping", null, true);
+
+        assertDoesNotThrow(() -> custom.validate(request));
+    }
+
+    @Test
+    void validateAllowsRequestContainingResponseFieldsByDefault() throws Exception {
+        JsonRpcRequest request = REQUEST_PARSER.parse(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"ping","id":1,"result":1}
+            """));
         assertDoesNotThrow(() -> validator.validate(request));
     }
 }

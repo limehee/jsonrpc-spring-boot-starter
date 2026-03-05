@@ -28,7 +28,8 @@ import tools.jackson.databind.JsonNode;
  * </ul>
  * <p>
  * Method tag cardinality can be bounded by {@code maxMethodTagValues}; once the limit is reached,
- * unseen methods are collapsed into the {@code other} bucket.
+ * unseen methods are collapsed into the {@code other} bucket. This limit is treated as a hard cap even when
+ * requests are processed concurrently.
  * </p>
  */
 public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
@@ -44,6 +45,7 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
     private final boolean latencyHistogramEnabled;
     private final double[] latencyPercentiles;
     private final int maxMethodTagValues;
+    private final Object methodTagLock = new Object();
     private final Set<String> seenMethods = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<CounterKey, Counter> callCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<CounterKey, Counter> stageCounters = new ConcurrentHashMap<>();
@@ -67,7 +69,8 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
      * @param latencyHistogramEnabled whether latency histogram buckets should be emitted
      * @param latencyPercentiles      latency percentiles to publish for timers
      * @param maxMethodTagValues      maximum number of distinct method tag values before collapsing to {@code other};
-     *                                values less than or equal to zero disable collapsing
+     *                                must be greater than {@code 0}
+     * @throws IllegalArgumentException if {@code maxMethodTagValues <= 0}
      */
     public JsonRpcMetricsInterceptor(
         MeterRegistry meterRegistry,
@@ -78,6 +81,9 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         this.meterRegistry = Objects.requireNonNull(meterRegistry, "meterRegistry");
         this.latencyHistogramEnabled = latencyHistogramEnabled;
         this.latencyPercentiles = Objects.requireNonNull(latencyPercentiles, "latencyPercentiles").clone();
+        if (maxMethodTagValues <= 0) {
+            throw new IllegalArgumentException("maxMethodTagValues must be greater than 0");
+        }
         this.maxMethodTagValues = maxMethodTagValues;
     }
 
@@ -259,25 +265,26 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
      * Applies method tag normalization and cardinality limiting.
      *
      * @param method raw method name from request
-     * @return normalized method tag value
+     * @return normalized method tag value, with strict cap enforcement for distinct method tags
      */
     private String normalizeMethodName(@Nullable String method) {
         if (method == null || method.isBlank()) {
             return METHOD_UNKNOWN;
         }
-        if (maxMethodTagValues <= 0) {
-            return method;
-        }
         if (seenMethods.contains(method)) {
             return method;
         }
-        if (seenMethods.size() >= maxMethodTagValues) {
-            return METHOD_OTHER;
-        }
-        if (seenMethods.add(method)) {
+
+        synchronized (methodTagLock) {
+            if (seenMethods.contains(method)) {
+                return method;
+            }
+            if (seenMethods.size() >= maxMethodTagValues) {
+                return METHOD_OTHER;
+            }
+            seenMethods.add(method);
             return method;
         }
-        return method;
     }
 
     /**

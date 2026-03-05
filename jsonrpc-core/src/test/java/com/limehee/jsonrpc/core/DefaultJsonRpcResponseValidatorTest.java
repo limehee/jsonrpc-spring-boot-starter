@@ -42,6 +42,7 @@ class DefaultJsonRpcResponseValidatorTest {
             {"jsonrpc":"1.0","id":1,"result":1}
             """)));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+        assertEquals(JsonRpcConstants.MESSAGE_INVALID_REQUEST, ex.getMessage());
     }
 
     @Test
@@ -69,7 +70,7 @@ class DefaultJsonRpcResponseValidatorTest {
     void validateAllowsMissingIdWhenRuleDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
             JsonRpcResponseValidationOptions.builder()
-                .requireResponseIdMember(false)
+                .requireIdMember(false)
                 .build()
         );
 
@@ -89,21 +90,21 @@ class DefaultJsonRpcResponseValidatorTest {
     @Test
     void validateRespectsIdTypeOptions() throws Exception {
         JsonRpcResponseValidator noNull = new DefaultJsonRpcResponseValidator(
-            JsonRpcResponseValidationOptions.builder().allowNullResponseId(false).build()
+            JsonRpcResponseValidationOptions.builder().allowNullId(false).build()
         );
         assertThrows(JsonRpcException.class, () -> noNull.validate(incoming("""
             {"jsonrpc":"2.0","id":null,"result":1}
             """)));
 
         JsonRpcResponseValidator noString = new DefaultJsonRpcResponseValidator(
-            JsonRpcResponseValidationOptions.builder().allowStringResponseId(false).build()
+            JsonRpcResponseValidationOptions.builder().allowStringId(false).build()
         );
         assertThrows(JsonRpcException.class, () -> noString.validate(incoming("""
             {"jsonrpc":"2.0","id":"x","result":1}
             """)));
 
         JsonRpcResponseValidator noNumeric = new DefaultJsonRpcResponseValidator(
-            JsonRpcResponseValidationOptions.builder().allowNumericResponseId(false).build()
+            JsonRpcResponseValidationOptions.builder().allowNumericId(false).build()
         );
         assertThrows(JsonRpcException.class, () -> noNumeric.validate(incoming("""
             {"jsonrpc":"2.0","id":1,"result":1}
@@ -114,11 +115,73 @@ class DefaultJsonRpcResponseValidatorTest {
     void validateRejectsFractionalIdWhenDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
             JsonRpcResponseValidationOptions.builder()
-                .allowFractionalResponseId(false)
+                .allowFractionalId(false)
                 .build()
         );
 
         assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1.5,"result":1}
+            """)));
+    }
+
+    @Test
+    void validateAllowsNullIdWhenOptionIsExplicitlyEnabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .allowNullId(true)
+                .allowStringId(false)
+                .allowNumericId(false)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":null,"result":1}
+            """)));
+    }
+
+    @Test
+    void validateAllowsStringIdWhenOptionIsExplicitlyEnabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .allowNullId(false)
+                .allowStringId(true)
+                .allowNumericId(false)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":"abc","result":1}
+            """)));
+    }
+
+    @Test
+    void validateAllowsNumericIdWhenOptionIsExplicitlyEnabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .allowNullId(false)
+                .allowStringId(false)
+                .allowNumericId(true)
+                .allowFractionalId(false)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"result":1}
+            """)));
+    }
+
+    @Test
+    void validateAllowsFractionalIdWhenOptionIsExplicitlyEnabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .allowNullId(false)
+                .allowStringId(false)
+                .allowNumericId(true)
+                .allowFractionalId(true)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
             {"jsonrpc":"2.0","id":1.5,"result":1}
             """)));
     }
@@ -210,16 +273,62 @@ class DefaultJsonRpcResponseValidatorTest {
     }
 
     @Test
-    void validateCanRejectRequestFieldsWhenOptionDisabled() throws Exception {
+    void validateAllowsNonIntegerErrorCodeWhenIntegerRuleIsDisabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
             JsonRpcResponseValidationOptions.builder()
-                .allowRequestFieldsInResponse(false)
+                .requireIntegerErrorCode(false)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":"x","message":"err"}}
+            """)));
+    }
+
+    @Test
+    void validateAllowsNonStringErrorMessageWhenStringRuleIsDisabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .requireStringErrorMessage(false)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":3}}
+            """)));
+    }
+
+    @Test
+    void validateRejectsRequestFieldsWhenOptionEnabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .rejectRequestFields(true)
                 .build()
         );
 
         assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
             {"jsonrpc":"2.0","id":1,"result":1,"method":"ping"}
             """)));
+    }
+
+    @Test
+    void validateSkipsRequestFieldRejectionWhenSourceIsUnavailable() {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .rejectRequestFields(true)
+                .build()
+        );
+        JsonRpcIncomingResponse response = new JsonRpcIncomingResponse(
+            "2.0",
+            OBJECT_MAPPER.getNodeFactory().numberNode(1),
+            true,
+            OBJECT_MAPPER.getNodeFactory().numberNode(1),
+            true,
+            null,
+            false
+        );
+
+        assertDoesNotThrow(() -> custom.validate(response));
     }
 
     @Test
@@ -239,6 +348,93 @@ class DefaultJsonRpcResponseValidatorTest {
     @Test
     void constructorRejectsNullOptions() {
         assertThrows(NullPointerException.class, () -> new DefaultJsonRpcResponseValidator(null));
+    }
+
+    @Test
+    void validateRejectsNonStandardErrorCodeWhenPolicyIsStandardOnly() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.STANDARD_ONLY)
+                .build()
+        );
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"server"}}
+            """)));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateAllowsServerErrorRangeWhenPolicyConfigured() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.STANDARD_OR_SERVER_ERROR_RANGE)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32050,"message":"server"}}
+            """)));
+    }
+
+    @Test
+    void validateAllowsServerErrorRangeBoundariesWhenPolicyConfigured() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.STANDARD_OR_SERVER_ERROR_RANGE)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32099,"message":"server"}}
+            """)));
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"server"}}
+            """)));
+    }
+
+    @Test
+    void validateRejectsOutsideServerErrorRangeWhenPolicyConfigured() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.STANDARD_OR_SERVER_ERROR_RANGE)
+                .build()
+        );
+
+        assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32100,"message":"server"}}
+            """)));
+    }
+
+    @Test
+    void validateRejectsOutOfRangeCustomErrorCode() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE)
+                .errorCodeRangeMin(-45000)
+                .errorCodeRangeMax(-44000)
+                .build()
+        );
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32050,"message":"server"}}
+            """)));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateAllowsInRangeCustomErrorCode() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE)
+                .errorCodeRangeMin(-45000)
+                .errorCodeRangeMax(-44000)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-44500,"message":"custom"}}
+            """)));
     }
 
     private JsonRpcIncomingResponse incoming(String json) throws Exception {

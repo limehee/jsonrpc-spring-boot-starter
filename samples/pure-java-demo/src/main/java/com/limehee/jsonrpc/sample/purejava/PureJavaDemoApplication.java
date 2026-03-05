@@ -16,6 +16,7 @@ import com.limehee.jsonrpc.core.JacksonJsonRpcParameterBinder;
 import com.limehee.jsonrpc.core.JacksonJsonRpcResultWriter;
 import com.limehee.jsonrpc.core.JsonRpcDispatchResult;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
+import com.limehee.jsonrpc.core.JsonRpcIncomingResponse;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy;
 import com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
@@ -52,6 +53,18 @@ public final class PureJavaDemoApplication {
         print("strict params shape policy", handle(strictDispatcher, """
             {"jsonrpc":"2.0","method":"typed.upper","params":"invalid-shape","id":9}
             """));
+
+        JsonRpcDispatchResult strictRequestResult = ValidationProfileExample.dispatchStrict("""
+            {"jsonrpc":"2.0","method":"ping"}
+            """);
+        print("strict request profile (require-id-member)", OBJECT_MAPPER.writeValueAsString(
+            strictRequestResult.singleResponse().orElseThrow()
+        ));
+
+        List<JsonRpcIncomingResponse> strictResponses = ValidationProfileExample.parseAndValidateStrictResponses("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"server"}}
+            """);
+        print("strict response profile", OBJECT_MAPPER.writeValueAsString(strictResponses));
     }
 
     static String handle(JsonRpcDispatcher dispatcher, String rawJson) throws JacksonException {

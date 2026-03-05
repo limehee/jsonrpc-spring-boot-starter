@@ -6,6 +6,15 @@ plugins {
 group = 'com.limehee.jsonrpc'
 version = '0.0.1-SNAPSHOT'
 
+def jsonrpcVersion = providers.gradleProperty('jsonrpcVersion')
+    .orElse(providers.environmentVariable('JSONRPC_VERSION'))
+    .orElse(providers.provider {
+        def props = new Properties()
+        file('../../gradle.properties').withInputStream { props.load(it) }
+        props.getProperty('version', '0.0.0-SNAPSHOT')
+    })
+    .get()
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
@@ -13,7 +22,7 @@ java {
 }
 
 dependencies {
-    implementation 'io.github.limehee:jsonrpc-core:0.2.0'
+    implementation "io.github.limehee:jsonrpc-core:${jsonrpcVersion}"
     implementation 'tools.jackson.core:jackson-databind:3.1.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.0.3'

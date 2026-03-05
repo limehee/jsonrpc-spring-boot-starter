@@ -4,25 +4,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.limehee.jsonrpc.core.DefaultJsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcException;
+import com.limehee.jsonrpc.core.JsonRpcIncomingResponse;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcParam;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
+import com.limehee.jsonrpc.core.JsonRpcRequestValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
+import com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy;
+import com.limehee.jsonrpc.core.JsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -621,6 +630,163 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void bindsDefaultRequestValidationOptions() {
+        contextRunner.run(context -> {
+            JsonRpcRequestValidationOptions options = context.getBean(JsonRpcRequestValidationOptions.class);
+            JsonRpcRequestValidationOptions coreDefaults = JsonRpcRequestValidationOptions.defaults();
+
+            assertEquals(coreDefaults.requireJsonRpcVersion20(), options.requireJsonRpcVersion20());
+            assertEquals(coreDefaults.requireIdMember(), options.requireIdMember());
+            assertEquals(coreDefaults.allowNullId(), options.allowNullId());
+            assertEquals(coreDefaults.allowStringId(), options.allowStringId());
+            assertEquals(coreDefaults.allowNumericId(), options.allowNumericId());
+            assertEquals(coreDefaults.allowFractionalId(), options.allowFractionalId());
+            assertEquals(coreDefaults.rejectResponseFields(), options.rejectResponseFields());
+            assertEquals(coreDefaults.rejectDuplicateMembers(), options.rejectDuplicateMembers());
+            assertEquals(coreDefaults.paramsTypeViolationCodePolicy(), options.paramsTypeViolationCodePolicy());
+        });
+    }
+
+    @Test
+    void appliesConfiguredRequestValidationOptions() {
+        contextRunner
+            .withPropertyValues(
+                "jsonrpc.validation.request.require-id-member=true",
+                "jsonrpc.validation.request.allow-fractional-id=false",
+                "jsonrpc.validation.request.reject-response-fields=true",
+                "jsonrpc.validation.request.reject-duplicate-members=true"
+            )
+            .run(context -> {
+                JsonRpcRequestValidationOptions options = context.getBean(JsonRpcRequestValidationOptions.class);
+
+                assertTrue(options.requireIdMember());
+                assertFalse(options.allowFractionalId());
+                assertTrue(options.rejectResponseFields());
+                assertTrue(options.rejectDuplicateMembers());
+            });
+    }
+
+    @Test
+    void appliesAllRequestBooleanOptionsWhenSetTrue() {
+        contextRunner
+            .withPropertyValues(
+                "jsonrpc.validation.request.require-json-rpc-version-20=true",
+                "jsonrpc.validation.request.require-id-member=true",
+                "jsonrpc.validation.request.allow-null-id=true",
+                "jsonrpc.validation.request.allow-string-id=true",
+                "jsonrpc.validation.request.allow-numeric-id=true",
+                "jsonrpc.validation.request.allow-fractional-id=true",
+                "jsonrpc.validation.request.reject-response-fields=true",
+                "jsonrpc.validation.request.reject-duplicate-members=true"
+            )
+            .run(context -> {
+                JsonRpcRequestValidationOptions options = context.getBean(JsonRpcRequestValidationOptions.class);
+
+                assertTrue(options.requireJsonRpcVersion20());
+                assertTrue(options.requireIdMember());
+                assertTrue(options.allowNullId());
+                assertTrue(options.allowStringId());
+                assertTrue(options.allowNumericId());
+                assertTrue(options.allowFractionalId());
+                assertTrue(options.rejectResponseFields());
+                assertTrue(options.rejectDuplicateMembers());
+            });
+    }
+
+    @Test
+    void appliesAllRequestBooleanOptionsWhenSetFalse() {
+        contextRunner
+            .withPropertyValues(
+                "jsonrpc.validation.request.require-json-rpc-version-20=false",
+                "jsonrpc.validation.request.require-id-member=false",
+                "jsonrpc.validation.request.allow-null-id=false",
+                "jsonrpc.validation.request.allow-string-id=false",
+                "jsonrpc.validation.request.allow-numeric-id=false",
+                "jsonrpc.validation.request.allow-fractional-id=false",
+                "jsonrpc.validation.request.reject-response-fields=false",
+                "jsonrpc.validation.request.reject-duplicate-members=false"
+            )
+            .run(context -> {
+                JsonRpcRequestValidationOptions options = context.getBean(JsonRpcRequestValidationOptions.class);
+
+                assertFalse(options.requireJsonRpcVersion20());
+                assertFalse(options.requireIdMember());
+                assertFalse(options.allowNullId());
+                assertFalse(options.allowStringId());
+                assertFalse(options.allowNumericId());
+                assertFalse(options.allowFractionalId());
+                assertFalse(options.rejectResponseFields());
+                assertFalse(options.rejectDuplicateMembers());
+            });
+    }
+
+    @Test
+    void bindsEachRequestBooleanOptionIndependentlyForTrueAndFalse() {
+        JsonRpcRequestValidationOptions defaults = JsonRpcRequestValidationOptions.defaults();
+        Map<String, Function<JsonRpcRequestValidationOptions, Boolean>> flags = new LinkedHashMap<>();
+        flags.put("jsonrpc.validation.request.require-json-rpc-version-20",
+            JsonRpcRequestValidationOptions::requireJsonRpcVersion20);
+        flags.put("jsonrpc.validation.request.require-id-member", JsonRpcRequestValidationOptions::requireIdMember);
+        flags.put("jsonrpc.validation.request.allow-null-id", JsonRpcRequestValidationOptions::allowNullId);
+        flags.put("jsonrpc.validation.request.allow-string-id", JsonRpcRequestValidationOptions::allowStringId);
+        flags.put("jsonrpc.validation.request.allow-numeric-id", JsonRpcRequestValidationOptions::allowNumericId);
+        flags.put("jsonrpc.validation.request.allow-fractional-id", JsonRpcRequestValidationOptions::allowFractionalId);
+        flags.put("jsonrpc.validation.request.reject-response-fields",
+            JsonRpcRequestValidationOptions::rejectResponseFields);
+        flags.put("jsonrpc.validation.request.reject-duplicate-members",
+            JsonRpcRequestValidationOptions::rejectDuplicateMembers);
+
+        for (Map.Entry<String, Function<JsonRpcRequestValidationOptions, Boolean>> target : flags.entrySet()) {
+            assertRequestBooleanFlagBinding(flags, defaults, target.getKey(), true);
+            assertRequestBooleanFlagBinding(flags, defaults, target.getKey(), false);
+        }
+    }
+
+    @Test
+    void enforcesRequireIdMemberForNotificationLikeRequestWhenConfigured() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.request.require-id-member=true")
+            .withBean("ping", JsonRpcMethodRegistration.class,
+                () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
+            .run(context -> {
+                JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                    "2.0",
+                    null,
+                    "ping",
+                    null,
+                    false
+                ));
+
+                assertNotNull(response.error());
+                assertEquals(-32600, response.error().code());
+                assertNull(response.id());
+            });
+    }
+
+    @Test
+    void enforcesRejectResponseFieldsForRequestWhenConfigured() throws Exception {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.request.reject-response-fields=true")
+            .withBean("ping", JsonRpcMethodRegistration.class,
+                () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
+            .run(context -> {
+                JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                    "2.0",
+                    IntNode.valueOf(41),
+                    "ping",
+                    null,
+                    true,
+                    new ObjectMapper().readTree("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":41,\"result\":1}")
+                ));
+
+                assertNotNull(response.error());
+                assertEquals(-32600, response.error().code());
+            });
+    }
+
+    @Test
     void bindsDefaultResponseValidationOptions() {
         contextRunner.run(context -> {
             JsonRpcResponseValidationOptions options = context.getBean(JsonRpcResponseValidationOptions.class);
@@ -628,16 +794,19 @@ class JsonRpcAutoConfigurationTest {
             JsonRpcResponseValidationOptions coreDefaults = JsonRpcResponseValidationOptions.defaults();
 
             assertEquals(coreDefaults.requireJsonRpcVersion20(), options.requireJsonRpcVersion20());
-            assertEquals(coreDefaults.requireResponseIdMember(), options.requireResponseIdMember());
-            assertEquals(coreDefaults.allowNullResponseId(), options.allowNullResponseId());
-            assertEquals(coreDefaults.allowStringResponseId(), options.allowStringResponseId());
-            assertEquals(coreDefaults.allowNumericResponseId(), options.allowNumericResponseId());
-            assertEquals(coreDefaults.allowFractionalResponseId(), options.allowFractionalResponseId());
+            assertEquals(coreDefaults.requireIdMember(), options.requireIdMember());
+            assertEquals(coreDefaults.allowNullId(), options.allowNullId());
+            assertEquals(coreDefaults.allowStringId(), options.allowStringId());
+            assertEquals(coreDefaults.allowNumericId(), options.allowNumericId());
+            assertEquals(coreDefaults.allowFractionalId(), options.allowFractionalId());
             assertEquals(coreDefaults.requireExclusiveResultOrError(), options.requireExclusiveResultOrError());
             assertEquals(coreDefaults.requireErrorObjectWhenPresent(), options.requireErrorObjectWhenPresent());
             assertEquals(coreDefaults.requireIntegerErrorCode(), options.requireIntegerErrorCode());
             assertEquals(coreDefaults.requireStringErrorMessage(), options.requireStringErrorMessage());
-            assertEquals(coreDefaults.allowRequestFieldsInResponse(), options.allowRequestFieldsInResponse());
+            assertEquals(coreDefaults.rejectRequestFields(), options.rejectRequestFields());
+            assertEquals(coreDefaults.errorCodePolicy(), options.errorCodePolicy());
+            assertEquals(coreDefaults.errorCodeRangeMin(), options.errorCodeRangeMin());
+            assertEquals(coreDefaults.errorCodeRangeMax(), options.errorCodeRangeMax());
             assertNotNull(responseValidator);
         });
     }
@@ -646,16 +815,244 @@ class JsonRpcAutoConfigurationTest {
     void appliesConfiguredResponseValidationOptions() {
         contextRunner
             .withPropertyValues(
-                "jsonrpc.validation.response.require-response-id-member=false",
-                "jsonrpc.validation.response.allow-fractional-response-id=false",
-                "jsonrpc.validation.response.allow-request-fields-in-response=false"
+                "jsonrpc.validation.response.require-id-member=false",
+                "jsonrpc.validation.response.allow-fractional-id=false",
+                "jsonrpc.validation.response.reject-request-fields=true",
+                "jsonrpc.validation.response.error-code.policy=CUSTOM_RANGE",
+                "jsonrpc.validation.response.error-code.range.min=-45000",
+                "jsonrpc.validation.response.error-code.range.max=-44000"
             )
             .run(context -> {
                 JsonRpcResponseValidationOptions options = context.getBean(JsonRpcResponseValidationOptions.class);
 
-                assertFalse(options.requireResponseIdMember());
-                assertFalse(options.allowFractionalResponseId());
-                assertFalse(options.allowRequestFieldsInResponse());
+                assertFalse(options.requireIdMember());
+                assertFalse(options.allowFractionalId());
+                assertTrue(options.rejectRequestFields());
+                assertTrue(options.errorCodePolicy() == JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE);
+                assertEquals(-45000, options.errorCodeRangeMin());
+                assertEquals(-44000, options.errorCodeRangeMax());
+            });
+    }
+
+    @Test
+    void appliesAllResponseBooleanOptionsWhenSetTrue() {
+        contextRunner
+            .withPropertyValues(
+                "jsonrpc.validation.response.require-json-rpc-version-20=true",
+                "jsonrpc.validation.response.require-id-member=true",
+                "jsonrpc.validation.response.allow-null-id=true",
+                "jsonrpc.validation.response.allow-string-id=true",
+                "jsonrpc.validation.response.allow-numeric-id=true",
+                "jsonrpc.validation.response.allow-fractional-id=true",
+                "jsonrpc.validation.response.require-exclusive-result-or-error=true",
+                "jsonrpc.validation.response.require-error-object-when-present=true",
+                "jsonrpc.validation.response.require-integer-error-code=true",
+                "jsonrpc.validation.response.require-string-error-message=true",
+                "jsonrpc.validation.response.reject-request-fields=true",
+                "jsonrpc.validation.response.reject-duplicate-members=true"
+            )
+            .run(context -> {
+                JsonRpcResponseValidationOptions options = context.getBean(JsonRpcResponseValidationOptions.class);
+
+                assertTrue(options.requireJsonRpcVersion20());
+                assertTrue(options.requireIdMember());
+                assertTrue(options.allowNullId());
+                assertTrue(options.allowStringId());
+                assertTrue(options.allowNumericId());
+                assertTrue(options.allowFractionalId());
+                assertTrue(options.requireExclusiveResultOrError());
+                assertTrue(options.requireErrorObjectWhenPresent());
+                assertTrue(options.requireIntegerErrorCode());
+                assertTrue(options.requireStringErrorMessage());
+                assertTrue(options.rejectRequestFields());
+                assertTrue(options.rejectDuplicateMembers());
+            });
+    }
+
+    @Test
+    void appliesAllResponseBooleanOptionsWhenSetFalse() {
+        contextRunner
+            .withPropertyValues(
+                "jsonrpc.validation.response.require-json-rpc-version-20=false",
+                "jsonrpc.validation.response.require-id-member=false",
+                "jsonrpc.validation.response.allow-null-id=false",
+                "jsonrpc.validation.response.allow-string-id=false",
+                "jsonrpc.validation.response.allow-numeric-id=false",
+                "jsonrpc.validation.response.allow-fractional-id=false",
+                "jsonrpc.validation.response.require-exclusive-result-or-error=false",
+                "jsonrpc.validation.response.require-error-object-when-present=false",
+                "jsonrpc.validation.response.require-integer-error-code=false",
+                "jsonrpc.validation.response.require-string-error-message=false",
+                "jsonrpc.validation.response.reject-request-fields=false",
+                "jsonrpc.validation.response.reject-duplicate-members=false"
+            )
+            .run(context -> {
+                JsonRpcResponseValidationOptions options = context.getBean(JsonRpcResponseValidationOptions.class);
+
+                assertFalse(options.requireJsonRpcVersion20());
+                assertFalse(options.requireIdMember());
+                assertFalse(options.allowNullId());
+                assertFalse(options.allowStringId());
+                assertFalse(options.allowNumericId());
+                assertFalse(options.allowFractionalId());
+                assertFalse(options.requireExclusiveResultOrError());
+                assertFalse(options.requireErrorObjectWhenPresent());
+                assertFalse(options.requireIntegerErrorCode());
+                assertFalse(options.requireStringErrorMessage());
+                assertFalse(options.rejectRequestFields());
+                assertFalse(options.rejectDuplicateMembers());
+            });
+    }
+
+    @Test
+    void bindsEachResponseBooleanOptionIndependentlyForTrueAndFalse() {
+        JsonRpcResponseValidationOptions defaults = JsonRpcResponseValidationOptions.defaults();
+        Map<String, Function<JsonRpcResponseValidationOptions, Boolean>> flags = new LinkedHashMap<>();
+        flags.put("jsonrpc.validation.response.require-json-rpc-version-20",
+            JsonRpcResponseValidationOptions::requireJsonRpcVersion20);
+        flags.put("jsonrpc.validation.response.require-id-member", JsonRpcResponseValidationOptions::requireIdMember);
+        flags.put("jsonrpc.validation.response.allow-null-id", JsonRpcResponseValidationOptions::allowNullId);
+        flags.put("jsonrpc.validation.response.allow-string-id", JsonRpcResponseValidationOptions::allowStringId);
+        flags.put("jsonrpc.validation.response.allow-numeric-id", JsonRpcResponseValidationOptions::allowNumericId);
+        flags.put("jsonrpc.validation.response.allow-fractional-id",
+            JsonRpcResponseValidationOptions::allowFractionalId);
+        flags.put("jsonrpc.validation.response.require-exclusive-result-or-error",
+            JsonRpcResponseValidationOptions::requireExclusiveResultOrError);
+        flags.put("jsonrpc.validation.response.require-error-object-when-present",
+            JsonRpcResponseValidationOptions::requireErrorObjectWhenPresent);
+        flags.put("jsonrpc.validation.response.require-integer-error-code",
+            JsonRpcResponseValidationOptions::requireIntegerErrorCode);
+        flags.put("jsonrpc.validation.response.require-string-error-message",
+            JsonRpcResponseValidationOptions::requireStringErrorMessage);
+        flags.put("jsonrpc.validation.response.reject-request-fields",
+            JsonRpcResponseValidationOptions::rejectRequestFields);
+        flags.put("jsonrpc.validation.response.reject-duplicate-members",
+            JsonRpcResponseValidationOptions::rejectDuplicateMembers);
+
+        for (Map.Entry<String, Function<JsonRpcResponseValidationOptions, Boolean>> target : flags.entrySet()) {
+            assertResponseBooleanFlagBinding(flags, defaults, target.getKey(), true);
+            assertResponseBooleanFlagBinding(flags, defaults, target.getKey(), false);
+        }
+    }
+
+    @Test
+    void appliesStandardOnlyErrorCodePolicyToResponseValidatorBean() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.error-code.policy=STANDARD_ONLY")
+            .run(context -> {
+                JsonRpcResponseValidator validator = context.getBean(JsonRpcResponseValidator.class);
+                DefaultJsonRpcResponseParser parser = new DefaultJsonRpcResponseParser();
+
+                JsonRpcIncomingResponse standard = parser
+                    .parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32603,\"message\":\"x\"}}")
+                    .singleResponse()
+                    .orElseThrow();
+                JsonRpcIncomingResponse nonStandard = parser
+                    .parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32000,\"message\":\"x\"}}")
+                    .singleResponse()
+                    .orElseThrow();
+
+                validator.validate(standard);
+                assertThrows(JsonRpcException.class, () -> validator.validate(nonStandard));
+            });
+    }
+
+    @Test
+    void rejectsResponseErrorCodePolicyWithoutIntegerCodeValidation() {
+        contextRunner
+            .withPropertyValues(
+                "jsonrpc.validation.response.require-integer-error-code=false",
+                "jsonrpc.validation.response.error-code.policy=STANDARD_ONLY"
+            )
+            .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void rejectsCustomRangePolicyWhenBoundsAreMissing() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.error-code.policy=CUSTOM_RANGE")
+            .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void rejectsCustomRangePolicyWhenBoundsAreInverted() {
+        contextRunner
+            .withPropertyValues(
+                "jsonrpc.validation.response.error-code.policy=CUSTOM_RANGE",
+                "jsonrpc.validation.response.error-code.range.min=-32000",
+                "jsonrpc.validation.response.error-code.range.max=-32100"
+            )
+            .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void appliesResponseDuplicateMemberRejectionToResponseParserBean() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.reject-duplicate-members=true")
+            .run(context -> {
+                JsonRpcResponseParser parser = context.getBean(JsonRpcResponseParser.class);
+                assertTrue(parser instanceof DefaultJsonRpcResponseParser);
+
+                DefaultJsonRpcResponseParser defaultParser = (DefaultJsonRpcResponseParser) parser;
+
+                assertThrows(
+                    JsonRpcException.class,
+                    () -> defaultParser.parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}")
+                );
+            });
+    }
+
+    @Test
+    void keepsResponseDuplicateMemberAcceptanceWhenPolicyIsDisabled() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.reject-duplicate-members=false")
+            .run(context -> {
+                JsonRpcResponseParser parser = context.getBean(JsonRpcResponseParser.class);
+                assertTrue(parser instanceof DefaultJsonRpcResponseParser);
+
+                DefaultJsonRpcResponseParser defaultParser = (DefaultJsonRpcResponseParser) parser;
+                assertNotNull(defaultParser.parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}"));
+            });
+    }
+
+    @Test
+    void customResponseValidationOptionsCanEnableDuplicateMemberRejectionEvenWhenPropertyIsDisabled() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.reject-duplicate-members=false")
+            .withBean(
+                JsonRpcResponseValidationOptions.class,
+                () -> JsonRpcResponseValidationOptions.builder()
+                    .rejectDuplicateMembers(true)
+                    .build()
+            )
+            .run(context -> {
+                JsonRpcResponseParser parser = context.getBean(JsonRpcResponseParser.class);
+                assertTrue(parser instanceof DefaultJsonRpcResponseParser);
+
+                DefaultJsonRpcResponseParser defaultParser = (DefaultJsonRpcResponseParser) parser;
+                assertThrows(
+                    JsonRpcException.class,
+                    () -> defaultParser.parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}")
+                );
+            });
+    }
+
+    @Test
+    void customResponseValidationOptionsCanDisableDuplicateMemberRejectionEvenWhenPropertyIsEnabled() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.reject-duplicate-members=true")
+            .withBean(
+                JsonRpcResponseValidationOptions.class,
+                () -> JsonRpcResponseValidationOptions.builder()
+                    .rejectDuplicateMembers(false)
+                    .build()
+            )
+            .run(context -> {
+                JsonRpcResponseParser parser = context.getBean(JsonRpcResponseParser.class);
+                assertTrue(parser instanceof DefaultJsonRpcResponseParser);
+
+                DefaultJsonRpcResponseParser defaultParser = (DefaultJsonRpcResponseParser) parser;
+                assertNotNull(defaultParser.parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}"));
             });
     }
 
@@ -818,6 +1215,44 @@ class JsonRpcAutoConfigurationTest {
             )
             .withUserConfiguration(NotificationExecutorConfig.class)
             .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    private void assertRequestBooleanFlagBinding(
+        Map<String, Function<JsonRpcRequestValidationOptions, Boolean>> flags,
+        JsonRpcRequestValidationOptions defaults,
+        String targetProperty,
+        boolean targetValue
+    ) {
+        contextRunner
+            .withPropertyValues(targetProperty + "=" + targetValue)
+            .run(context -> {
+                JsonRpcRequestValidationOptions options = context.getBean(JsonRpcRequestValidationOptions.class);
+                for (Map.Entry<String, Function<JsonRpcRequestValidationOptions, Boolean>> entry : flags.entrySet()) {
+                    boolean expected = entry.getKey().equals(targetProperty)
+                        ? targetValue
+                        : entry.getValue().apply(defaults);
+                    assertEquals(expected, entry.getValue().apply(options));
+                }
+            });
+    }
+
+    private void assertResponseBooleanFlagBinding(
+        Map<String, Function<JsonRpcResponseValidationOptions, Boolean>> flags,
+        JsonRpcResponseValidationOptions defaults,
+        String targetProperty,
+        boolean targetValue
+    ) {
+        contextRunner
+            .withPropertyValues(targetProperty + "=" + targetValue)
+            .run(context -> {
+                JsonRpcResponseValidationOptions options = context.getBean(JsonRpcResponseValidationOptions.class);
+                for (Map.Entry<String, Function<JsonRpcResponseValidationOptions, Boolean>> entry : flags.entrySet()) {
+                    boolean expected = entry.getKey().equals(targetProperty)
+                        ? targetValue
+                        : entry.getValue().apply(defaults);
+                    assertEquals(expected, entry.getValue().apply(options));
+                }
+            });
     }
 
     @Configuration(proxyBeanMethods = false)

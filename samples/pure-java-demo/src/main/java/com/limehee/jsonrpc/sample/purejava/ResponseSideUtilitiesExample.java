@@ -11,7 +11,6 @@ import com.limehee.jsonrpc.core.JsonRpcEnvelopeClassifier;
 import com.limehee.jsonrpc.core.JsonRpcEnvelopeType;
 import com.limehee.jsonrpc.core.JsonRpcIncomingResponse;
 import com.limehee.jsonrpc.core.JsonRpcIncomingResponseEnvelope;
-import com.limehee.jsonrpc.core.JsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
 
@@ -23,12 +22,12 @@ public final class ResponseSideUtilitiesExample {
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final JsonRpcEnvelopeClassifier classifier;
-    private final JsonRpcResponseParser parser;
+    private final DefaultJsonRpcResponseParser parser;
     private final JsonRpcResponseValidator validator;
 
     public ResponseSideUtilitiesExample(JsonRpcResponseValidationOptions options) {
         this.classifier = new DefaultJsonRpcEnvelopeClassifier();
-        this.parser = new DefaultJsonRpcResponseParser();
+        this.parser = new DefaultJsonRpcResponseParser(options.rejectDuplicateMembers());
         this.validator = new DefaultJsonRpcResponseValidator(options);
     }
 
@@ -39,7 +38,7 @@ public final class ResponseSideUtilitiesExample {
             return new Result(envelopeType, List.of());
         }
 
-        JsonRpcIncomingResponseEnvelope envelope = parser.parse(payload);
+        JsonRpcIncomingResponseEnvelope envelope = parser.parse(rawMessage);
         List<JsonRpcIncomingResponse> validated = new ArrayList<>(envelope.responses().size());
         for (JsonRpcIncomingResponse response : envelope.responses()) {
             validator.validate(response);
