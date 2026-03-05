@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.limehee.jsonrpc.core.JsonRpcRequestValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcHttpStatusStrategy;
 import com.limehee.jsonrpc.spring.webmvc.JsonRpcWebMvcEndpoint;
@@ -92,6 +93,50 @@ class JsonRpcWebAutoConfigurationTest {
                 assertNotNull(body);
                 int code = OBJECT_MAPPER.readTree(body).get("error").get("code").asInt();
                 assertEquals(-32700, code);
+            });
+    }
+
+    @Test
+    void customRequestValidationOptionsCanEnableDuplicateMemberRejectionEvenWhenPropertyIsDisabled() throws Exception {
+        webContextRunner
+            .withPropertyValues("jsonrpc.validation.request.reject-duplicate-members=false")
+            .withBean(
+                JsonRpcRequestValidationOptions.class,
+                () -> JsonRpcRequestValidationOptions.builder()
+                    .rejectDuplicateMembers(true)
+                    .build()
+            )
+            .run(context -> {
+                JsonRpcWebMvcEndpoint endpoint = context.getBean(JsonRpcWebMvcEndpoint.class);
+                String body = endpoint.invoke(
+                    "{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1,\"id\":2}".getBytes(StandardCharsets.UTF_8)
+                ).getBody();
+
+                assertNotNull(body);
+                int code = OBJECT_MAPPER.readTree(body).get("error").get("code").asInt();
+                assertEquals(-32700, code);
+            });
+    }
+
+    @Test
+    void customRequestValidationOptionsCanDisableDuplicateMemberRejectionEvenWhenPropertyIsEnabled() throws Exception {
+        webContextRunner
+            .withPropertyValues("jsonrpc.validation.request.reject-duplicate-members=true")
+            .withBean(
+                JsonRpcRequestValidationOptions.class,
+                () -> JsonRpcRequestValidationOptions.builder()
+                    .rejectDuplicateMembers(false)
+                    .build()
+            )
+            .run(context -> {
+                JsonRpcWebMvcEndpoint endpoint = context.getBean(JsonRpcWebMvcEndpoint.class);
+                String body = endpoint.invoke(
+                    "{\"jsonrpc\":\"2.0\",\"method\":\"missing\",\"id\":1,\"id\":2}".getBytes(StandardCharsets.UTF_8)
+                ).getBody();
+
+                assertNotNull(body);
+                int code = OBJECT_MAPPER.readTree(body).get("error").get("code").asInt();
+                assertEquals(-32601, code);
             });
     }
 

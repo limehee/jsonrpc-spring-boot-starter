@@ -1013,6 +1013,47 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void customResponseValidationOptionsCanEnableDuplicateMemberRejectionEvenWhenPropertyIsDisabled() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.reject-duplicate-members=false")
+            .withBean(
+                JsonRpcResponseValidationOptions.class,
+                () -> JsonRpcResponseValidationOptions.builder()
+                    .rejectDuplicateMembers(true)
+                    .build()
+            )
+            .run(context -> {
+                JsonRpcResponseParser parser = context.getBean(JsonRpcResponseParser.class);
+                assertTrue(parser instanceof DefaultJsonRpcResponseParser);
+
+                DefaultJsonRpcResponseParser defaultParser = (DefaultJsonRpcResponseParser) parser;
+                assertThrows(
+                    JsonRpcException.class,
+                    () -> defaultParser.parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}")
+                );
+            });
+    }
+
+    @Test
+    void customResponseValidationOptionsCanDisableDuplicateMemberRejectionEvenWhenPropertyIsEnabled() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.response.reject-duplicate-members=true")
+            .withBean(
+                JsonRpcResponseValidationOptions.class,
+                () -> JsonRpcResponseValidationOptions.builder()
+                    .rejectDuplicateMembers(false)
+                    .build()
+            )
+            .run(context -> {
+                JsonRpcResponseParser parser = context.getBean(JsonRpcResponseParser.class);
+                assertTrue(parser instanceof DefaultJsonRpcResponseParser);
+
+                DefaultJsonRpcResponseParser defaultParser = (DefaultJsonRpcResponseParser) parser;
+                assertNotNull(defaultParser.parse("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}"));
+            });
+    }
+
+    @Test
     void rejectsMaxBatchSizeLessThanOne() {
         contextRunner
             .withPropertyValues("jsonrpc.max-batch-size=0")

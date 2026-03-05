@@ -193,18 +193,18 @@ public class JsonRpcAutoConfiguration {
      * Creates parser for incoming JSON-RPC response envelopes.
      *
      * @param objectMapperProvider provider for custom or default {@link ObjectMapper}
-     * @param properties           bound JSON-RPC properties
+     * @param options              response-validation options
      * @return response parser
      */
     @Bean
     @ConditionalOnMissingBean
     public JsonRpcResponseParser jsonRpcResponseParser(
         ObjectProvider<ObjectMapper> objectMapperProvider,
-        JsonRpcProperties properties
+        JsonRpcResponseValidationOptions options
     ) {
         return new DefaultJsonRpcResponseParser(
             objectMapperProvider.getIfAvailable(() -> JsonMapper.builder().build()),
-            properties.getValidation().getResponse().isRejectDuplicateMembers()
+            options.rejectDuplicateMembers()
         );
     }
 
@@ -506,6 +506,7 @@ public class JsonRpcAutoConfiguration {
      * @param httpStatusStrategy   strategy mapping protocol outcomes to HTTP status codes
      * @param objectMapperProvider provider for custom or default {@link ObjectMapper}
      * @param webMvcObserver       observer for transport-level events
+     * @param requestValidationOptions request-validation options
      * @param properties           bound JSON-RPC properties
      * @return WebMVC endpoint bean
      */
@@ -519,6 +520,7 @@ public class JsonRpcAutoConfiguration {
         JsonRpcHttpStatusStrategy httpStatusStrategy,
         ObjectProvider<ObjectMapper> objectMapperProvider,
         JsonRpcWebMvcObserver webMvcObserver,
+        JsonRpcRequestValidationOptions requestValidationOptions,
         JsonRpcProperties properties
     ) {
         ObjectMapper objectMapper = objectMapperProvider.getIfAvailable(() -> JsonMapper.builder().build());
@@ -528,7 +530,7 @@ public class JsonRpcAutoConfiguration {
             httpStatusStrategy,
             properties.getMaxRequestBytes(),
             webMvcObserver,
-            properties.getValidation().getRequest().isRejectDuplicateMembers()
+            requestValidationOptions.rejectDuplicateMembers()
         );
     }
 
