@@ -2,6 +2,7 @@ package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.limehee.jsonrpc.core.JsonRpcError;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
@@ -9,6 +10,13 @@ import com.limehee.jsonrpc.core.JsonRpcRequest;
 import com.limehee.jsonrpc.spring.boot.autoconfigure.support.JsonRpcMetricsInterceptor;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.node.IntNode;
 
@@ -110,6 +118,49 @@ class JsonRpcMetricsInterceptorTest {
             IllegalArgumentException.class,
             () -> new JsonRpcMetricsInterceptor(meterRegistry, false, new double[0], -1)
         );
+    }
+
+    @Test
+    void enforcesHardCapForDistinctMethodTagsUnderConcurrency() throws Exception {
+        MeterRegistry meterRegistry = new SimpleMeterRegistry();
+        JsonRpcMetricsInterceptor interceptor = new JsonRpcMetricsInterceptor(meterRegistry, false, new double[0], 1);
+        int workers = 64;
+        ExecutorService executor = Executors.newFixedThreadPool(workers);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<?>> futures = new ArrayList<>(workers);
+        for (int i = 0; i < workers; i++) {
+            String methodName = "method." + i;
+            futures.add(executor.submit(() -> {
+                start.await();
+                JsonRpcRequest request = request(methodName);
+                interceptor.beforeInvoke(request);
+                interceptor.afterInvoke(request, IntNode.valueOf(1));
+                return null;
+            }));
+        }
+
+        start.countDown();
+        for (Future<?> future : futures) {
+            future.get();
+        }
+
+        executor.shutdown();
+        assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
+
+        long concreteMethodTags = meterRegistry.getMeters().stream()
+            .filter(meter -> "jsonrpc.server.calls".equals(meter.getId().getName()))
+            .map(meter -> meter.getId().getTag("method"))
+            .filter(method -> method != null && !"other".equals(method) && !"unknown".equals(method))
+            .distinct()
+            .count();
+
+        assertEquals(1, concreteMethodTags);
+        assertEquals(63, meterRegistry.counter(
+            "jsonrpc.server.calls",
+            "method", "other",
+            "outcome", "success",
+            "errorCode", "none"
+        ).count(), 0.0d);
     }
 
     private JsonRpcRequest request(String method) {

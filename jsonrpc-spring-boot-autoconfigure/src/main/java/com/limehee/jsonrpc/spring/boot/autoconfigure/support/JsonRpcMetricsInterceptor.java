@@ -28,7 +28,8 @@ import tools.jackson.databind.JsonNode;
  * </ul>
  * <p>
  * Method tag cardinality can be bounded by {@code maxMethodTagValues}; once the limit is reached,
- * unseen methods are collapsed into the {@code other} bucket.
+ * unseen methods are collapsed into the {@code other} bucket. This limit is treated as a hard cap even when
+ * requests are processed concurrently.
  * </p>
  */
 public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
@@ -44,6 +45,7 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
     private final boolean latencyHistogramEnabled;
     private final double[] latencyPercentiles;
     private final int maxMethodTagValues;
+    private final Object methodTagLock = new Object();
     private final Set<String> seenMethods = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<CounterKey, Counter> callCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<CounterKey, Counter> stageCounters = new ConcurrentHashMap<>();
@@ -263,7 +265,7 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
      * Applies method tag normalization and cardinality limiting.
      *
      * @param method raw method name from request
-     * @return normalized method tag value
+     * @return normalized method tag value, with strict cap enforcement for distinct method tags
      */
     private String normalizeMethodName(@Nullable String method) {
         if (method == null || method.isBlank()) {
@@ -272,13 +274,17 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         if (seenMethods.contains(method)) {
             return method;
         }
-        if (seenMethods.size() >= maxMethodTagValues) {
-            return METHOD_OTHER;
-        }
-        if (seenMethods.add(method)) {
+
+        synchronized (methodTagLock) {
+            if (seenMethods.contains(method)) {
+                return method;
+            }
+            if (seenMethods.size() >= maxMethodTagValues) {
+                return METHOD_OTHER;
+            }
+            seenMethods.add(method);
             return method;
         }
-        return method;
     }
 
     /**
