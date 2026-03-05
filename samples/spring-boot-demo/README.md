@@ -45,12 +45,24 @@ curl -s http://localhost:8080/jsonrpc \
   -d '{"jsonrpc":"2.0","method":"ping","id":1}'
 ```
 
+Expected response:
+
+```json
+{"jsonrpc":"2.0","id":1,"result":"pong"}
+```
+
 ### 2. Single-parameter DTO binding (`greet`)
 
 ```bash
 curl -s http://localhost:8080/jsonrpc \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":2}'
+```
+
+Expected response:
+
+```json
+{"jsonrpc":"2.0","id":2,"result":"hello developer"}
 ```
 
 ### 3. Named params with `@JsonRpcParam` (`sum`)
@@ -61,12 +73,24 @@ curl -s http://localhost:8080/jsonrpc \
   -d '{"jsonrpc":"2.0","method":"sum","params":{"left":2,"right":3},"id":3}'
 ```
 
+Expected response:
+
+```json
+{"jsonrpc":"2.0","id":3,"result":5}
+```
+
 ### 4. Positional params (`sum`)
 
 ```bash
 curl -s http://localhost:8080/jsonrpc \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","method":"sum","params":[2,3],"id":4}'
+```
+
+Expected response:
+
+```json
+{"jsonrpc":"2.0","id":4,"result":5}
 ```
 
 ### 5. Manual registration (`manual.echo`)
@@ -77,6 +101,12 @@ curl -s http://localhost:8080/jsonrpc \
   -d '{"jsonrpc":"2.0","method":"manual.echo","id":5}'
 ```
 
+Expected response:
+
+```json
+{"jsonrpc":"2.0","id":5,"result":"echo"}
+```
+
 ### 6. Typed registration (`typed.upper`, `typed.tags`)
 
 ```bash
@@ -85,10 +115,22 @@ curl -s http://localhost:8080/jsonrpc \
   -d '{"jsonrpc":"2.0","method":"typed.upper","params":{"value":"spring"},"id":6}'
 ```
 
+Expected response:
+
+```json
+{"jsonrpc":"2.0","id":6,"result":{"value":"SPRING"}}
+```
+
 ```bash
 curl -s http://localhost:8080/jsonrpc \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","method":"typed.tags","id":7}'
+```
+
+Expected response:
+
+```json
+{"jsonrpc":"2.0","id":7,"result":["alpha","beta"]}
 ```
 
 ### 7. Notification (no response body)
@@ -98,6 +140,11 @@ curl -i -s http://localhost:8080/jsonrpc \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","method":"ping"}'
 ```
+
+Expected response:
+
+- HTTP status: `204 No Content`
+- body: empty
 
 ### 8. Mixed batch (success + notification + error)
 
@@ -111,12 +158,27 @@ curl -s http://localhost:8080/jsonrpc \
       ]'
 ```
 
+Expected response:
+
+```json
+[
+  {"jsonrpc":"2.0","id":8,"result":"echo"},
+  {"jsonrpc":"2.0","id":9,"error":{"code":-32601,"message":"Method not found"}}
+]
+```
+
 ### 9. Parse error
 
 ```bash
 curl -s http://localhost:8080/jsonrpc \
   -H 'content-type: application/json' \
   -d '{'
+```
+
+Expected response:
+
+```json
+{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}
 ```
 
 ## Notification Executor Scenarios
