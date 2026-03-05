@@ -4,47 +4,47 @@ All properties are under `jsonrpc.*` and are bound to `JsonRpcProperties`.
 
 ## 1. Property Table
 
-| Key                                                             | Type                                  | Default                            | Description                                                          |
-|-----------------------------------------------------------------|---------------------------------------|------------------------------------|----------------------------------------------------------------------|
-| `jsonrpc.enabled`                                               | `boolean`                             | `true`                             | Enable/disable WebMVC endpoint auto-configuration                    |
-| `jsonrpc.path`                                                  | `String`                              | `/jsonrpc`                         | JSON-RPC HTTP endpoint path                                          |
-| `jsonrpc.max-batch-size`                                        | `int`                                 | `100`                              | Maximum number of entries allowed in one batch request               |
-| `jsonrpc.max-request-bytes`                                     | `int`                                 | `1048576`                          | Raw HTTP request payload size limit in bytes                         |
-| `jsonrpc.scan-annotated-methods`                                | `boolean`                             | `true`                             | Scan Spring beans for `@JsonRpcMethod`                               |
-| `jsonrpc.include-error-data`                                    | `boolean`                             | `false`                            | Include `JsonRpcException.data` in error responses                   |
-| `jsonrpc.validation.request.require-json-rpc-version-20`        | `boolean`                             | `true`                             | Require incoming request `jsonrpc` to equal `"2.0"`                 |
-| `jsonrpc.validation.request.require-id-member`                  | `boolean`                             | `false`                            | Require incoming requests to include an `id` member                  |
-| `jsonrpc.validation.request.allow-null-id`                      | `boolean`                             | `true`                             | Allow `id: null` in incoming requests                                |
-| `jsonrpc.validation.request.allow-string-id`                    | `boolean`                             | `true`                             | Allow string IDs in incoming requests                                |
-| `jsonrpc.validation.request.allow-numeric-id`                   | `boolean`                             | `true`                             | Allow numeric IDs in incoming requests                               |
-| `jsonrpc.validation.request.allow-fractional-id`                | `boolean`                             | `true`                             | Allow fractional numeric IDs in incoming requests                    |
-| `jsonrpc.validation.request.reject-response-fields`             | `boolean`                             | `false`                            | Reject request objects containing `result`/`error`                   |
-| `jsonrpc.validation.request.reject-duplicate-members`           | `boolean`                             | `false`                            | Reject duplicate members while parsing raw request JSON              |
-| `jsonrpc.validation.request.params-type-violation-code-policy`  | `INVALID_PARAMS` or `INVALID_REQUEST` | `INVALID_PARAMS`                   | Error code used when `params` exists but is neither object nor array |
-| `jsonrpc.validation.response.require-json-rpc-version-20`       | `boolean`                             | `true`                             | Require incoming response `jsonrpc` to equal `"2.0"`                 |
-| `jsonrpc.validation.response.require-id-member`                 | `boolean`                             | `true`                             | Require incoming responses to include an `id` member                 |
-| `jsonrpc.validation.response.allow-null-id`                     | `boolean`                             | `true`                             | Allow `id: null` in incoming responses                               |
-| `jsonrpc.validation.response.allow-string-id`                   | `boolean`                             | `true`                             | Allow string IDs in incoming responses                               |
-| `jsonrpc.validation.response.allow-numeric-id`                  | `boolean`                             | `true`                             | Allow numeric IDs in incoming responses                              |
-| `jsonrpc.validation.response.allow-fractional-id`               | `boolean`                             | `true`                             | Allow fractional numeric IDs in incoming responses                   |
-| `jsonrpc.validation.response.require-exclusive-result-or-error` | `boolean`                             | `true`                             | Require exactly one of `result` or `error`                           |
-| `jsonrpc.validation.response.require-error-object-when-present` | `boolean`                             | `true`                             | Require `error` to be an object when present                         |
-| `jsonrpc.validation.response.require-integer-error-code`        | `boolean`                             | `true`                             | Require `error.code` to be an integer                                |
-| `jsonrpc.validation.response.require-string-error-message`      | `boolean`                             | `true`                             | Require `error.message` to be a string                               |
-| `jsonrpc.validation.response.reject-request-fields`             | `boolean`                             | `false`                            | Reject response objects containing `method`/`params`                 |
-| `jsonrpc.validation.response.reject-duplicate-members`          | `boolean`                             | `false`                            | Reject duplicate members while parsing raw response JSON             |
-| `jsonrpc.validation.response.error-code.policy`                 | `JsonRpcResponseErrorCodePolicy`      | `ANY_INTEGER`                      | Accepted integer range policy for response `error.code`              |
-| `jsonrpc.validation.response.error-code.range.min`              | `Integer`                             | `null`                             | Inclusive minimum for `CUSTOM_RANGE`                                 |
-| `jsonrpc.validation.response.error-code.range.max`              | `Integer`                             | `null`                             | Inclusive maximum for `CUSTOM_RANGE`                                 |
-| `jsonrpc.method-registration-conflict-policy`                   | `REJECT` or `REPLACE`                 | `REJECT`                           | Duplicate method name registration policy                            |
-| `jsonrpc.method-allowlist`                                      | `List<String>`                        | `[]`                               | Allowlist for method access filtering                                |
-| `jsonrpc.method-denylist`                                       | `List<String>`                        | `[]`                               | Denylist for method access filtering (higher priority)               |
-| `jsonrpc.metrics-enabled`                                       | `boolean`                             | `true`                             | Enable Micrometer interceptor/observer when registry is present      |
-| `jsonrpc.metrics-latency-histogram-enabled`                     | `boolean`                             | `false`                            | Publish latency histogram buckets                                    |
-| `jsonrpc.metrics-latency-percentiles`                           | `List<Double>`                        | `[]`                               | Optional latency percentiles (`0.0 < p < 1.0`)                       |
-| `jsonrpc.metrics-max-method-tag-values`                         | `int`                                 | `100`                              | Max distinct method tag values before fallback to `other`            |
-| `jsonrpc.notification-executor-enabled`                         | `boolean`                             | `false`                            | Enable executor-backed notification dispatch                         |
-| `jsonrpc.notification-executor-bean-name`                       | `String`                              | `""`                               | Preferred executor bean name for notifications                       |
+| Key                                                             | Type                                  | Default          | Description                                                          |
+|-----------------------------------------------------------------|---------------------------------------|------------------|----------------------------------------------------------------------|
+| `jsonrpc.enabled`                                               | `boolean`                             | `true`           | Enable/disable WebMVC endpoint auto-configuration                    |
+| `jsonrpc.path`                                                  | `String`                              | `/jsonrpc`       | JSON-RPC HTTP endpoint path                                          |
+| `jsonrpc.max-batch-size`                                        | `int`                                 | `100`            | Maximum number of entries allowed in one batch request               |
+| `jsonrpc.max-request-bytes`                                     | `int`                                 | `1048576`        | Raw HTTP request payload size limit in bytes                         |
+| `jsonrpc.scan-annotated-methods`                                | `boolean`                             | `true`           | Scan Spring beans for `@JsonRpcMethod`                               |
+| `jsonrpc.include-error-data`                                    | `boolean`                             | `false`          | Include `JsonRpcException.data` in error responses                   |
+| `jsonrpc.validation.request.require-json-rpc-version-20`        | `boolean`                             | `true`           | Require incoming request `jsonrpc` to equal `"2.0"`                  |
+| `jsonrpc.validation.request.require-id-member`                  | `boolean`                             | `false`          | Require incoming requests to include an `id` member                  |
+| `jsonrpc.validation.request.allow-null-id`                      | `boolean`                             | `true`           | Allow `id: null` in incoming requests                                |
+| `jsonrpc.validation.request.allow-string-id`                    | `boolean`                             | `true`           | Allow string IDs in incoming requests                                |
+| `jsonrpc.validation.request.allow-numeric-id`                   | `boolean`                             | `true`           | Allow numeric IDs in incoming requests                               |
+| `jsonrpc.validation.request.allow-fractional-id`                | `boolean`                             | `true`           | Allow fractional numeric IDs in incoming requests                    |
+| `jsonrpc.validation.request.reject-response-fields`             | `boolean`                             | `false`          | Reject request objects containing `result`/`error`                   |
+| `jsonrpc.validation.request.reject-duplicate-members`           | `boolean`                             | `false`          | Reject duplicate members while parsing raw request JSON              |
+| `jsonrpc.validation.request.params-type-violation-code-policy`  | `INVALID_PARAMS` or `INVALID_REQUEST` | `INVALID_PARAMS` | Error code used when `params` exists but is neither object nor array |
+| `jsonrpc.validation.response.require-json-rpc-version-20`       | `boolean`                             | `true`           | Require incoming response `jsonrpc` to equal `"2.0"`                 |
+| `jsonrpc.validation.response.require-id-member`                 | `boolean`                             | `true`           | Require incoming responses to include an `id` member                 |
+| `jsonrpc.validation.response.allow-null-id`                     | `boolean`                             | `true`           | Allow `id: null` in incoming responses                               |
+| `jsonrpc.validation.response.allow-string-id`                   | `boolean`                             | `true`           | Allow string IDs in incoming responses                               |
+| `jsonrpc.validation.response.allow-numeric-id`                  | `boolean`                             | `true`           | Allow numeric IDs in incoming responses                              |
+| `jsonrpc.validation.response.allow-fractional-id`               | `boolean`                             | `true`           | Allow fractional numeric IDs in incoming responses                   |
+| `jsonrpc.validation.response.require-exclusive-result-or-error` | `boolean`                             | `true`           | Require exactly one of `result` or `error`                           |
+| `jsonrpc.validation.response.require-error-object-when-present` | `boolean`                             | `true`           | Require `error` to be an object when present                         |
+| `jsonrpc.validation.response.require-integer-error-code`        | `boolean`                             | `true`           | Require `error.code` to be an integer                                |
+| `jsonrpc.validation.response.require-string-error-message`      | `boolean`                             | `true`           | Require `error.message` to be a string                               |
+| `jsonrpc.validation.response.reject-request-fields`             | `boolean`                             | `false`          | Reject response objects containing `method`/`params`                 |
+| `jsonrpc.validation.response.reject-duplicate-members`          | `boolean`                             | `false`          | Reject duplicate members while parsing raw response JSON             |
+| `jsonrpc.validation.response.error-code.policy`                 | `JsonRpcResponseErrorCodePolicy`      | `ANY_INTEGER`    | Accepted integer range policy for response `error.code`              |
+| `jsonrpc.validation.response.error-code.range.min`              | `Integer`                             | `null`           | Inclusive minimum for `CUSTOM_RANGE`                                 |
+| `jsonrpc.validation.response.error-code.range.max`              | `Integer`                             | `null`           | Inclusive maximum for `CUSTOM_RANGE`                                 |
+| `jsonrpc.method-registration-conflict-policy`                   | `REJECT` or `REPLACE`                 | `REJECT`         | Duplicate method name registration policy                            |
+| `jsonrpc.method-allowlist`                                      | `List<String>`                        | `[]`             | Allowlist for method access filtering                                |
+| `jsonrpc.method-denylist`                                       | `List<String>`                        | `[]`             | Denylist for method access filtering (higher priority)               |
+| `jsonrpc.metrics-enabled`                                       | `boolean`                             | `true`           | Enable Micrometer interceptor/observer when registry is present      |
+| `jsonrpc.metrics-latency-histogram-enabled`                     | `boolean`                             | `false`          | Publish latency histogram buckets                                    |
+| `jsonrpc.metrics-latency-percentiles`                           | `List<Double>`                        | `[]`             | Optional latency percentiles (`0.0 < p < 1.0`)                       |
+| `jsonrpc.metrics-max-method-tag-values`                         | `int`                                 | `100`            | Max distinct method tag values before fallback to `other`            |
+| `jsonrpc.notification-executor-enabled`                         | `boolean`                             | `false`          | Enable executor-backed notification dispatch                         |
+| `jsonrpc.notification-executor-bean-name`                       | `String`                              | `""`             | Preferred executor bean name for notifications                       |
 
 `JsonRpcResponseErrorCodePolicy` values:
 - `ANY_INTEGER`
@@ -207,7 +207,9 @@ jsonrpc:
 
 ## 6. Migration Notes (Response Validation Key Rename)
 
-Old keys replaced by canonical symmetric keys:
+The old keys below are migration references only.
+They are not bound by current auto-configuration and should not be used in new setups.
+Use the canonical symmetric keys in the right column.
 
 | Old key                                                           | New key                                              |
 |-------------------------------------------------------------------|------------------------------------------------------|
