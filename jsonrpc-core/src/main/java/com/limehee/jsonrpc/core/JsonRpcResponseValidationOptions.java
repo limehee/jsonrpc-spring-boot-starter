@@ -375,7 +375,8 @@ public final class JsonRpcResponseValidationOptions {
                     );
                 }
                 if (errorCodeRangeMin > errorCodeRangeMax) {
-                    throw new IllegalArgumentException("errorCodeRangeMin must be less than or equal to errorCodeRangeMax");
+                    throw new IllegalArgumentException(
+                        "errorCodeRangeMin must be less than or equal to errorCodeRangeMax");
                 }
             }
             return new JsonRpcResponseValidationOptions(this);

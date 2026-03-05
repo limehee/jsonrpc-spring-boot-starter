@@ -36,7 +36,8 @@ class JsonRpcPayloadReaderTest {
 
         assertThrows(
             JacksonException.class,
-            () -> reader.readTree("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}".getBytes(StandardCharsets.UTF_8))
+            () -> reader.readTree(
+                "{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":2,\"result\":1}".getBytes(StandardCharsets.UTF_8))
         );
     }
 

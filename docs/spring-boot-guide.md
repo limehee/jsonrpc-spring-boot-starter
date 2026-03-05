@@ -10,14 +10,15 @@ Replace `latest-version` with the release you want to use.
 Maven:
 
 ```xml
+
 <properties>
   <jsonrpc.version>latest-version</jsonrpc.version>
 </properties>
 
 <dependency>
-  <groupId>io.github.limehee</groupId>
-  <artifactId>jsonrpc-spring-boot-starter</artifactId>
-  <version>${jsonrpc.version}</version>
+<groupId>io.github.limehee</groupId>
+<artifactId>jsonrpc-spring-boot-starter</artifactId>
+<version>${jsonrpc.version}</version>
 </dependency>
 ```
 
@@ -133,14 +134,19 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 class TypedRpcConfig {
 
-    record UpperIn(String value) {}
-    record UpperOut(String value) {}
+    record UpperIn(String value) {
+
+    }
+
+    record UpperOut(String value) {
+
+    }
 
     @Bean
     JsonRpcMethodRegistration typedUpperRegistration(JsonRpcTypedMethodHandlerFactory factory) {
         return JsonRpcMethodRegistration.of(
-                "typed.upper",
-                factory.unary(UpperIn.class, in -> new UpperOut(in.value().toUpperCase()))
+            "typed.upper",
+            factory.unary(UpperIn.class, in -> new UpperOut(in.value().toUpperCase()))
         );
     }
 }
@@ -182,12 +188,15 @@ jsonrpc:
 `params` is mapped as a whole to the single declared parameter type.
 
 ```java
+
 @JsonRpcMethod("greet")
 public String greet(GreetParams params) {
     return "hello " + params.name();
 }
 
-record GreetParams(String name) {}
+record GreetParams(String name) {
+
+}
 ```
 
 ### 5.2 Multi parameter methods
@@ -205,6 +214,7 @@ Named binding name resolution order:
 Example:
 
 ```java
+
 @JsonRpcMethod("sum")
 public int sum(@JsonRpcParam("left") int left, @JsonRpcParam("right") int right) {
     return left + right;
@@ -214,12 +224,21 @@ public int sum(@JsonRpcParam("left") int left, @JsonRpcParam("right") int right)
 Request:
 
 ```json
-{"jsonrpc":"2.0","method":"sum","params":{"left":1,"right":2},"id":1}
+{
+  "jsonrpc": "2.0",
+  "method": "sum",
+  "params": {
+    "left": 1,
+    "right": 2
+  },
+  "id": 1
+}
 ```
 
 Positional example:
 
 ```java
+
 @JsonRpcMethod("sum")
 public int sum(int left, int right) {
     return left + right;
@@ -229,7 +248,15 @@ public int sum(int left, int right) {
 Request:
 
 ```json
-{"jsonrpc":"2.0","method":"sum","params":[1,2],"id":1}
+{
+  "jsonrpc": "2.0",
+  "method": "sum",
+  "params": [
+    1,
+    2
+  ],
+  "id": 1
+}
 ```
 
 ### 5.3 Return mapping
@@ -303,8 +330,8 @@ jsonrpc:
 
 Auto-configuration exposes both `JsonRpcResponseValidationOptions` and
 `JsonRpcResponseValidator` beans, and also a `JsonRpcResponseParser` bean configured with
-`jsonrpc.validation.response.reject-duplicate-members`. These components are intended for client/bidirectional integrations and are
-not part of the default HTTP request dispatch path.
+`jsonrpc.validation.response.reject-duplicate-members`. These components are intended for client/bidirectional
+integrations and are not part of the default HTTP request dispatch path.
 
 ## 6. Control Scanning Scope
 
@@ -321,8 +348,8 @@ Properties:
 
 ```yaml
 jsonrpc:
-  method-allowlist: [math.sum, ping]
-  method-denylist: [admin.reset]
+  method-allowlist: [ math.sum, ping ]
+  method-denylist: [ admin.reset ]
 ```
 
 Rules:
@@ -375,7 +402,7 @@ Configuration:
 jsonrpc:
   metrics-enabled: true
   metrics-latency-histogram-enabled: true
-  metrics-latency-percentiles: [0.9, 0.95, 0.99]
+  metrics-latency-percentiles: [ 0.9, 0.95, 0.99 ]
   metrics-max-method-tag-values: 100
 ```
 
@@ -421,11 +448,25 @@ class RpcHttpConfig {
     @Bean
     JsonRpcHttpStatusStrategy jsonRpcHttpStatusStrategy() {
         return new JsonRpcHttpStatusStrategy() {
-            public HttpStatus statusForSingle(JsonRpcResponse response) { return HttpStatus.OK; }
-            public HttpStatus statusForBatch(List<JsonRpcResponse> responses) { return HttpStatus.OK; }
-            public HttpStatus statusForNotificationOnly() { return HttpStatus.NO_CONTENT; }
-            public HttpStatus statusForParseError() { return HttpStatus.BAD_REQUEST; }
-            public HttpStatus statusForRequestTooLarge() { return HttpStatus.PAYLOAD_TOO_LARGE; }
+            public HttpStatus statusForSingle(JsonRpcResponse response) {
+                return HttpStatus.OK;
+            }
+
+            public HttpStatus statusForBatch(List<JsonRpcResponse> responses) {
+                return HttpStatus.OK;
+            }
+
+            public HttpStatus statusForNotificationOnly() {
+                return HttpStatus.NO_CONTENT;
+            }
+
+            public HttpStatus statusForParseError() {
+                return HttpStatus.BAD_REQUEST;
+            }
+
+            public HttpStatus statusForRequestTooLarge() {
+                return HttpStatus.PAYLOAD_TOO_LARGE;
+            }
         };
     }
 }

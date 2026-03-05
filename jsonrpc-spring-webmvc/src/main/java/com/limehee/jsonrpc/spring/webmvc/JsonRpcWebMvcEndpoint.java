@@ -90,12 +90,12 @@ public class JsonRpcWebMvcEndpoint {
     /**
      * Creates an endpoint with explicit transport observer and request duplicate-member policy.
      *
-     * @param dispatcher               dispatcher that performs JSON-RPC parsing, validation, and invocation
-     * @param objectMapper             mapper used to parse request payloads and serialize responses
-     * @param httpStatusStrategy       strategy that maps JSON-RPC outcomes to HTTP status codes
-     * @param maxRequestBytes          maximum accepted request payload size in bytes
-     * @param observer                 observer receiving transport-level event callbacks
-     * @param rejectDuplicateMembers   {@code true} to reject duplicate request members during JSON parsing
+     * @param dispatcher             dispatcher that performs JSON-RPC parsing, validation, and invocation
+     * @param objectMapper           mapper used to parse request payloads and serialize responses
+     * @param httpStatusStrategy     strategy that maps JSON-RPC outcomes to HTTP status codes
+     * @param maxRequestBytes        maximum accepted request payload size in bytes
+     * @param observer               observer receiving transport-level event callbacks
+     * @param rejectDuplicateMembers {@code true} to reject duplicate request members during JSON parsing
      * @throws IllegalArgumentException if {@code maxRequestBytes <= 0}
      */
     public JsonRpcWebMvcEndpoint(

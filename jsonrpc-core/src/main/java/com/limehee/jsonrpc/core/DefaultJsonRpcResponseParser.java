@@ -35,8 +35,8 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
     /**
      * Creates a parser with explicit mapper and duplicate-member policy.
      *
-     * @param objectMapper            mapper used to parse raw JSON input
-     * @param rejectDuplicateMembers  {@code true} to reject duplicate members while parsing raw JSON input
+     * @param objectMapper           mapper used to parse raw JSON input
+     * @param rejectDuplicateMembers {@code true} to reject duplicate members while parsing raw JSON input
      */
     public DefaultJsonRpcResponseParser(ObjectMapper objectMapper, boolean rejectDuplicateMembers) {
         this.payloadReader = new JsonRpcPayloadReader(

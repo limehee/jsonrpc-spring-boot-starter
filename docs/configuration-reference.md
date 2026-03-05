@@ -211,14 +211,14 @@ The old keys below are migration references only.
 They are not bound by current auto-configuration and should not be used in new setups.
 Use the canonical symmetric keys in the right column.
 
-| Old key                                                           | New key                                              |
-|-------------------------------------------------------------------|------------------------------------------------------|
-| `jsonrpc.validation.response.require-response-id-member`          | `jsonrpc.validation.response.require-id-member`      |
-| `jsonrpc.validation.response.allow-null-response-id`              | `jsonrpc.validation.response.allow-null-id`          |
-| `jsonrpc.validation.response.allow-string-response-id`            | `jsonrpc.validation.response.allow-string-id`        |
-| `jsonrpc.validation.response.allow-numeric-response-id`           | `jsonrpc.validation.response.allow-numeric-id`       |
-| `jsonrpc.validation.response.allow-fractional-response-id`        | `jsonrpc.validation.response.allow-fractional-id`    |
-| `jsonrpc.validation.response.allow-request-fields-in-response`    | `jsonrpc.validation.response.reject-request-fields`  |
+| Old key                                                        | New key                                             |
+|----------------------------------------------------------------|-----------------------------------------------------|
+| `jsonrpc.validation.response.require-response-id-member`       | `jsonrpc.validation.response.require-id-member`     |
+| `jsonrpc.validation.response.allow-null-response-id`           | `jsonrpc.validation.response.allow-null-id`         |
+| `jsonrpc.validation.response.allow-string-response-id`         | `jsonrpc.validation.response.allow-string-id`       |
+| `jsonrpc.validation.response.allow-numeric-response-id`        | `jsonrpc.validation.response.allow-numeric-id`      |
+| `jsonrpc.validation.response.allow-fractional-response-id`     | `jsonrpc.validation.response.allow-fractional-id`   |
+| `jsonrpc.validation.response.allow-request-fields-in-response` | `jsonrpc.validation.response.reject-request-fields` |
 
 Inversion rule:
 

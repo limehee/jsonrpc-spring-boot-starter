@@ -18,7 +18,7 @@ public final class JsonRpcPayloadReader {
     /**
      * Creates a reader bound to a mapper and duplicate-member policy.
      *
-     * @param objectMapper mapper used for JSON parsing
+     * @param objectMapper           mapper used for JSON parsing
      * @param rejectDuplicateMembers {@code true} to reject duplicate object members
      */
     public JsonRpcPayloadReader(ObjectMapper objectMapper, boolean rejectDuplicateMembers) {

@@ -29,13 +29,13 @@ public record JsonRpcIncomingResponse(
     /**
      * Creates a response model without the original source node.
      *
-     * @param jsonrpc protocol version field value when textual; otherwise {@code null}
-     * @param id id field value when present; may be {@code null}
-     * @param idPresent whether the response explicitly contained an {@code id} member
-     * @param result result field value when present; may be {@code null}
+     * @param jsonrpc       protocol version field value when textual; otherwise {@code null}
+     * @param id            id field value when present; may be {@code null}
+     * @param idPresent     whether the response explicitly contained an {@code id} member
+     * @param result        result field value when present; may be {@code null}
      * @param resultPresent whether the response explicitly contained a {@code result} member
-     * @param error error field value when present; may be {@code null}
-     * @param errorPresent whether the response explicitly contained an {@code error} member
+     * @param error         error field value when present; may be {@code null}
+     * @param errorPresent  whether the response explicitly contained an {@code error} member
      */
     public JsonRpcIncomingResponse(
         @Nullable String jsonrpc,

@@ -15,13 +15,13 @@ import com.limehee.jsonrpc.core.DirectJsonRpcNotificationExecutor;
 import com.limehee.jsonrpc.core.InMemoryJsonRpcMethodRegistry;
 import com.limehee.jsonrpc.core.JacksonJsonRpcParameterBinder;
 import com.limehee.jsonrpc.core.JacksonJsonRpcResultWriter;
+import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcExceptionResolver;
 import com.limehee.jsonrpc.core.JsonRpcMethod;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
-import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.spring.boot.autoconfigure.support.JsonRpcAnnotatedMethodRegistrar;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,7 +44,8 @@ class JsonRpcAnnotatedMethodRegistrarTest {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
         JsonRpcAnnotatedMethodRegistrar registrar = registrar(beanFactory, dispatcher);
 
-        IllegalStateException exception = assertThrows(IllegalStateException.class, registrar::afterSingletonsInstantiated);
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            registrar::afterSingletonsInstantiated);
         assertTrue(exception.getMessage().contains("failingBean"));
     }
 
@@ -88,7 +89,8 @@ class JsonRpcAnnotatedMethodRegistrarTest {
         assertEquals("checked failure", captured.get().getCause().getMessage());
     }
 
-    private JsonRpcAnnotatedMethodRegistrar registrar(DefaultListableBeanFactory beanFactory, JsonRpcDispatcher dispatcher) {
+    private JsonRpcAnnotatedMethodRegistrar registrar(DefaultListableBeanFactory beanFactory,
+        JsonRpcDispatcher dispatcher) {
         JacksonJsonRpcParameterBinder parameterBinder = new JacksonJsonRpcParameterBinder(OBJECT_MAPPER);
         JacksonJsonRpcResultWriter resultWriter = new JacksonJsonRpcResultWriter(OBJECT_MAPPER);
         JsonRpcTypedMethodHandlerFactory typedFactory = new DefaultJsonRpcTypedMethodHandlerFactory(

@@ -4,8 +4,8 @@ import com.limehee.jsonrpc.core.DefaultJsonRpcExceptionResolver;
 import com.limehee.jsonrpc.core.DefaultJsonRpcMethodInvoker;
 import com.limehee.jsonrpc.core.DefaultJsonRpcRequestParser;
 import com.limehee.jsonrpc.core.DefaultJsonRpcRequestValidator;
-import com.limehee.jsonrpc.core.DefaultJsonRpcResponseParser;
 import com.limehee.jsonrpc.core.DefaultJsonRpcResponseComposer;
+import com.limehee.jsonrpc.core.DefaultJsonRpcResponseParser;
 import com.limehee.jsonrpc.core.DefaultJsonRpcResponseValidator;
 import com.limehee.jsonrpc.core.DefaultJsonRpcTypedMethodHandlerFactory;
 import com.limehee.jsonrpc.core.DirectJsonRpcNotificationExecutor;
@@ -24,8 +24,8 @@ import com.limehee.jsonrpc.core.JsonRpcParameterBinder;
 import com.limehee.jsonrpc.core.JsonRpcRequestParser;
 import com.limehee.jsonrpc.core.JsonRpcRequestValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcRequestValidator;
-import com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcResponseComposer;
+import com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
@@ -502,12 +502,12 @@ public class JsonRpcAutoConfiguration {
     /**
      * Creates JSON-RPC WebMVC endpoint for servlet applications.
      *
-     * @param dispatcher           dispatcher handling JSON-RPC requests
-     * @param httpStatusStrategy   strategy mapping protocol outcomes to HTTP status codes
-     * @param objectMapperProvider provider for custom or default {@link ObjectMapper}
-     * @param webMvcObserver       observer for transport-level events
+     * @param dispatcher               dispatcher handling JSON-RPC requests
+     * @param httpStatusStrategy       strategy mapping protocol outcomes to HTTP status codes
+     * @param objectMapperProvider     provider for custom or default {@link ObjectMapper}
+     * @param webMvcObserver           observer for transport-level events
      * @param requestValidationOptions request-validation options
-     * @param properties           bound JSON-RPC properties
+     * @param properties               bound JSON-RPC properties
      * @return WebMVC endpoint bean
      */
     @Bean
@@ -608,7 +608,8 @@ public class JsonRpcAutoConfiguration {
         if (properties.getValidation().getResponse().getErrorCode().getRange() == null) {
             throw new IllegalArgumentException("jsonrpc.validation.response.error-code.range must not be null");
         }
-        JsonRpcResponseErrorCodePolicy errorCodePolicy = properties.getValidation().getResponse().getErrorCode().getPolicy();
+        JsonRpcResponseErrorCodePolicy errorCodePolicy = properties.getValidation().getResponse().getErrorCode()
+            .getPolicy();
         Integer errorCodeMin = properties.getValidation().getResponse().getErrorCode().getRange().getMin();
         Integer errorCodeMax = properties.getValidation().getResponse().getErrorCode().getRange().getMax();
         if (!properties.getValidation().getResponse().isRequireIntegerErrorCode()

@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.DefaultJsonRpcResponseParser;
+import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcException;
 import com.limehee.jsonrpc.core.JsonRpcIncomingResponse;
 import com.limehee.jsonrpc.core.JsonRpcInterceptor;
@@ -18,8 +18,8 @@ import com.limehee.jsonrpc.core.JsonRpcParam;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
 import com.limehee.jsonrpc.core.JsonRpcRequestValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
-import com.limehee.jsonrpc.core.JsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy;
+import com.limehee.jsonrpc.core.JsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
@@ -731,7 +731,8 @@ class JsonRpcAutoConfigurationTest {
         flags.put("jsonrpc.validation.request.allow-string-id", JsonRpcRequestValidationOptions::allowStringId);
         flags.put("jsonrpc.validation.request.allow-numeric-id", JsonRpcRequestValidationOptions::allowNumericId);
         flags.put("jsonrpc.validation.request.allow-fractional-id", JsonRpcRequestValidationOptions::allowFractionalId);
-        flags.put("jsonrpc.validation.request.reject-response-fields", JsonRpcRequestValidationOptions::rejectResponseFields);
+        flags.put("jsonrpc.validation.request.reject-response-fields",
+            JsonRpcRequestValidationOptions::rejectResponseFields);
         flags.put("jsonrpc.validation.request.reject-duplicate-members",
             JsonRpcRequestValidationOptions::rejectDuplicateMembers);
 
@@ -913,7 +914,8 @@ class JsonRpcAutoConfigurationTest {
         flags.put("jsonrpc.validation.response.allow-null-id", JsonRpcResponseValidationOptions::allowNullId);
         flags.put("jsonrpc.validation.response.allow-string-id", JsonRpcResponseValidationOptions::allowStringId);
         flags.put("jsonrpc.validation.response.allow-numeric-id", JsonRpcResponseValidationOptions::allowNumericId);
-        flags.put("jsonrpc.validation.response.allow-fractional-id", JsonRpcResponseValidationOptions::allowFractionalId);
+        flags.put("jsonrpc.validation.response.allow-fractional-id",
+            JsonRpcResponseValidationOptions::allowFractionalId);
         flags.put("jsonrpc.validation.response.require-exclusive-result-or-error",
             JsonRpcResponseValidationOptions::requireExclusiveResultOrError);
         flags.put("jsonrpc.validation.response.require-error-object-when-present",
@@ -922,7 +924,8 @@ class JsonRpcAutoConfigurationTest {
             JsonRpcResponseValidationOptions::requireIntegerErrorCode);
         flags.put("jsonrpc.validation.response.require-string-error-message",
             JsonRpcResponseValidationOptions::requireStringErrorMessage);
-        flags.put("jsonrpc.validation.response.reject-request-fields", JsonRpcResponseValidationOptions::rejectRequestFields);
+        flags.put("jsonrpc.validation.response.reject-request-fields",
+            JsonRpcResponseValidationOptions::rejectRequestFields);
         flags.put("jsonrpc.validation.response.reject-duplicate-members",
             JsonRpcResponseValidationOptions::rejectDuplicateMembers);
 
