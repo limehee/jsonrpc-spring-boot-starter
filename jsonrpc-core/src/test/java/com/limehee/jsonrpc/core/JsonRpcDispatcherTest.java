@@ -475,6 +475,64 @@ class JsonRpcDispatcherTest {
     }
 
     @Test
+    void beforeValidateRuntimeExceptionIsMappedToInternalError() throws Exception {
+        JsonRpcInterceptor throwingInterceptor = new JsonRpcInterceptor() {
+            @Override
+            public void beforeValidate(JsonNode rawRequest) {
+                throw new IllegalStateException("beforeValidate boom");
+            }
+        };
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(throwingInterceptor)
+        );
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """));
+
+        JsonRpcResponse response = result.singleResponse().orElseThrow();
+        assertEquals(JsonRpcErrorCode.INTERNAL_ERROR, response.error().code());
+        assertEquals(1, response.id().asInt());
+    }
+
+    @Test
+    void afterInvokeRuntimeExceptionIsMappedToInternalError() throws Exception {
+        JsonRpcInterceptor throwingInterceptor = new JsonRpcInterceptor() {
+            @Override
+            public void afterInvoke(JsonRpcRequest request, JsonNode result) {
+                throw new IllegalStateException("afterInvoke boom");
+            }
+        };
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(throwingInterceptor)
+        );
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"ping","id":2}
+            """));
+
+        JsonRpcResponse response = result.singleResponse().orElseThrow();
+        assertEquals(JsonRpcErrorCode.INTERNAL_ERROR, response.error().code());
+        assertEquals(2, response.id().asInt());
+    }
+
+    @Test
     void dispatchRequestPropagatesErrorFromHandler() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
         dispatcher.register("fatal", params -> {
