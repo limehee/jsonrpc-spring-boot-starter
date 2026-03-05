@@ -124,6 +124,68 @@ class DefaultJsonRpcResponseValidatorTest {
     }
 
     @Test
+    void validateAllowsNullIdWhenOptionIsExplicitlyEnabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .allowNullId(true)
+                .allowStringId(false)
+                .allowNumericId(false)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":null,"result":1}
+            """)));
+    }
+
+    @Test
+    void validateAllowsStringIdWhenOptionIsExplicitlyEnabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .allowNullId(false)
+                .allowStringId(true)
+                .allowNumericId(false)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":"abc","result":1}
+            """)));
+    }
+
+    @Test
+    void validateAllowsNumericIdWhenOptionIsExplicitlyEnabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .allowNullId(false)
+                .allowStringId(false)
+                .allowNumericId(true)
+                .allowFractionalId(false)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"result":1}
+            """)));
+    }
+
+    @Test
+    void validateAllowsFractionalIdWhenOptionIsExplicitlyEnabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .allowNullId(false)
+                .allowStringId(false)
+                .allowNumericId(true)
+                .allowFractionalId(true)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1.5,"result":1}
+            """)));
+    }
+
+    @Test
     void validateRejectsInvalidResultAndErrorCombination() throws Exception {
         assertThrows(JsonRpcException.class, () -> validator.validate(incoming("""
             {"jsonrpc":"2.0","id":1,"result":1,"error":{"code":-32000,"message":"x"}}
@@ -210,6 +272,32 @@ class DefaultJsonRpcResponseValidatorTest {
     }
 
     @Test
+    void validateAllowsNonIntegerErrorCodeWhenIntegerRuleIsDisabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .requireIntegerErrorCode(false)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":"x","message":"err"}}
+            """)));
+    }
+
+    @Test
+    void validateAllowsNonStringErrorMessageWhenStringRuleIsDisabled() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .requireStringErrorMessage(false)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":3}}
+            """)));
+    }
+
+    @Test
     void validateRejectsRequestFieldsWhenOptionEnabled() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
             JsonRpcResponseValidationOptions.builder()
@@ -220,6 +308,27 @@ class DefaultJsonRpcResponseValidatorTest {
         assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
             {"jsonrpc":"2.0","id":1,"result":1,"method":"ping"}
             """)));
+    }
+
+    @Test
+    void validateSkipsRequestFieldRejectionWhenSourceIsUnavailable() {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .rejectRequestFields(true)
+                .build()
+        );
+        JsonRpcIncomingResponse response = new JsonRpcIncomingResponse(
+            null,
+            "2.0",
+            OBJECT_MAPPER.getNodeFactory().numberNode(1),
+            true,
+            OBJECT_MAPPER.getNodeFactory().numberNode(1),
+            true,
+            null,
+            false
+        );
+
+        assertDoesNotThrow(() -> custom.validate(response));
     }
 
     @Test

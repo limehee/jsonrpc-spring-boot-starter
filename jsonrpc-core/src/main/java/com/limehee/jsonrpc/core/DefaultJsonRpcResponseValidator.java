@@ -58,7 +58,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
 
         if (options.rejectRequestFields()) {
             JsonNode source = response.source();
-            if (source == null || source.has("method") || source.has("params")) {
+            if (source != null && (source.has("method") || source.has("params"))) {
                 throw invalid("response must not contain request fields method/params");
             }
         }
