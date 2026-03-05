@@ -1,6 +1,7 @@
 package com.limehee.jsonrpc.spring.boot.autoconfigure;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.limehee.jsonrpc.core.JsonRpcError;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
@@ -10,7 +11,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.node.IntNode;
-import tools.jackson.databind.node.StringNode;
 
 class JsonRpcMetricsInterceptorTest {
 
@@ -100,35 +100,16 @@ class JsonRpcMetricsInterceptorTest {
     }
 
     @Test
-    void doesNotCollapseMethodTagsWhenCardinalityLimitIsDisabled() {
+    void rejectsNonPositiveMaxMethodTagValues() {
         MeterRegistry meterRegistry = new SimpleMeterRegistry();
-        JsonRpcMetricsInterceptor interceptor = new JsonRpcMetricsInterceptor(
-            meterRegistry,
-            false,
-            new double[0],
-            0
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new JsonRpcMetricsInterceptor(meterRegistry, false, new double[0], 0)
         );
-        JsonRpcRequest first = request("method.a");
-        JsonRpcRequest second = request("method.b");
-
-        interceptor.beforeInvoke(first);
-        interceptor.afterInvoke(first, StringNode.valueOf("a"));
-
-        interceptor.beforeInvoke(second);
-        interceptor.afterInvoke(second, StringNode.valueOf("b"));
-
-        assertEquals(1.0, meterRegistry.counter(
-            "jsonrpc.server.calls",
-            "method", "method.a",
-            "outcome", "success",
-            "errorCode", "none"
-        ).count());
-        assertEquals(1.0, meterRegistry.counter(
-            "jsonrpc.server.calls",
-            "method", "method.b",
-            "outcome", "success",
-            "errorCode", "none"
-        ).count());
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new JsonRpcMetricsInterceptor(meterRegistry, false, new double[0], -1)
+        );
     }
 
     private JsonRpcRequest request(String method) {

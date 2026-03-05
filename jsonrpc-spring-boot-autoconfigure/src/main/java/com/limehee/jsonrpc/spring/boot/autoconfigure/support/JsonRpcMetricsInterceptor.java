@@ -67,7 +67,8 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
      * @param latencyHistogramEnabled whether latency histogram buckets should be emitted
      * @param latencyPercentiles      latency percentiles to publish for timers
      * @param maxMethodTagValues      maximum number of distinct method tag values before collapsing to {@code other};
-     *                                values less than or equal to zero disable collapsing
+     *                                must be greater than {@code 0}
+     * @throws IllegalArgumentException if {@code maxMethodTagValues <= 0}
      */
     public JsonRpcMetricsInterceptor(
         MeterRegistry meterRegistry,
@@ -78,6 +79,9 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         this.meterRegistry = Objects.requireNonNull(meterRegistry, "meterRegistry");
         this.latencyHistogramEnabled = latencyHistogramEnabled;
         this.latencyPercentiles = Objects.requireNonNull(latencyPercentiles, "latencyPercentiles").clone();
+        if (maxMethodTagValues <= 0) {
+            throw new IllegalArgumentException("maxMethodTagValues must be greater than 0");
+        }
         this.maxMethodTagValues = maxMethodTagValues;
     }
 
@@ -264,9 +268,6 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
     private String normalizeMethodName(@Nullable String method) {
         if (method == null || method.isBlank()) {
             return METHOD_UNKNOWN;
-        }
-        if (maxMethodTagValues <= 0) {
-            return method;
         }
         if (seenMethods.contains(method)) {
             return method;
