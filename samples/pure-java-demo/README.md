@@ -10,6 +10,14 @@ From repository root:
 ./gradlew -p samples/pure-java-demo run
 ```
 
+## Run Tests
+
+From repository root:
+
+```bash
+./gradlew -p samples/pure-java-demo test
+```
+
 ## What This Demo Covers
 
 - Single request success flow

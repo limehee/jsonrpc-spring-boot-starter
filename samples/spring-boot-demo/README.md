@@ -10,6 +10,14 @@ From repository root:
 ./gradlew -p samples/spring-boot-demo bootRun
 ```
 
+## Run Tests
+
+From repository root:
+
+```bash
+./gradlew -p samples/spring-boot-demo test
+```
+
 Endpoint:
 
 - URL: `http://localhost:8080/jsonrpc`
