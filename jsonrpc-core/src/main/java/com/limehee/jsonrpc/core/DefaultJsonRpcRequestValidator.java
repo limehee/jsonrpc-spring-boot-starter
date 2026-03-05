@@ -49,22 +49,22 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
     @Override
     public void validate(JsonRpcRequest request) {
         if (request == null) {
-            throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+            throw invalidRequest();
         }
 
         if (options.requireJsonRpcVersion20() && !JsonRpcConstants.VERSION.equals(request.jsonrpc())) {
-            throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+            throw invalidRequest();
         }
 
         if (request.method() == null || request.method().isBlank()) {
-            throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+            throw invalidRequest();
         }
         if (request.method().startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX)) {
-            throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+            throw invalidRequest();
         }
 
         if (options.requireIdMember() && !request.idPresent()) {
-            throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+            throw invalidRequest();
         }
 
         if (request.idPresent()) {
@@ -74,16 +74,16 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
         if (options.rejectResponseFields()) {
             JsonNode source = request.source();
             if (source != null && (source.has("result") || source.has("error"))) {
-                throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+                throw invalidRequest();
             }
         }
 
         JsonNode params = request.params();
         if (params != null && !params.isArray() && !params.isObject()) {
             if (options.paramsTypeViolationCodePolicy() == JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST) {
-                throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+                throw invalidRequest();
             }
-            throw new JsonRpcException(JsonRpcErrorCode.INVALID_PARAMS, JsonRpcConstants.MESSAGE_INVALID_PARAMS);
+            throw invalidParams();
         }
     }
 
@@ -95,28 +95,46 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
     private void validateId(@Nullable JsonNode id) {
         if (id == null || id.isNull()) {
             if (!options.allowNullId()) {
-                throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+                throw invalidRequest();
             }
             return;
         }
 
         if (id.isString()) {
             if (!options.allowStringId()) {
-                throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+                throw invalidRequest();
             }
             return;
         }
 
         if (id.isNumber()) {
             if (!options.allowNumericId()) {
-                throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+                throw invalidRequest();
             }
             if (!options.allowFractionalId() && id.isFloatingPointNumber()) {
-                throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+                throw invalidRequest();
             }
             return;
         }
 
-        throw new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+        throw invalidRequest();
+    }
+
+    /**
+     * Creates a standardized invalid-request exception.
+     *
+     * @return invalid-request exception
+     */
+    private JsonRpcException invalidRequest() {
+        return new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
+    }
+
+    /**
+     * Creates a standardized invalid-params exception.
+     *
+     * @return invalid-params exception
+     */
+    private JsonRpcException invalidParams() {
+        return new JsonRpcException(JsonRpcErrorCode.INVALID_PARAMS, JsonRpcConstants.MESSAGE_INVALID_PARAMS);
     }
 }

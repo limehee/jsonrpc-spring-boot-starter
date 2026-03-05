@@ -42,6 +42,7 @@ class DefaultJsonRpcResponseValidatorTest {
             {"jsonrpc":"1.0","id":1,"result":1}
             """)));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+        assertEquals(JsonRpcConstants.MESSAGE_INVALID_REQUEST, ex.getMessage());
     }
 
     @Test

@@ -31,6 +31,7 @@ class DefaultJsonRpcRequestValidatorTest {
 
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(request));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+        assertEquals(JsonRpcConstants.MESSAGE_INVALID_REQUEST, ex.getMessage());
     }
 
     @Test

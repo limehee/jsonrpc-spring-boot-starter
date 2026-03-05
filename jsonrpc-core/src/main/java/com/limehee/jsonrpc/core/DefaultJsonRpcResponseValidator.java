@@ -33,15 +33,15 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
     @Override
     public void validate(JsonRpcIncomingResponse response) {
         if (response == null) {
-            throw invalid("response must not be null");
+            throw invalidRequest();
         }
 
         if (options.requireJsonRpcVersion20() && !JsonRpcConstants.VERSION.equals(response.jsonrpc())) {
-            throw invalid("response jsonrpc must be \"2.0\"");
+            throw invalidRequest();
         }
 
         if (options.requireIdMember() && !response.idPresent()) {
-            throw invalid("response id must be present");
+            throw invalidRequest();
         }
 
         if (response.idPresent()) {
@@ -52,14 +52,14 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
             boolean hasResult = response.resultPresent();
             boolean hasError = response.errorPresent();
             if (hasResult == hasError) {
-                throw invalid("response must contain exactly one of result or error");
+                throw invalidRequest();
             }
         }
 
         if (options.rejectRequestFields()) {
             JsonNode source = response.source();
             if (source != null && (source.has("method") || source.has("params"))) {
-                throw invalid("response must not contain request fields method/params");
+                throw invalidRequest();
             }
         }
 
@@ -76,29 +76,29 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
     private void validateId(@Nullable JsonNode id) {
         if (id == null || id.isNull()) {
             if (!options.allowNullId()) {
-                throw invalid("response id must not be null");
+                throw invalidRequest();
             }
             return;
         }
 
         if (id.isString()) {
             if (!options.allowStringId()) {
-                throw invalid("response string id is not allowed");
+                throw invalidRequest();
             }
             return;
         }
 
         if (id.isNumber()) {
             if (!options.allowNumericId()) {
-                throw invalid("response numeric id is not allowed");
+                throw invalidRequest();
             }
             if (!options.allowFractionalId() && id.isFloatingPointNumber()) {
-                throw invalid("response fractional numeric id is not allowed");
+                throw invalidRequest();
             }
             return;
         }
 
-        throw invalid("response id must be string, number, or null");
+        throw invalidRequest();
     }
 
     /**
@@ -108,7 +108,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
      */
     private void validateError(@Nullable JsonNode error) {
         if (options.requireErrorObjectWhenPresent() && (error == null || !error.isObject())) {
-            throw invalid("response error must be an object");
+            throw invalidRequest();
         }
 
         if (error == null || !error.isObject()) {
@@ -118,7 +118,7 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
         JsonNode code = error.get("code");
         if (options.requireIntegerErrorCode()) {
             if (code == null || !code.isNumber() || code.isFloatingPointNumber()) {
-                throw invalid("response error.code must be an integer");
+                throw invalidRequest();
             }
         }
         if (code != null && code.isNumber() && !code.isFloatingPointNumber()) {
@@ -128,19 +128,18 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
         JsonNode message = error.get("message");
         if (options.requireStringErrorMessage()) {
             if (message == null || !message.isString()) {
-                throw invalid("response error.message must be a string");
+                throw invalidRequest();
             }
         }
     }
 
     /**
-     * Creates a standardized invalid-response exception.
+     * Creates a standardized invalid-request exception.
      *
-     * @param message detail message
      * @return invalid-request exception
      */
-    private JsonRpcException invalid(String message) {
-        return new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, message);
+    private JsonRpcException invalidRequest() {
+        return new JsonRpcException(JsonRpcErrorCode.INVALID_REQUEST, JsonRpcConstants.MESSAGE_INVALID_REQUEST);
     }
 
     /**
@@ -155,13 +154,13 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
         }
         if (policy == JsonRpcResponseErrorCodePolicy.STANDARD_ONLY) {
             if (!isStandardErrorCode(code)) {
-                throw invalid("response error.code must be one of JSON-RPC standard codes");
+                throw invalidRequest();
             }
             return;
         }
         if (policy == JsonRpcResponseErrorCodePolicy.STANDARD_OR_SERVER_ERROR_RANGE) {
             if (!isStandardErrorCode(code) && !isServerErrorRangeCode(code)) {
-                throw invalid("response error.code must be standard or server-error range");
+                throw invalidRequest();
             }
             return;
         }
@@ -169,10 +168,10 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
             Integer min = options.errorCodeRangeMin();
             Integer max = options.errorCodeRangeMax();
             if (min == null || max == null) {
-                throw invalid("response error.code custom range is not configured");
+                throw invalidRequest();
             }
             if (code < min || code > max) {
-                throw invalid("response error.code is outside configured custom range");
+                throw invalidRequest();
             }
         }
     }
