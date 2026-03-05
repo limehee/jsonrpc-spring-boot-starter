@@ -318,7 +318,6 @@ class DefaultJsonRpcResponseValidatorTest {
                 .build()
         );
         JsonRpcIncomingResponse response = new JsonRpcIncomingResponse(
-            null,
             "2.0",
             OBJECT_MAPPER.getNodeFactory().numberNode(1),
             true,

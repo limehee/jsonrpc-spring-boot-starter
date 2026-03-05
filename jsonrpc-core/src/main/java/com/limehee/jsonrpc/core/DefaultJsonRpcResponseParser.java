@@ -52,7 +52,7 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
      * @return parsed incoming response envelope
      * @throws JsonRpcException when JSON parsing fails or payload shape is invalid
      */
-    public JsonRpcIncomingResponseEnvelope parse(@Nullable String payload) {
+    public JsonRpcIncomingResponseEnvelope parse(String payload) {
         if (payload == null) {
             throw invalidResponseEnvelope();
         }
@@ -71,7 +71,7 @@ public class DefaultJsonRpcResponseParser implements JsonRpcResponseParser {
      * @return parsed incoming response envelope
      * @throws JsonRpcException when JSON parsing fails or payload shape is invalid
      */
-    public JsonRpcIncomingResponseEnvelope parse(@Nullable byte[] payload) {
+    public JsonRpcIncomingResponseEnvelope parse(byte[] payload) {
         if (payload == null) {
             throw invalidResponseEnvelope();
         }

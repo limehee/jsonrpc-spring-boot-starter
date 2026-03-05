@@ -1,7 +1,6 @@
 package com.limehee.jsonrpc.core;
 
 import java.util.Objects;
-import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.StreamReadFeature;
 import tools.jackson.databind.JsonNode;
@@ -37,7 +36,7 @@ public final class JsonRpcPayloadReader {
      * @return parsed JSON node
      * @throws JacksonException when payload cannot be parsed as JSON
      */
-    public JsonNode readTree(@Nullable String payload) throws JacksonException {
+    public JsonNode readTree(String payload) throws JacksonException {
         return parserMapper().readTree(payload);
     }
 
@@ -48,7 +47,7 @@ public final class JsonRpcPayloadReader {
      * @return parsed JSON node
      * @throws JacksonException when payload cannot be parsed as JSON
      */
-    public JsonNode readTree(@Nullable byte[] payload) throws JacksonException {
+    public JsonNode readTree(byte[] payload) throws JacksonException {
         return parserMapper().readTree(payload);
     }
 
@@ -56,4 +55,3 @@ public final class JsonRpcPayloadReader {
         return rejectDuplicateMembers ? strictObjectMapper : objectMapper;
     }
 }
-
