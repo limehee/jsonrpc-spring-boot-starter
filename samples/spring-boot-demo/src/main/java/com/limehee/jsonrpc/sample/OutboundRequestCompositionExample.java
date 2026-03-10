@@ -13,6 +13,12 @@ import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Sample outbound JSON-RPC payload composition for a Spring Boot application that also acts as a client.
+ * <p>
+ * The Spring Boot sample primarily demonstrates server-side request handling through
+ * {@code jsonrpc-spring-boot-starter}, but real applications often need to call another JSON-RPC service as part of
+ * the same request flow. This example exists to show that outbound payload composition stays in
+ * {@code jsonrpc-core} and can be used directly from a Spring application without any transport-specific helper.
+ * </p>
  */
 public final class OutboundRequestCompositionExample {
 
