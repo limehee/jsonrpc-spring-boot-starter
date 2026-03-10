@@ -34,6 +34,7 @@ From repository root:
 - Incoming response-side flow using classifier/parser/validator utilities
 - Interceptor lifecycle flow (`beforeValidate`, `beforeInvoke`, `afterInvoke`, `onError`)
 - Outbound request composition using `JsonRpcRequestBuilder` and `JsonRpcRequestBatchBuilder`
+- Direct `paramsObject(...)` and `paramsArray(...)` builder examples for outbound requests
 - Manual JSON-RPC error object composition using `JsonRpcError.of(code, message, data)`
 - Record, POJO, collection, and map params converted through Jackson and passed via `params(JsonNode)`
 

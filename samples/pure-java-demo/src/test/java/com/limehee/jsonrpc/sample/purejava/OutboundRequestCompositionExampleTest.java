@@ -23,6 +23,18 @@ class OutboundRequestCompositionExampleTest {
     }
 
     @Test
+    void buildsSingleRequestPayloadWithArrayParams() {
+        ObjectNode request = OutboundRequestCompositionExample.buildInventoryReserveRequestWithParamsArray();
+
+        assertEquals("inventory.reserve", request.get("method").stringValue());
+        assertEquals(10L, request.get("id").longValue());
+        assertTrue(request.get("params").isArray());
+        assertEquals("book-001", request.get("params").get(0).stringValue());
+        assertEquals(2, request.get("params").get(1).intValue());
+        assertTrue(request.get("params").get(2).booleanValue());
+    }
+
+    @Test
     void buildsRequestPayloadFromRecord() {
         ObjectNode request = OutboundRequestCompositionExample.buildInventoryLookupRequestFromRecord();
 

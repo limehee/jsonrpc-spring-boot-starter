@@ -101,7 +101,24 @@ ObjectNode request = JsonRpcRequestBuilder.request("inventory.lookup")
         .buildNode();
 ```
 
-### 3.2 Notification
+### 3.2 Positional params with `paramsArray(...)`
+
+```java
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
+
+ObjectNode request = JsonRpcRequestBuilder.request("inventory.reserve")
+        .id(10L)
+        .paramsArray(
+            JsonNodeFactory.instance.stringNode("book-001"),
+            JsonNodeFactory.instance.numberNode(2),
+            JsonNodeFactory.instance.booleanNode(true)
+        )
+        .buildNode();
+```
+
+### 3.3 Notification
 
 ```java
 import tools.jackson.databind.node.ObjectNode;
@@ -115,7 +132,7 @@ ObjectNode notification = JsonRpcRequestBuilder.notification("audit.record")
         .buildNode();
 ```
 
-### 3.3 Batch request
+### 3.4 Batch request
 
 ```java
 import tools.jackson.databind.node.ArrayNode;
@@ -131,7 +148,7 @@ ArrayNode batch = new JsonRpcRequestBatchBuilder()
         .buildNode();
 ```
 
-### 3.4 Fail-fast API contract
+### 3.5 Fail-fast API contract
 
 - `request(...)` must define an `id` before `buildNode()`
 - `notification(...)` rejects `id(...)` and `nullId()`

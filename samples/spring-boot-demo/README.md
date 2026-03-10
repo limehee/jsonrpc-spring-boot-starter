@@ -219,6 +219,11 @@ jsonrpc:
         policy: STANDARD_ONLY
 ```
 
+The outbound composition example in
+`src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java`
+also shows both direct `paramsObject(...)` and direct `paramsArray(...)` usage, in addition to
+record / POJO / collection / map conversion through `params(JsonNode)`.
+
 Covered by `GreetingRpcServiceValidationProfilesIntegrationTest`:
 
 - request-side validation at the HTTP endpoint (`require-id-member`, fractional ID, polluted request fields, duplicate

@@ -68,6 +68,9 @@ public final class PureJavaDemoApplication {
         print("outbound request", OBJECT_MAPPER.writeValueAsString(
             OutboundRequestCompositionExample.buildInventoryLookupRequest()
         ));
+        print("outbound request with paramsArray", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildInventoryReserveRequestWithParamsArray()
+        ));
         print("outbound request from record", OBJECT_MAPPER.writeValueAsString(
             OutboundRequestCompositionExample.buildInventoryLookupRequestFromRecord()
         ));

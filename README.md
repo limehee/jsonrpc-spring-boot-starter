@@ -240,6 +240,15 @@ ObjectNode singleRequest = JsonRpcRequestBuilder.request("inventory.lookup")
     })
     .buildNode();
 
+ObjectNode positionalRequest = JsonRpcRequestBuilder.request("inventory.reserve")
+    .id(10L)
+    .paramsArray(
+        JsonNodeFactory.instance.stringNode("book-001"),
+        JsonNodeFactory.instance.numberNode(2),
+        JsonNodeFactory.instance.booleanNode(true)
+    )
+    .buildNode();
+
 ArrayNode batchRequest = new JsonRpcRequestBatchBuilder()
     .add(JsonRpcRequestBuilder.request("inventory.lookup").id(1L))
     .addNotification("audit.record", request -> request.paramsObject(params -> {

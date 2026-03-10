@@ -188,6 +188,7 @@ Use request builders when the same application also needs to call another JSON-R
 
 ```java
 import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
 
 ObjectNode request = JsonRpcRequestBuilder.request("inventory.lookup")
@@ -196,6 +197,15 @@ ObjectNode request = JsonRpcRequestBuilder.request("inventory.lookup")
         params.put("sku", "book-001");
         params.put("warehouse", "seoul");
     })
+    .buildNode();
+
+ObjectNode positionalRequest = JsonRpcRequestBuilder.request("inventory.reserve")
+    .id(10L)
+    .paramsArray(
+        JsonNodeFactory.instance.stringNode("book-001"),
+        JsonNodeFactory.instance.numberNode(2),
+        JsonNodeFactory.instance.booleanNode(true)
+    )
     .buildNode();
 ```
 

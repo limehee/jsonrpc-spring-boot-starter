@@ -50,6 +50,31 @@ public final class OutboundRequestCompositionExample {
     }
 
     /**
+     * Builds a request with positional params using the dedicated array builder API.
+     *
+     * <pre>{@code
+     * {
+     *   "jsonrpc": "2.0",
+     *   "method": "inventory.reserve",
+     *   "id": 10,
+     *   "params": ["book-001", 2, true]
+     * }
+     * }</pre>
+     *
+     * @return outbound request payload
+     */
+    public static ObjectNode buildInventoryReserveRequestWithParamsArray() {
+        return JsonRpcRequestBuilder.request("inventory.reserve")
+            .id(10L)
+            .paramsArray(
+                NODE_FACTORY.stringNode("book-001"),
+                NODE_FACTORY.numberNode(2),
+                NODE_FACTORY.booleanNode(true)
+            )
+            .buildNode();
+    }
+
+    /**
      * Builds a request from a record converted through Jackson.
      *
      * <pre>{@code
