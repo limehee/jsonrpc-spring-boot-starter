@@ -2,11 +2,14 @@ package com.limehee.jsonrpc.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.IntNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
 class JsonRpcRequestBatchBuilderTest {
@@ -65,6 +68,15 @@ class JsonRpcRequestBatchBuilderTest {
     }
 
     @Test
+    void addRequestRejectsNullOrInvalidMethod() {
+        JsonRpcRequestBatchBuilder batchBuilder = new JsonRpcRequestBatchBuilder();
+
+        assertThrows(NullPointerException.class, () -> batchBuilder.addRequest(null, request -> request.id(1L)));
+        assertThrows(IllegalArgumentException.class, () -> batchBuilder.addRequest(" ", request -> request.id(1L)));
+        assertThrows(IllegalArgumentException.class, () -> batchBuilder.addRequest("rpc.system", request -> request.id(1L)));
+    }
+
+    @Test
     void addNotificationAppliesCustomizer() {
         var batch = new JsonRpcRequestBatchBuilder()
             .addNotification("typed.tags", request -> request.paramsArray(IntNode.valueOf(1)))
@@ -84,10 +96,52 @@ class JsonRpcRequestBatchBuilderTest {
     }
 
     @Test
+    void addNotificationRejectsNullOrInvalidMethod() {
+        JsonRpcRequestBatchBuilder batchBuilder = new JsonRpcRequestBatchBuilder();
+
+        assertThrows(NullPointerException.class, () -> batchBuilder.addNotification(null, request -> { }));
+        assertThrows(IllegalArgumentException.class, () -> batchBuilder.addNotification(" ", request -> { }));
+        assertThrows(IllegalArgumentException.class, () -> batchBuilder.addNotification("rpc.system", request -> { }));
+    }
+
+    @Test
     void buildBatchNodePropagatesInvalidRequestBuilderState() {
         JsonRpcRequestBatchBuilder batchBuilder = new JsonRpcRequestBatchBuilder()
             .add(JsonRpcRequestBuilder.request("ping"));
 
         assertThrows(IllegalStateException.class, batchBuilder::buildNode);
+    }
+
+    @Test
+    void buildBatchNodeReturnsDetachedPayloadAcrossBuilderReuse() {
+        JsonRpcRequestBatchBuilder batchBuilder = new JsonRpcRequestBatchBuilder()
+            .addRequest("state.read", request -> request
+                .id(1L)
+                .paramsObject(params -> params.put("status", "initial")));
+
+        ArrayNode first = batchBuilder.buildNode();
+        ((ObjectNode) first.get(0).get("params")).put("status", "mutated");
+
+        ArrayNode second = batchBuilder.buildNode();
+
+        assertEquals("initial", second.get(0).get("params").get("status").stringValue());
+        assertNotSame(first, second);
+        assertNotSame(first.get(0), second.get(0));
+        assertNotSame(first.get(0).get("params"), second.get(0).get("params"));
+    }
+
+    @Test
+    void addNotificationCanBuildObjectParams() {
+        var batch = new JsonRpcRequestBatchBuilder()
+            .addNotification("audit.record", request -> request.paramsObject(params -> {
+                params.put("event", "created");
+                params.put("source", "gateway");
+            }))
+            .buildNode();
+
+        ObjectNode request = (ObjectNode) batch.get(0);
+        assertFalse(request.has("id"));
+        assertEquals("created", request.get("params").get("event").stringValue());
+        assertEquals("gateway", request.get("params").get("source").stringValue());
     }
 }

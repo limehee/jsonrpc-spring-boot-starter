@@ -44,6 +44,17 @@ class JsonRpcRequestBuilderTest {
     }
 
     @Test
+    void buildNotificationNodeWithObjectParams() {
+        ObjectNode node = JsonRpcRequestBuilder.notification("audit.record")
+            .paramsObject(params -> params.put("event", "created"))
+            .buildNode();
+
+        assertFalse(node.has("id"));
+        assertTrue(node.has("params"));
+        assertEquals("created", node.get("params").get("event").stringValue());
+    }
+
+    @Test
     void buildRequestNodeWithExplicitNullId() {
         ObjectNode node = JsonRpcRequestBuilder.request("ping")
             .nullId()
@@ -60,6 +71,7 @@ class JsonRpcRequestBuilderTest {
             .buildNode();
 
         assertEquals("request-7", node.get("id").stringValue());
+        assertFalse(node.has("params"));
     }
 
     @Test
@@ -69,6 +81,16 @@ class JsonRpcRequestBuilderTest {
             .buildNode();
 
         assertEquals(12, node.get("id").intValue());
+    }
+
+    @Test
+    void requestRejectsNullMethod() {
+        assertThrows(NullPointerException.class, () -> JsonRpcRequestBuilder.request(null));
+    }
+
+    @Test
+    void notificationRejectsNullMethod() {
+        assertThrows(NullPointerException.class, () -> JsonRpcRequestBuilder.notification(null));
     }
 
     @Test
@@ -94,6 +116,8 @@ class JsonRpcRequestBuilderTest {
         JsonRpcRequestBuilder builder = JsonRpcRequestBuilder.request("ping").id(1L);
 
         assertThrows(IllegalStateException.class, () -> builder.id(2L));
+        assertThrows(IllegalStateException.class, () -> builder.id("request-2"));
+        assertThrows(IllegalStateException.class, builder::nullId);
     }
 
     @Test
@@ -110,6 +134,27 @@ class JsonRpcRequestBuilderTest {
             IllegalStateException.class,
             () -> builder.paramsObject(params -> params.put("value", "second"))
         );
+        assertThrows(
+            IllegalStateException.class,
+            () -> builder.params(JsonNodeFactory.instance.objectNode())
+        );
+    }
+
+    @Test
+    void idRejectsNullInputs() {
+        JsonRpcRequestBuilder builder = JsonRpcRequestBuilder.request("ping");
+
+        assertThrows(NullPointerException.class, () -> builder.id((String) null));
+        assertThrows(NullPointerException.class, () -> builder.id((JsonNode) null));
+    }
+
+    @Test
+    void paramsRejectNullInputs() {
+        JsonRpcRequestBuilder builder = JsonRpcRequestBuilder.request("ping").id(1L);
+
+        assertThrows(NullPointerException.class, () -> builder.params((JsonNode) null));
+        assertThrows(NullPointerException.class, () -> builder.paramsArray((JsonNode[]) null));
+        assertThrows(NullPointerException.class, () -> builder.paramsObject(null));
     }
 
     @Test
@@ -141,6 +186,20 @@ class JsonRpcRequestBuilderTest {
     }
 
     @Test
+    void paramsAcceptObjectNode() {
+        ObjectNode params = JsonNodeFactory.instance.objectNode();
+        params.put("status", "ready");
+
+        ObjectNode node = JsonRpcRequestBuilder.request("state.read")
+            .id(1L)
+            .params(params)
+            .buildNode();
+
+        assertTrue(node.get("params").isObject());
+        assertEquals("ready", node.get("params").get("status").stringValue());
+    }
+
+    @Test
     void paramsSnapshotPreventsOriginalObjectMutationFromLeakingIntoBuiltPayload() {
         ObjectNode params = JsonNodeFactory.instance.objectNode();
         params.put("status", "initial");
@@ -154,6 +213,22 @@ class JsonRpcRequestBuilderTest {
         ObjectNode node = builder.buildNode();
 
         assertEquals("initial", node.get("params").get("status").stringValue());
+        assertNotSame(params, node.get("params"));
+    }
+
+    @Test
+    void paramsSnapshotPreventsOriginalArrayMutationFromLeakingIntoBuiltPayload() {
+        ArrayNode params = JsonNodeFactory.instance.arrayNode().add("first");
+
+        JsonRpcRequestBuilder builder = JsonRpcRequestBuilder.request("tags.list")
+            .id(1L)
+            .params(params);
+
+        params.set(0, JsonNodeFactory.instance.stringNode("mutated"));
+
+        ObjectNode node = builder.buildNode();
+
+        assertEquals("first", node.get("params").get(0).stringValue());
         assertNotSame(params, node.get("params"));
     }
 
@@ -198,5 +273,7 @@ class JsonRpcRequestBuilderTest {
     void requestRejectsBlankOrReservedMethodNames() {
         assertThrows(IllegalArgumentException.class, () -> JsonRpcRequestBuilder.request(" "));
         assertThrows(IllegalArgumentException.class, () -> JsonRpcRequestBuilder.request("rpc.system"));
+        assertThrows(IllegalArgumentException.class, () -> JsonRpcRequestBuilder.notification(" "));
+        assertThrows(IllegalArgumentException.class, () -> JsonRpcRequestBuilder.notification("rpc.system"));
     }
 }
