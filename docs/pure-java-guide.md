@@ -139,6 +139,11 @@ ArrayNode batch = new JsonRpcRequestBatchBuilder()
 - `params(JsonNode)` accepts only object or array nodes
 - `JsonRpcRequestBatchBuilder` rejects empty batches
 
+Runnable sample code:
+
+- [`../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java`](../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java)
+- [`../samples/pure-java-demo/src/test/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExampleTest.java`](../samples/pure-java-demo/src/test/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExampleTest.java)
+
 ## 4. Typed Registration (`JsonRpcTypedMethodHandlerFactory`)
 
 ```java

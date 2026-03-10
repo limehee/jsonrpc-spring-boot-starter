@@ -315,7 +315,18 @@ Detailed docs are under [`docs/`](docs/):
 ## Sample
 
 - Spring Boot sample app: [`samples/spring-boot-demo`](samples/spring-boot-demo)
+- Spring Boot sample guide: [`samples/spring-boot-demo/README.md`](samples/spring-boot-demo/README.md)
+- Spring Boot annotation/manual/typed server examples:
+  - [`samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/GreetingRpcService.java`](samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/GreetingRpcService.java)
+  - [`samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/SampleRegistrationConfig.java`](samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/SampleRegistrationConfig.java)
+- Spring Boot outbound client-side composition example:
+  - [`samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java`](samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java)
 - Pure Java sample app: [`samples/pure-java-demo`](samples/pure-java-demo)
+- Pure Java sample guide: [`samples/pure-java-demo/README.md`](samples/pure-java-demo/README.md)
+- Pure Java dispatcher example:
+  - [`samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/PureJavaDemoApplication.java`](samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/PureJavaDemoApplication.java)
+- Pure Java outbound client-side composition example:
+  - [`samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java`](samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java)
 
 Run:
 

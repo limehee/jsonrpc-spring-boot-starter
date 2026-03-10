@@ -209,7 +209,16 @@ curl -sS -X POST http://localhost:8080/jsonrpc \
   -d '{"jsonrpc":"2.0","method":"greet","params":{"name":"rpc"},"id":1}'
 ```
 
-## 8. What to Read Next
+## 8. Runnable Samples
+
+- Spring Boot sample guide: [`../samples/spring-boot-demo/README.md`](../samples/spring-boot-demo/README.md)
+- Spring Boot server example: [`../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/GreetingRpcService.java`](../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/GreetingRpcService.java)
+- Spring Boot outbound composition example: [`../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java`](../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java)
+- Pure Java sample guide: [`../samples/pure-java-demo/README.md`](../samples/pure-java-demo/README.md)
+- Pure Java dispatcher example: [`../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/PureJavaDemoApplication.java`](../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/PureJavaDemoApplication.java)
+- Pure Java outbound composition example: [`../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java`](../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java)
+
+## 9. What to Read Next
 
 - Full Spring setup, registration styles, and operational options: [`spring-boot-guide.md`](spring-boot-guide.md)
 - Pure Java advanced composition and custom transport patterns: [`pure-java-guide.md`](pure-java-guide.md)
