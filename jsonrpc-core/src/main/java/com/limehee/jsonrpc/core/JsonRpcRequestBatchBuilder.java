@@ -34,7 +34,7 @@ public final class JsonRpcRequestBatchBuilder {
      * @param method JSON-RPC method name
      * @param customizer callback used to configure the request builder
      * @return this builder
-     * @throws NullPointerException if {@code customizer} is {@code null}
+     * @throws NullPointerException if {@code method} or {@code customizer} is {@code null}
      * @throws IllegalArgumentException if {@code method} is invalid
      */
     public JsonRpcRequestBatchBuilder addRequest(String method, Consumer<JsonRpcRequestBuilder> customizer) {
@@ -50,7 +50,7 @@ public final class JsonRpcRequestBatchBuilder {
      * @param method JSON-RPC method name
      * @param customizer callback used to configure the notification builder
      * @return this builder
-     * @throws NullPointerException if {@code customizer} is {@code null}
+     * @throws NullPointerException if {@code method} or {@code customizer} is {@code null}
      * @throws IllegalArgumentException if {@code method} is invalid
      */
     public JsonRpcRequestBatchBuilder addNotification(String method, Consumer<JsonRpcRequestBuilder> customizer) {
@@ -64,7 +64,8 @@ public final class JsonRpcRequestBatchBuilder {
      * Builds a batch payload.
      *
      * @return transport-ready JSON array node
-     * @throws IllegalStateException if no batch entries have been added
+     * @throws IllegalStateException if no batch entries have been added or if an included request builder is in an
+     * invalid state when the batch is materialized
      */
     public ArrayNode buildNode() {
         if (requests.isEmpty()) {
