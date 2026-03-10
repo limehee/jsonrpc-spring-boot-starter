@@ -154,6 +154,12 @@ class TypedRpcConfig {
 
 Use this when you want compile-time DTO types and reuse the standard binder/writer pipeline.
 
+Runnable sample code:
+
+- [`../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/GreetingRpcService.java`](../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/GreetingRpcService.java)
+- [`../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/SampleRegistrationConfig.java`](../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/SampleRegistrationConfig.java)
+- [`../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java`](../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java)
+
 ## 4. Registration Priority and Conflict Policy
 
 Two registration phases exist in auto-configuration:

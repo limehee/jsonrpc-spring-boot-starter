@@ -33,6 +33,10 @@ From repository root:
   `reject-duplicate-members`, `error-code.policy`)
 - Incoming response-side flow using classifier/parser/validator utilities
 - Interceptor lifecycle flow (`beforeValidate`, `beforeInvoke`, `afterInvoke`, `onError`)
+- Outbound request composition using `JsonRpcRequestBuilder` and `JsonRpcRequestBatchBuilder`
+- Direct `paramsObject(...)` and `paramsArray(...)` builder examples for outbound requests
+- Manual JSON-RPC error object composition using `JsonRpcError.of(code, message, data)`
+- Record, POJO, collection, and map params converted through Jackson and passed via `params(JsonNode)`
 
 ## Key Class
 
@@ -40,5 +44,6 @@ From repository root:
 - `src/main/java/com/limehee/jsonrpc/sample/purejava/ResponseSideUtilitiesExample.java`
 - `src/main/java/com/limehee/jsonrpc/sample/purejava/InterceptorFlowExample.java`
 - `src/main/java/com/limehee/jsonrpc/sample/purejava/ValidationProfileExample.java`
+- `src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java`
 
 The `main` method prints one output payload per scenario so you can follow request -> dispatch -> response flow.

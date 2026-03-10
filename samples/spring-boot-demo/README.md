@@ -48,7 +48,11 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":1,"result":"pong"}
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "pong"
+}
 ```
 
 ### 2. Single-parameter DTO binding (`greet`)
@@ -62,7 +66,11 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":2,"result":"hello developer"}
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": "hello developer"
+}
 ```
 
 ### 3. Named params with `@JsonRpcParam` (`sum`)
@@ -76,7 +84,11 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":3,"result":5}
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": 5
+}
 ```
 
 ### 4. Positional params (`sum`)
@@ -90,7 +102,11 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":4,"result":5}
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": 5
+}
 ```
 
 ### 5. Manual registration (`manual.echo`)
@@ -104,7 +120,11 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":5,"result":"echo"}
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": "echo"
+}
 ```
 
 ### 6. Typed registration (`typed.upper`, `typed.tags`)
@@ -118,7 +138,13 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":6,"result":{"value":"SPRING"}}
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": {
+    "value": "SPRING"
+  }
+}
 ```
 
 ```bash
@@ -130,7 +156,14 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":7,"result":["alpha","beta"]}
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": [
+    "alpha",
+    "beta"
+  ]
+}
 ```
 
 ### 7. Notification (no response body)
@@ -162,8 +195,19 @@ Expected response:
 
 ```json
 [
-  {"jsonrpc":"2.0","id":8,"result":"echo"},
-  {"jsonrpc":"2.0","id":9,"error":{"code":-32601,"message":"Method not found"}}
+  {
+    "jsonrpc": "2.0",
+    "id": 8,
+    "result": "echo"
+  },
+  {
+    "jsonrpc": "2.0",
+    "id": 9,
+    "error": {
+      "code": -32601,
+      "message": "Method not found"
+    }
+  }
 ]
 ```
 
@@ -178,7 +222,14 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}
+{
+  "jsonrpc": "2.0",
+  "id": null,
+  "error": {
+    "code": -32700,
+    "message": "Parse error"
+  }
+}
 ```
 
 ## Notification Executor Scenarios
@@ -219,11 +270,31 @@ jsonrpc:
         policy: STANDARD_ONLY
 ```
 
+The outbound composition example in
+`src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java`
+also shows both direct `paramsObject(...)` and direct `paramsArray(...)` usage, in addition to
+record / POJO / collection / map conversion through `params(JsonNode)`.
+
 Covered by `GreetingRpcServiceValidationProfilesIntegrationTest`:
 
 - request-side validation at the HTTP endpoint (`require-id-member`, fractional ID, polluted request fields, duplicate
   members)
 - response-side parser/validator beans (`reject-duplicate-members`, `reject-request-fields`, `error-code.policy`)
+
+## Outbound Request Composition Inside a Spring App
+
+The Spring sample also includes a small core-only example for composing outbound JSON-RPC payloads when the same
+application needs to call another JSON-RPC service.
+
+- `src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java`
+- `src/test/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExampleTest.java`
+
+Covered scenarios:
+
+- single request payload with object params
+- request payloads created from a record, a classic Java class, a collection, and a map
+- batch payload containing a request and a notification
+- manual `JsonRpcError.of(code, message, data)` composition for upstream failures
 
 ## Test Coverage Entry Points
 
@@ -236,3 +307,4 @@ Covered by `GreetingRpcServiceValidationProfilesIntegrationTest`:
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceErrorDataExposureIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceCustomExceptionResolverIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceValidationProfilesIntegrationTest.java`
+- `src/test/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExampleTest.java`

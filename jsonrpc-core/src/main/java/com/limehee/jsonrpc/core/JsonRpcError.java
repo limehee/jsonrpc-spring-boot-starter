@@ -24,4 +24,16 @@ public record JsonRpcError(int code, String message, @Nullable JsonNode data) {
     public static JsonRpcError of(int code, String message) {
         return new JsonRpcError(code, message, null);
     }
+
+    /**
+     * Creates an error object with an explicit data payload.
+     *
+     * @param code    JSON-RPC error code
+     * @param message human-readable error message
+     * @param data    optional error data payload; may be {@code null}
+     * @return error object
+     */
+    public static JsonRpcError of(int code, String message, @Nullable JsonNode data) {
+        return new JsonRpcError(code, message, data);
+    }
 }

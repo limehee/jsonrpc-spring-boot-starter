@@ -150,13 +150,24 @@ Default endpoint:
 Request:
 
 ```json
-{"jsonrpc":"2.0","method":"greet","params":{"name":"developer"},"id":1}
+{
+  "jsonrpc": "2.0",
+  "method": "greet",
+  "params": {
+    "name": "developer"
+  },
+  "id": 1
+}
 ```
 
 Response:
 
 ```json
-{"jsonrpc":"2.0","id":1,"result":"hello developer"}
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "hello developer"
+}
 ```
 
 ## 5. Pure Java Minimal Example
@@ -182,7 +193,36 @@ JsonRpcDispatchResult result = dispatcher.dispatch(request);
 System.out.println(mapper.writeValueAsString(result.singleResponse().orElseThrow()));
 ```
 
-## 6. Verify with cURL
+## 6. Outbound Request Composition
+
+Use request builders when the same application also needs to call another JSON-RPC service.
+
+```java
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
+
+ObjectNode request = JsonRpcRequestBuilder.request("inventory.lookup")
+    .id("req-7")
+    .paramsObject(params -> {
+        params.put("sku", "book-001");
+        params.put("warehouse", "seoul");
+    })
+    .buildNode();
+
+ObjectNode positionalRequest = JsonRpcRequestBuilder.request("inventory.reserve")
+    .id(10L)
+    .paramsArray(
+        JsonNodeFactory.instance.stringNode("book-001"),
+        JsonNodeFactory.instance.numberNode(2),
+        JsonNodeFactory.instance.booleanNode(true)
+    )
+    .buildNode();
+```
+
+See [`pure-java-guide.md`](pure-java-guide.md) for batch examples and the full builder contract.
+
+## 7. Verify with cURL
 
 ```bash
 curl -sS -X POST http://localhost:8080/jsonrpc \
@@ -190,7 +230,16 @@ curl -sS -X POST http://localhost:8080/jsonrpc \
   -d '{"jsonrpc":"2.0","method":"greet","params":{"name":"rpc"},"id":1}'
 ```
 
-## 7. What to Read Next
+## 8. Runnable Samples
+
+- Spring Boot sample guide: [`../samples/spring-boot-demo/README.md`](../samples/spring-boot-demo/README.md)
+- Spring Boot server example: [`../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/GreetingRpcService.java`](../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/GreetingRpcService.java)
+- Spring Boot outbound composition example: [`../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java`](../samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java)
+- Pure Java sample guide: [`../samples/pure-java-demo/README.md`](../samples/pure-java-demo/README.md)
+- Pure Java dispatcher example: [`../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/PureJavaDemoApplication.java`](../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/PureJavaDemoApplication.java)
+- Pure Java outbound composition example: [`../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java`](../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java)
+
+## 9. What to Read Next
 
 - Full Spring setup, registration styles, and operational options: [`spring-boot-guide.md`](spring-boot-guide.md)
 - Pure Java advanced composition and custom transport patterns: [`pure-java-guide.md`](pure-java-guide.md)

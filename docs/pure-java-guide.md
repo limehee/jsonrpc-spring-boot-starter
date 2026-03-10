@@ -73,15 +73,95 @@ JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
 JsonNode request = mapper.readTree("""
-{"jsonrpc":"2.0","method":"ping","id":1}
-""");
+    {"jsonrpc":"2.0","method":"ping","id":1}
+    """);
 
 JsonRpcDispatchResult result = dispatcher.dispatch(request);
 String json = mapper.writeValueAsString(result.singleResponse().orElseThrow());
 System.out.println(json);
 ```
 
-## 3. Typed Registration (`JsonRpcTypedMethodHandlerFactory`)
+## 3. Compose Outbound Request Payloads
+
+Use the request builders when your code acts as a JSON-RPC client and needs to send transport-ready payloads to
+another service.
+
+### 3.1 Single request
+
+```java
+import tools.jackson.databind.node.ObjectNode;
+import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
+
+ObjectNode request = JsonRpcRequestBuilder.request("inventory.lookup")
+    .id("req-7")
+    .paramsObject(params -> {
+        params.put("sku", "book-001");
+        params.put("warehouse", "seoul");
+    })
+    .buildNode();
+```
+
+### 3.2 Positional params with `paramsArray(...)`
+
+```java
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
+
+ObjectNode request = JsonRpcRequestBuilder.request("inventory.reserve")
+    .id(10L)
+    .paramsArray(
+        JsonNodeFactory.instance.stringNode("book-001"),
+        JsonNodeFactory.instance.numberNode(2),
+        JsonNodeFactory.instance.booleanNode(true)
+    )
+    .buildNode();
+```
+
+### 3.3 Notification
+
+```java
+import tools.jackson.databind.node.ObjectNode;
+import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
+
+ObjectNode notification = JsonRpcRequestBuilder.notification("audit.record")
+    .paramsObject(params -> {
+        params.put("event", "inventory.lookup");
+        params.put("source", "gateway");
+    })
+    .buildNode();
+```
+
+### 3.4 Batch request
+
+```java
+import tools.jackson.databind.node.ArrayNode;
+import com.limehee.jsonrpc.core.JsonRpcRequestBatchBuilder;
+import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
+
+ArrayNode batch = new JsonRpcRequestBatchBuilder()
+    .add(JsonRpcRequestBuilder.request("inventory.lookup").id(1L))
+    .addNotification("audit.record", request -> request.paramsObject(params -> {
+        params.put("event", "inventory.lookup");
+        params.put("source", "gateway");
+    }))
+    .buildNode();
+```
+
+### 3.5 Fail-fast API contract
+
+- `request(...)` must define an `id` before `buildNode()`
+- `notification(...)` rejects `id(...)` and `nullId()`
+- `params(...)`, `paramsArray(...)`, and `paramsObject(...)` are mutually exclusive and may be called only once per builder
+- `params(JsonNode)` accepts only object or array nodes
+- `JsonRpcRequestBatchBuilder` rejects empty batches
+
+Runnable sample code:
+
+- [`../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java`](../samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java)
+- [`../samples/pure-java-demo/src/test/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExampleTest.java`](../samples/pure-java-demo/src/test/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExampleTest.java)
+
+## 4. Typed Registration (`JsonRpcTypedMethodHandlerFactory`)
 
 ```java
 import tools.jackson.databind.ObjectMapper;
@@ -93,13 +173,18 @@ import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 
-record UpperIn(String value) {}
-record UpperOut(String value) {}
+record UpperIn(String value) {
+
+}
+
+record UpperOut(String value) {
+
+}
 
 ObjectMapper mapper = JsonMapper.builder().build();
 JsonRpcTypedMethodHandlerFactory factory = new DefaultJsonRpcTypedMethodHandlerFactory(
-        new JacksonJsonRpcParameterBinder(mapper),
-        new JacksonJsonRpcResultWriter(mapper)
+    new JacksonJsonRpcParameterBinder(mapper),
+    new JacksonJsonRpcResultWriter(mapper)
 );
 
 JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
@@ -110,24 +195,30 @@ dispatcher.register(
 );
 ```
 
-## 4. DTO Shapes: Record, Class, Collection, Map
+## 5. DTO Shapes: Record, Class, Collection, Map
 
-### 4.1 Record input/output
+### 5.1 Record input/output
 
 ```java
-record UserQuery(long id) {}
-record UserView(long id, String name) {}
+record UserQuery(long id) {
+
+}
+
+record UserView(long id, String name) {
+
+}
 ```
 
-### 4.2 POJO input
+### 5.2 POJO input
 
 ```java
 class CreateTagRequest {
+
     public String name;
 }
 ```
 
-### 4.3 Collection return
+### 5.3 Collection return
 
 ```java
 dispatcher.register(
@@ -136,7 +227,7 @@ dispatcher.register(
 );
 ```
 
-### 4.4 Map return
+### 5.4 Map return
 
 ```java
 dispatcher.register(
@@ -147,15 +238,26 @@ dispatcher.register(
 
 All mapping is Jackson-based via binder/result-writer components.
 
-## 5. Batch, Notification, and Error Cases
+## 6. Batch, Notification, and Error Cases
 
-### 5.1 Batch request
+### 6.1 Batch request
 
 ```json
 [
-  {"jsonrpc":"2.0","method":"ping","id":1},
-  {"jsonrpc":"2.0","method":"ping"},
-  {"jsonrpc":"2.0","method":"unknown","id":2}
+  {
+    "jsonrpc": "2.0",
+    "method": "ping",
+    "id": 1
+  },
+  {
+    "jsonrpc": "2.0",
+    "method": "ping"
+  },
+  {
+    "jsonrpc": "2.0",
+    "method": "unknown",
+    "id": 2
+  }
 ]
 ```
 
@@ -165,18 +267,32 @@ Behavior:
 - unknown method becomes `-32601`
 - response array contains only non-notification entries in traversal order
 
-### 5.2 Empty batch
+### 6.2 Empty batch
 
 `[]` returns one `-32600 Invalid Request` error object.
 
-### 5.3 Parse/validation/runtime errors
+### 6.3 Parse/validation/runtime errors
 
 - invalid JSON text -> `-32700`
 - invalid request shape -> `-32600`
 - parameter mapping failure -> `-32602`
 - unhandled runtime exception -> `-32603`
 
-## 6. Compose Custom Dispatcher Pipeline
+### 6.4 Manual error objects with data
+
+```java
+import com.limehee.jsonrpc.core.JsonRpcError;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
+
+ObjectNode errorData = JsonNodeFactory.instance.objectNode()
+    .put("traceId", "trace-123")
+    .put("service", "inventory-gateway");
+
+JsonRpcError error = JsonRpcError.of(-32001, "Inventory upstream failed", errorData);
+```
+
+## 7. Compose Custom Dispatcher Pipeline
 
 You can inject your own implementations for parser/validator/invoker/etc.
 
@@ -194,15 +310,15 @@ import com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy;
 import java.util.List;
 
 JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
-        new InMemoryJsonRpcMethodRegistry(JsonRpcMethodRegistrationConflictPolicy.REJECT),
-        new DefaultJsonRpcRequestParser(),
-        new DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS),
-        new DefaultJsonRpcMethodInvoker(),
-        new DefaultJsonRpcExceptionResolver(false),
-        new DefaultJsonRpcResponseComposer(),
-        100,
-        List.of(),
-        new DirectJsonRpcNotificationExecutor()
+    new InMemoryJsonRpcMethodRegistry(JsonRpcMethodRegistrationConflictPolicy.REJECT),
+    new DefaultJsonRpcRequestParser(),
+    new DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS),
+    new DefaultJsonRpcMethodInvoker(),
+    new DefaultJsonRpcExceptionResolver(false),
+    new DefaultJsonRpcResponseComposer(),
+    100,
+    List.of(),
+    new DirectJsonRpcNotificationExecutor()
 );
 ```
 
@@ -215,7 +331,7 @@ an object/array:
 - `INVALID_PARAMS` (default behavior): `-32602`
 - `INVALID_REQUEST`: `-32600`
 
-## 7. Custom Transport Pattern
+## 8. Custom Transport Pattern
 
 When using Netty, Undertow, Vert.x, CLI stdin/stdout, message queues, or any custom transport, use this pattern:
 
@@ -225,7 +341,7 @@ When using Netty, Undertow, Vert.x, CLI stdin/stdout, message queues, or any cus
 4. If `hasResponse()` is false, do not emit body.
 5. If response exists, serialize single response or response list to JSON.
 
-## 8. Incoming Response Pattern (Bidirectional Transport)
+## 9. Incoming Response Pattern (Bidirectional Transport)
 
 Use response-side protocol utilities when the same channel receives both requests and responses.
 
@@ -267,13 +383,13 @@ if (envelopeType == JsonRpcEnvelopeType.REQUEST) {
 For policy tuning, customize `JsonRpcResponseValidationOptions` and pass it into
 `DefaultJsonRpcResponseValidator`.
 
-## 9. Concurrency Notes
+## 10. Concurrency Notes
 
 - `JsonRpcDispatcher` invocation path is stateless per request except method registry lookups.
 - Notification behavior depends on the configured `JsonRpcNotificationExecutor`.
 - For asynchronous notification isolation in plain Java, provide an executor-backed implementation.
 
-## 10. Deep References
+## 11. Deep References
 
 - Protocol matrix: [`protocol-and-compliance.md`](protocol-and-compliance.md)
 - Registration/binding semantics: [`registration-and-binding.md`](registration-and-binding.md)

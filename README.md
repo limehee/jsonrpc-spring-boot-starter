@@ -221,6 +221,50 @@ JsonRpcDispatchResult result = dispatcher.dispatch(payload);
 System.out.println(mapper.writeValueAsString(result.singleResponse().orElseThrow()));
 ```
 
+## Outbound Request Composition
+
+Use `JsonRpcRequestBuilder` and `JsonRpcRequestBatchBuilder` when your application needs to send JSON-RPC payloads to
+another endpoint.
+
+```java
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import com.limehee.jsonrpc.core.JsonRpcRequestBatchBuilder;
+import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
+
+ObjectNode singleRequest = JsonRpcRequestBuilder.request("inventory.lookup")
+    .id("req-7")
+    .paramsObject(params -> {
+        params.put("sku", "book-001");
+        params.put("warehouse", "seoul");
+    })
+    .buildNode();
+
+ObjectNode positionalRequest = JsonRpcRequestBuilder.request("inventory.reserve")
+    .id(10L)
+    .paramsArray(
+        JsonNodeFactory.instance.stringNode("book-001"),
+        JsonNodeFactory.instance.numberNode(2),
+        JsonNodeFactory.instance.booleanNode(true)
+    )
+    .buildNode();
+
+ArrayNode batchRequest = new JsonRpcRequestBatchBuilder()
+    .add(JsonRpcRequestBuilder.request("inventory.lookup").id(1L))
+    .addNotification("audit.record", request -> request.paramsObject(params -> {
+        params.put("event", "inventory.lookup");
+        params.put("source", "gateway");
+    }))
+    .buildNode();
+```
+
+Builder contract:
+
+- `request(...)` must define an `id` before `buildNode()`
+- `notification(...)` rejects any `id(...)` or `nullId()` call
+- `params(...)`, `paramsArray(...)`, and `paramsObject(...)` are mutually exclusive and can be configured only once
+- `JsonRpcRequestBatchBuilder` rejects empty batches at `buildNode()`
+
 ## Registration Styles and Priority
 
 Supported styles:
@@ -280,7 +324,18 @@ Detailed docs are under [`docs/`](docs/):
 ## Sample
 
 - Spring Boot sample app: [`samples/spring-boot-demo`](samples/spring-boot-demo)
+- Spring Boot sample guide: [`samples/spring-boot-demo/README.md`](samples/spring-boot-demo/README.md)
+- Spring Boot annotation/manual/typed server examples:
+  - [`samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/GreetingRpcService.java`](samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/GreetingRpcService.java)
+  - [`samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/SampleRegistrationConfig.java`](samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/SampleRegistrationConfig.java)
+- Spring Boot outbound client-side composition example:
+  - [`samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java`](samples/spring-boot-demo/src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java)
 - Pure Java sample app: [`samples/pure-java-demo`](samples/pure-java-demo)
+- Pure Java sample guide: [`samples/pure-java-demo/README.md`](samples/pure-java-demo/README.md)
+- Pure Java dispatcher example:
+  - [`samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/PureJavaDemoApplication.java`](samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/PureJavaDemoApplication.java)
+- Pure Java outbound client-side composition example:
+  - [`samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java`](samples/pure-java-demo/src/main/java/com/limehee/jsonrpc/sample/purejava/OutboundRequestCompositionExample.java)
 
 Run:
 

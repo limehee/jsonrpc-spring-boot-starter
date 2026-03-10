@@ -65,6 +65,33 @@ public final class PureJavaDemoApplication {
             {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"server"}}
             """);
         print("strict response profile", OBJECT_MAPPER.writeValueAsString(strictResponses));
+        print("outbound request", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildInventoryLookupRequest()
+        ));
+        print("outbound request with paramsArray", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildInventoryReserveRequestWithParamsArray()
+        ));
+        print("outbound request from record", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildInventoryLookupRequestFromRecord()
+        ));
+        print("outbound request from class", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildTagCreateRequestFromClass()
+        ));
+        print("outbound request from collection", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildBulkLookupRequestFromCollection()
+        ));
+        print("outbound request from map", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildHealthSnapshotRequestFromMap()
+        ));
+        print("outbound notification", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildAuditNotification()
+        ));
+        print("outbound batch", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildOutboundBatch()
+        ));
+        print("manual error object", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildUpstreamFailureError()
+        ));
     }
 
     static String handle(JsonRpcDispatcher dispatcher, String rawJson) throws JacksonException {
