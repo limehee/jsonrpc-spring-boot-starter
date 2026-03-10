@@ -1,6 +1,7 @@
 package com.limehee.jsonrpc.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -21,7 +22,7 @@ class JsonRpcRequestBatchBuilderTest {
         assertEquals("ping", batch.get(0).get("method").stringValue());
         assertEquals(1L, batch.get(0).get("id").longValue());
         assertEquals("notify.mark", batch.get(1).get("method").stringValue());
-        assertTrue(batch.get(1).get("id") == null);
+        assertFalse(batch.get(1).has("id"));
     }
 
     @Test
@@ -71,7 +72,7 @@ class JsonRpcRequestBatchBuilderTest {
 
         ObjectNode request = (ObjectNode) batch.get(0);
         assertEquals("typed.tags", request.get("method").stringValue());
-        assertTrue(request.get("id") == null);
+        assertFalse(request.has("id"));
         assertEquals(1, request.get("params").get(0).intValue());
     }
 
