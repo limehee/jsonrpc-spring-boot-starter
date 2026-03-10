@@ -4,12 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.IntNode;
-import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
 class JsonRpcRequestBatchBuilderTest {
@@ -73,7 +71,8 @@ class JsonRpcRequestBatchBuilderTest {
 
         assertThrows(NullPointerException.class, () -> batchBuilder.addRequest(null, request -> request.id(1L)));
         assertThrows(IllegalArgumentException.class, () -> batchBuilder.addRequest(" ", request -> request.id(1L)));
-        assertThrows(IllegalArgumentException.class, () -> batchBuilder.addRequest("rpc.system", request -> request.id(1L)));
+        assertThrows(IllegalArgumentException.class,
+            () -> batchBuilder.addRequest("rpc.system", request -> request.id(1L)));
     }
 
     @Test
@@ -99,9 +98,12 @@ class JsonRpcRequestBatchBuilderTest {
     void addNotificationRejectsNullOrInvalidMethod() {
         JsonRpcRequestBatchBuilder batchBuilder = new JsonRpcRequestBatchBuilder();
 
-        assertThrows(NullPointerException.class, () -> batchBuilder.addNotification(null, request -> { }));
-        assertThrows(IllegalArgumentException.class, () -> batchBuilder.addNotification(" ", request -> { }));
-        assertThrows(IllegalArgumentException.class, () -> batchBuilder.addNotification("rpc.system", request -> { }));
+        assertThrows(NullPointerException.class, () -> batchBuilder.addNotification(null, request -> {
+        }));
+        assertThrows(IllegalArgumentException.class, () -> batchBuilder.addNotification(" ", request -> {
+        }));
+        assertThrows(IllegalArgumentException.class, () -> batchBuilder.addNotification("rpc.system", request -> {
+        }));
     }
 
     @Test

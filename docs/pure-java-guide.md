@@ -73,8 +73,8 @@ JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
 dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
 JsonNode request = mapper.readTree("""
-{"jsonrpc":"2.0","method":"ping","id":1}
-""");
+    {"jsonrpc":"2.0","method":"ping","id":1}
+    """);
 
 JsonRpcDispatchResult result = dispatcher.dispatch(request);
 String json = mapper.writeValueAsString(result.singleResponse().orElseThrow());
@@ -93,12 +93,12 @@ import tools.jackson.databind.node.ObjectNode;
 import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
 
 ObjectNode request = JsonRpcRequestBuilder.request("inventory.lookup")
-        .id("req-7")
-        .paramsObject(params -> {
-            params.put("sku", "book-001");
-            params.put("warehouse", "seoul");
-        })
-        .buildNode();
+    .id("req-7")
+    .paramsObject(params -> {
+        params.put("sku", "book-001");
+        params.put("warehouse", "seoul");
+    })
+    .buildNode();
 ```
 
 ### 3.2 Positional params with `paramsArray(...)`
@@ -109,13 +109,13 @@ import tools.jackson.databind.node.JsonNodeFactory;
 import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
 
 ObjectNode request = JsonRpcRequestBuilder.request("inventory.reserve")
-        .id(10L)
-        .paramsArray(
-            JsonNodeFactory.instance.stringNode("book-001"),
-            JsonNodeFactory.instance.numberNode(2),
-            JsonNodeFactory.instance.booleanNode(true)
-        )
-        .buildNode();
+    .id(10L)
+    .paramsArray(
+        JsonNodeFactory.instance.stringNode("book-001"),
+        JsonNodeFactory.instance.numberNode(2),
+        JsonNodeFactory.instance.booleanNode(true)
+    )
+    .buildNode();
 ```
 
 ### 3.3 Notification
@@ -125,11 +125,11 @@ import tools.jackson.databind.node.ObjectNode;
 import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
 
 ObjectNode notification = JsonRpcRequestBuilder.notification("audit.record")
-        .paramsObject(params -> {
-            params.put("event", "inventory.lookup");
-            params.put("source", "gateway");
-        })
-        .buildNode();
+    .paramsObject(params -> {
+        params.put("event", "inventory.lookup");
+        params.put("source", "gateway");
+    })
+    .buildNode();
 ```
 
 ### 3.4 Batch request
@@ -140,12 +140,12 @@ import com.limehee.jsonrpc.core.JsonRpcRequestBatchBuilder;
 import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
 
 ArrayNode batch = new JsonRpcRequestBatchBuilder()
-        .add(JsonRpcRequestBuilder.request("inventory.lookup").id(1L))
-        .addNotification("audit.record", request -> request.paramsObject(params -> {
-            params.put("event", "inventory.lookup");
-            params.put("source", "gateway");
-        }))
-        .buildNode();
+    .add(JsonRpcRequestBuilder.request("inventory.lookup").id(1L))
+    .addNotification("audit.record", request -> request.paramsObject(params -> {
+        params.put("event", "inventory.lookup");
+        params.put("source", "gateway");
+    }))
+    .buildNode();
 ```
 
 ### 3.5 Fail-fast API contract
@@ -173,13 +173,18 @@ import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistration;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 
-record UpperIn(String value) {}
-record UpperOut(String value) {}
+record UpperIn(String value) {
+
+}
+
+record UpperOut(String value) {
+
+}
 
 ObjectMapper mapper = JsonMapper.builder().build();
 JsonRpcTypedMethodHandlerFactory factory = new DefaultJsonRpcTypedMethodHandlerFactory(
-        new JacksonJsonRpcParameterBinder(mapper),
-        new JacksonJsonRpcResultWriter(mapper)
+    new JacksonJsonRpcParameterBinder(mapper),
+    new JacksonJsonRpcResultWriter(mapper)
 );
 
 JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
@@ -195,14 +200,20 @@ dispatcher.register(
 ### 5.1 Record input/output
 
 ```java
-record UserQuery(long id) {}
-record UserView(long id, String name) {}
+record UserQuery(long id) {
+
+}
+
+record UserView(long id, String name) {
+
+}
 ```
 
 ### 5.2 POJO input
 
 ```java
 class CreateTagRequest {
+
     public String name;
 }
 ```
@@ -233,9 +244,20 @@ All mapping is Jackson-based via binder/result-writer components.
 
 ```json
 [
-  {"jsonrpc":"2.0","method":"ping","id":1},
-  {"jsonrpc":"2.0","method":"ping"},
-  {"jsonrpc":"2.0","method":"unknown","id":2}
+  {
+    "jsonrpc": "2.0",
+    "method": "ping",
+    "id": 1
+  },
+  {
+    "jsonrpc": "2.0",
+    "method": "ping"
+  },
+  {
+    "jsonrpc": "2.0",
+    "method": "unknown",
+    "id": 2
+  }
 ]
 ```
 
@@ -264,8 +286,8 @@ import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
 ObjectNode errorData = JsonNodeFactory.instance.objectNode()
-        .put("traceId", "trace-123")
-        .put("service", "inventory-gateway");
+    .put("traceId", "trace-123")
+    .put("service", "inventory-gateway");
 
 JsonRpcError error = JsonRpcError.of(-32001, "Inventory upstream failed", errorData);
 ```
@@ -288,15 +310,15 @@ import com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy;
 import java.util.List;
 
 JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
-        new InMemoryJsonRpcMethodRegistry(JsonRpcMethodRegistrationConflictPolicy.REJECT),
-        new DefaultJsonRpcRequestParser(),
-        new DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS),
-        new DefaultJsonRpcMethodInvoker(),
-        new DefaultJsonRpcExceptionResolver(false),
-        new DefaultJsonRpcResponseComposer(),
-        100,
-        List.of(),
-        new DirectJsonRpcNotificationExecutor()
+    new InMemoryJsonRpcMethodRegistry(JsonRpcMethodRegistrationConflictPolicy.REJECT),
+    new DefaultJsonRpcRequestParser(),
+    new DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS),
+    new DefaultJsonRpcMethodInvoker(),
+    new DefaultJsonRpcExceptionResolver(false),
+    new DefaultJsonRpcResponseComposer(),
+    100,
+    List.of(),
+    new DirectJsonRpcNotificationExecutor()
 );
 ```
 

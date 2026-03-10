@@ -48,7 +48,11 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":1,"result":"pong"}
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "pong"
+}
 ```
 
 ### 2. Single-parameter DTO binding (`greet`)
@@ -62,7 +66,11 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":2,"result":"hello developer"}
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": "hello developer"
+}
 ```
 
 ### 3. Named params with `@JsonRpcParam` (`sum`)
@@ -76,7 +84,11 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":3,"result":5}
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": 5
+}
 ```
 
 ### 4. Positional params (`sum`)
@@ -90,7 +102,11 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":4,"result":5}
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": 5
+}
 ```
 
 ### 5. Manual registration (`manual.echo`)
@@ -104,7 +120,11 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":5,"result":"echo"}
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": "echo"
+}
 ```
 
 ### 6. Typed registration (`typed.upper`, `typed.tags`)
@@ -118,7 +138,13 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":6,"result":{"value":"SPRING"}}
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": {
+    "value": "SPRING"
+  }
+}
 ```
 
 ```bash
@@ -130,7 +156,14 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":7,"result":["alpha","beta"]}
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": [
+    "alpha",
+    "beta"
+  ]
+}
 ```
 
 ### 7. Notification (no response body)
@@ -162,8 +195,19 @@ Expected response:
 
 ```json
 [
-  {"jsonrpc":"2.0","id":8,"result":"echo"},
-  {"jsonrpc":"2.0","id":9,"error":{"code":-32601,"message":"Method not found"}}
+  {
+    "jsonrpc": "2.0",
+    "id": 8,
+    "result": "echo"
+  },
+  {
+    "jsonrpc": "2.0",
+    "id": 9,
+    "error": {
+      "code": -32601,
+      "message": "Method not found"
+    }
+  }
 ]
 ```
 
@@ -178,7 +222,14 @@ curl -s http://localhost:8080/jsonrpc \
 Expected response:
 
 ```json
-{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}
+{
+  "jsonrpc": "2.0",
+  "id": null,
+  "error": {
+    "code": -32700,
+    "message": "Parse error"
+  }
+}
 ```
 
 ## Notification Executor Scenarios

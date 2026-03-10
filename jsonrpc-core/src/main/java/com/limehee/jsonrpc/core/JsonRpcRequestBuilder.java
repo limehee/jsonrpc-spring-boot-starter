@@ -37,7 +37,7 @@ public final class JsonRpcRequestBuilder {
      *
      * @param method JSON-RPC method name
      * @return request builder
-     * @throws NullPointerException if {@code method} is {@code null}
+     * @throws NullPointerException     if {@code method} is {@code null}
      * @throws IllegalArgumentException if {@code method} is blank or uses the reserved {@code rpc.*} namespace
      */
     public static JsonRpcRequestBuilder request(String method) {
@@ -49,11 +49,51 @@ public final class JsonRpcRequestBuilder {
      *
      * @param method JSON-RPC method name
      * @return notification builder
-     * @throws NullPointerException if {@code method} is {@code null}
+     * @throws NullPointerException     if {@code method} is {@code null}
      * @throws IllegalArgumentException if {@code method} is blank or uses the reserved {@code rpc.*} namespace
      */
     public static JsonRpcRequestBuilder notification(String method) {
         return new JsonRpcRequestBuilder(method, true);
+    }
+
+    private static String validateMethod(String method) {
+        Objects.requireNonNull(method, "method");
+        if (method.isBlank()) {
+            throw new IllegalArgumentException("method must not be blank");
+        }
+        if (method.startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX)) {
+            throw new IllegalArgumentException("method must not use the reserved 'rpc.' namespace");
+        }
+        return method;
+    }
+
+    /**
+     * Recursively copies container nodes while reusing immutable scalar nodes.
+     * <p>
+     * This builder snapshots {@code params} both at assignment time and at build time:
+     * </p>
+     * <ul>
+     *   <li>assignment-time snapshot protects builder state from later mutations to caller-owned input nodes</li>
+     *   <li>build-time snapshot protects builder state from later mutations to the returned payload node</li>
+     * </ul>
+     *
+     * @param value node to snapshot
+     * @return detached node tree for container values, or the same instance for scalar values
+     */
+    private static JsonNode snapshot(JsonNode value) {
+        if (value.isObject()) {
+            ObjectNode copy = NODE_FACTORY.objectNode();
+            value.forEachEntry((name, child) -> copy.set(name, snapshot(child)));
+            return copy;
+        }
+        if (value.isArray()) {
+            ArrayNode copy = NODE_FACTORY.arrayNode();
+            for (JsonNode child : value) {
+                copy.add(snapshot(child));
+            }
+            return copy;
+        }
+        return value;
     }
 
     /**
@@ -72,7 +112,7 @@ public final class JsonRpcRequestBuilder {
      *
      * @param value string request id
      * @return this builder
-     * @throws NullPointerException if {@code value} is {@code null}
+     * @throws NullPointerException  if {@code value} is {@code null}
      * @throws IllegalStateException if this builder represents a notification or the id has already been configured
      */
     public JsonRpcRequestBuilder id(String value) {
@@ -84,9 +124,9 @@ public final class JsonRpcRequestBuilder {
      *
      * @param value JSON id node; must be string, number, or null
      * @return this builder
-     * @throws NullPointerException if {@code value} is {@code null}
+     * @throws NullPointerException     if {@code value} is {@code null}
      * @throws IllegalArgumentException if {@code value} is not a JSON-RPC-compatible id node
-     * @throws IllegalStateException if this builder represents a notification or the id has already been configured
+     * @throws IllegalStateException    if this builder represents a notification or the id has already been configured
      */
     public JsonRpcRequestBuilder id(JsonNode value) {
         Objects.requireNonNull(value, "value");
@@ -109,15 +149,15 @@ public final class JsonRpcRequestBuilder {
     /**
      * Sets {@code params} from a prebuilt JSON node.
      * <p>
-     * The provided node is snapshotted when assigned so that later caller-side mutations do not leak into the
-     * builder's internal state.
+     * The provided node is snapshotted when assigned so that later caller-side mutations do not leak into the builder's
+     * internal state.
      * </p>
      *
      * @param value params node; must be an object or array
      * @return this builder
-     * @throws NullPointerException if {@code value} is {@code null}
+     * @throws NullPointerException     if {@code value} is {@code null}
      * @throws IllegalArgumentException if {@code value} is not an object or array
-     * @throws IllegalStateException if params have already been configured on this builder
+     * @throws IllegalStateException    if params have already been configured on this builder
      */
     public JsonRpcRequestBuilder params(JsonNode value) {
         Objects.requireNonNull(value, "value");
@@ -132,7 +172,7 @@ public final class JsonRpcRequestBuilder {
      *
      * @param elements array entries to add; {@code null} entries become JSON nulls
      * @return this builder
-     * @throws NullPointerException if {@code elements} is {@code null}
+     * @throws NullPointerException  if {@code elements} is {@code null}
      * @throws IllegalStateException if params have already been configured on this builder
      */
     public JsonRpcRequestBuilder paramsArray(JsonNode... elements) {
@@ -149,7 +189,7 @@ public final class JsonRpcRequestBuilder {
      *
      * @param configurator callback that populates the created object node
      * @return this builder
-     * @throws NullPointerException if {@code configurator} is {@code null}
+     * @throws NullPointerException  if {@code configurator} is {@code null}
      * @throws IllegalStateException if params have already been configured on this builder
      */
     public JsonRpcRequestBuilder paramsObject(Consumer<ObjectNode> configurator) {
@@ -205,45 +245,5 @@ public final class JsonRpcRequestBuilder {
         this.params = value;
         this.paramsConfigured = true;
         return this;
-    }
-
-    private static String validateMethod(String method) {
-        Objects.requireNonNull(method, "method");
-        if (method.isBlank()) {
-            throw new IllegalArgumentException("method must not be blank");
-        }
-        if (method.startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX)) {
-            throw new IllegalArgumentException("method must not use the reserved 'rpc.' namespace");
-        }
-        return method;
-    }
-
-    /**
-     * Recursively copies container nodes while reusing immutable scalar nodes.
-     * <p>
-     * This builder snapshots {@code params} both at assignment time and at build time:
-     * </p>
-     * <ul>
-     *   <li>assignment-time snapshot protects builder state from later mutations to caller-owned input nodes</li>
-     *   <li>build-time snapshot protects builder state from later mutations to the returned payload node</li>
-     * </ul>
-     *
-     * @param value node to snapshot
-     * @return detached node tree for container values, or the same instance for scalar values
-     */
-    private static JsonNode snapshot(JsonNode value) {
-        if (value.isObject()) {
-            ObjectNode copy = NODE_FACTORY.objectNode();
-            value.forEachEntry((name, child) -> copy.set(name, snapshot(child)));
-            return copy;
-        }
-        if (value.isArray()) {
-            ArrayNode copy = NODE_FACTORY.arrayNode();
-            for (JsonNode child : value) {
-                copy.add(snapshot(child));
-            }
-            return copy;
-        }
-        return value;
     }
 }

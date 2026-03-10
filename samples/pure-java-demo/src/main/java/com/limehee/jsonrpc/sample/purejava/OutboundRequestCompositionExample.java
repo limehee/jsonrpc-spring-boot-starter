@@ -252,6 +252,7 @@ public final class OutboundRequestCompositionExample {
     }
 
     public record InventoryLookupParams(String sku, String warehouse) {
+
     }
 
     public static final class TagCreateParams {
