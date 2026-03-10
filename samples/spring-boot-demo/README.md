@@ -225,6 +225,20 @@ Covered by `GreetingRpcServiceValidationProfilesIntegrationTest`:
   members)
 - response-side parser/validator beans (`reject-duplicate-members`, `reject-request-fields`, `error-code.policy`)
 
+## Outbound Request Composition Inside a Spring App
+
+The Spring sample also includes a small core-only example for composing outbound JSON-RPC payloads when the same
+application needs to call another JSON-RPC service.
+
+- `src/main/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExample.java`
+- `src/test/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExampleTest.java`
+
+Covered scenarios:
+
+- single request payload with object params
+- batch payload containing a request and a notification
+- manual `JsonRpcError.of(code, message, data)` composition for upstream failures
+
 ## Test Coverage Entry Points
 
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceIntegrationTest.java`
@@ -236,3 +250,4 @@ Covered by `GreetingRpcServiceValidationProfilesIntegrationTest`:
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceErrorDataExposureIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceCustomExceptionResolverIntegrationTest.java`
 - `src/test/java/com/limehee/jsonrpc/sample/GreetingRpcServiceValidationProfilesIntegrationTest.java`
+- `src/test/java/com/limehee/jsonrpc/sample/OutboundRequestCompositionExampleTest.java`
