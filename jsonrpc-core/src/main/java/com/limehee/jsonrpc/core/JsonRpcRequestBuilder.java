@@ -106,6 +106,10 @@ public final class JsonRpcRequestBuilder {
 
     /**
      * Sets {@code params} from a prebuilt JSON node.
+     * <p>
+     * The provided node is snapshotted when assigned so that later caller-side mutations do not leak into the
+     * builder's internal state.
+     * </p>
      *
      * @param value params node; must be an object or array
      * @return this builder
@@ -155,6 +159,10 @@ public final class JsonRpcRequestBuilder {
 
     /**
      * Builds an outbound JSON-RPC request or notification payload.
+     * <p>
+     * A fresh snapshot of the configured {@code params} is written into the returned node so that mutations applied to
+     * a built payload do not affect subsequent {@code buildNode()} calls on the same builder.
+     * </p>
      *
      * @return transport-ready JSON object node
      * @throws IllegalStateException if this builder represents a request and no id has been configured
@@ -208,6 +216,19 @@ public final class JsonRpcRequestBuilder {
         return method;
     }
 
+    /**
+     * Recursively copies container nodes while reusing immutable scalar nodes.
+     * <p>
+     * This builder snapshots {@code params} both at assignment time and at build time:
+     * </p>
+     * <ul>
+     *   <li>assignment-time snapshot protects builder state from later mutations to caller-owned input nodes</li>
+     *   <li>build-time snapshot protects builder state from later mutations to the returned payload node</li>
+     * </ul>
+     *
+     * @param value node to snapshot
+     * @return detached node tree for container values, or the same instance for scalar values
+     */
     private static JsonNode snapshot(JsonNode value) {
         if (value.isObject()) {
             ObjectNode copy = NODE_FACTORY.objectNode();
