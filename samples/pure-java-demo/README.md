@@ -35,7 +35,7 @@ From repository root:
 - Interceptor lifecycle flow (`beforeValidate`, `beforeInvoke`, `afterInvoke`, `onError`)
 - Outbound request composition using `JsonRpcRequestBuilder` and `JsonRpcRequestBatchBuilder`
 - Manual JSON-RPC error object composition using `JsonRpcError.of(code, message, data)`
-- Record, POJO, and collection params converted through Jackson and passed via `params(JsonNode)`
+- Record, POJO, collection, and map params converted through Jackson and passed via `params(JsonNode)`
 
 ## Key Class
 

@@ -4,6 +4,7 @@ import com.limehee.jsonrpc.core.JsonRpcError;
 import com.limehee.jsonrpc.core.JsonRpcRequestBatchBuilder;
 import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
 import java.util.List;
+import java.util.Map;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
@@ -114,6 +115,33 @@ public final class OutboundRequestCompositionExample {
         return JsonRpcRequestBuilder.request("tags.bulkLookup")
             .id(24L)
             .params(OBJECT_MAPPER.valueToTree(List.of("alpha", "beta", "gamma")))
+            .buildNode();
+    }
+
+    /**
+     * Builds a request from a map converted through Jackson.
+     *
+     * <pre>{@code
+     * {
+     *   "jsonrpc": "2.0",
+     *   "method": "health.snapshot",
+     *   "id": 25,
+     *   "params": {
+     *     "region": "ap-northeast-2",
+     *     "includeDetails": true
+     *   }
+     * }
+     * }</pre>
+     *
+     * @return outbound request payload
+     */
+    public static ObjectNode buildHealthSnapshotRequestFromMap() {
+        return JsonRpcRequestBuilder.request("health.snapshot")
+            .id(25L)
+            .params(OBJECT_MAPPER.valueToTree(Map.of(
+                "region", "ap-northeast-2",
+                "includeDetails", true
+            )))
             .buildNode();
     }
 

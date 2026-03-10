@@ -77,6 +77,9 @@ public final class PureJavaDemoApplication {
         print("outbound request from collection", OBJECT_MAPPER.writeValueAsString(
             OutboundRequestCompositionExample.buildBulkLookupRequestFromCollection()
         ));
+        print("outbound request from map", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildHealthSnapshotRequestFromMap()
+        ));
         print("outbound notification", OBJECT_MAPPER.writeValueAsString(
             OutboundRequestCompositionExample.buildAuditNotification()
         ));

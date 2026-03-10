@@ -55,6 +55,17 @@ class OutboundRequestCompositionExampleTest {
     }
 
     @Test
+    void buildsRequestPayloadFromMap() {
+        ObjectNode request = OutboundRequestCompositionExample.buildHealthSnapshotRequestFromMap();
+
+        assertEquals("health.snapshot", request.get("method").stringValue());
+        assertEquals(25L, request.get("id").longValue());
+        assertTrue(request.get("params").isObject());
+        assertEquals("ap-northeast-2", request.get("params").get("region").stringValue());
+        assertTrue(request.get("params").get("includeDetails").booleanValue());
+    }
+
+    @Test
     void buildsBatchPayloadContainingRequestAndNotification() {
         ArrayNode batch = OutboundRequestCompositionExample.buildInventoryAuditBatch();
 

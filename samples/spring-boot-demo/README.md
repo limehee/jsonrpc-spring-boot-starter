@@ -236,7 +236,7 @@ application needs to call another JSON-RPC service.
 Covered scenarios:
 
 - single request payload with object params
-- request payloads created from a record, a classic Java class, and a collection
+- request payloads created from a record, a classic Java class, a collection, and a map
 - batch payload containing a request and a notification
 - manual `JsonRpcError.of(code, message, data)` composition for upstream failures
 
