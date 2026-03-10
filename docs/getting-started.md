@@ -182,7 +182,26 @@ JsonRpcDispatchResult result = dispatcher.dispatch(request);
 System.out.println(mapper.writeValueAsString(result.singleResponse().orElseThrow()));
 ```
 
-## 6. Verify with cURL
+## 6. Outbound Request Composition
+
+Use request builders when the same application also needs to call another JSON-RPC service.
+
+```java
+import tools.jackson.databind.node.ObjectNode;
+import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
+
+ObjectNode request = JsonRpcRequestBuilder.request("inventory.lookup")
+    .id("req-7")
+    .paramsObject(params -> {
+        params.put("sku", "book-001");
+        params.put("warehouse", "seoul");
+    })
+    .buildNode();
+```
+
+See [`pure-java-guide.md`](pure-java-guide.md) for batch examples and the full builder contract.
+
+## 7. Verify with cURL
 
 ```bash
 curl -sS -X POST http://localhost:8080/jsonrpc \
@@ -190,7 +209,7 @@ curl -sS -X POST http://localhost:8080/jsonrpc \
   -d '{"jsonrpc":"2.0","method":"greet","params":{"name":"rpc"},"id":1}'
 ```
 
-## 7. What to Read Next
+## 8. What to Read Next
 
 - Full Spring setup, registration styles, and operational options: [`spring-boot-guide.md`](spring-boot-guide.md)
 - Pure Java advanced composition and custom transport patterns: [`pure-java-guide.md`](pure-java-guide.md)

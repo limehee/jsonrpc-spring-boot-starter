@@ -221,6 +221,41 @@ JsonRpcDispatchResult result = dispatcher.dispatch(payload);
 System.out.println(mapper.writeValueAsString(result.singleResponse().orElseThrow()));
 ```
 
+## Outbound Request Composition
+
+Use `JsonRpcRequestBuilder` and `JsonRpcRequestBatchBuilder` when your application needs to send JSON-RPC payloads to
+another endpoint.
+
+```java
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import com.limehee.jsonrpc.core.JsonRpcRequestBatchBuilder;
+import com.limehee.jsonrpc.core.JsonRpcRequestBuilder;
+
+ObjectNode singleRequest = JsonRpcRequestBuilder.request("inventory.lookup")
+    .id("req-7")
+    .paramsObject(params -> {
+        params.put("sku", "book-001");
+        params.put("warehouse", "seoul");
+    })
+    .buildNode();
+
+ArrayNode batchRequest = new JsonRpcRequestBatchBuilder()
+    .add(JsonRpcRequestBuilder.request("inventory.lookup").id(1L))
+    .addNotification("audit.record", request -> request.paramsObject(params -> {
+        params.put("event", "inventory.lookup");
+        params.put("source", "gateway");
+    }))
+    .buildNode();
+```
+
+Builder contract:
+
+- `request(...)` must define an `id` before `buildNode()`
+- `notification(...)` rejects any `id(...)` or `nullId()` call
+- `params(...)`, `paramsArray(...)`, and `paramsObject(...)` are mutually exclusive and can be configured only once
+- `JsonRpcRequestBatchBuilder` rejects empty batches at `buildNode()`
+
 ## Registration Styles and Priority
 
 Supported styles:
