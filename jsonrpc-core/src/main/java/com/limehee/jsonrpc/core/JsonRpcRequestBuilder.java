@@ -37,6 +37,7 @@ public final class JsonRpcRequestBuilder {
      *
      * @param method JSON-RPC method name
      * @return request builder
+     * @throws NullPointerException if {@code method} is {@code null}
      * @throws IllegalArgumentException if {@code method} is blank or uses the reserved {@code rpc.*} namespace
      */
     public static JsonRpcRequestBuilder request(String method) {
@@ -48,6 +49,7 @@ public final class JsonRpcRequestBuilder {
      *
      * @param method JSON-RPC method name
      * @return notification builder
+     * @throws NullPointerException if {@code method} is {@code null}
      * @throws IllegalArgumentException if {@code method} is blank or uses the reserved {@code rpc.*} namespace
      */
     public static JsonRpcRequestBuilder notification(String method) {

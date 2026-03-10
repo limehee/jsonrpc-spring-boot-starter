@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.IntNode;
 import tools.jackson.databind.node.JsonNodeFactory;
@@ -83,6 +84,8 @@ class JsonRpcRequestBuilderTest {
         JsonRpcRequestBuilder builder = JsonRpcRequestBuilder.notification("ping");
 
         assertThrows(IllegalStateException.class, () -> builder.id(1L));
+        assertThrows(IllegalStateException.class, () -> builder.id("request-1"));
+        assertThrows(IllegalStateException.class, () -> builder.id(IntNode.valueOf(1)));
         assertThrows(IllegalStateException.class, builder::nullId);
     }
 
@@ -152,6 +155,22 @@ class JsonRpcRequestBuilderTest {
 
         assertEquals("initial", node.get("params").get("status").stringValue());
         assertNotSame(params, node.get("params"));
+    }
+
+    @Test
+    void buildNodeReturnsDetachedParamsSnapshotAcrossBuilderReuse() {
+        JsonRpcRequestBuilder builder = JsonRpcRequestBuilder.request("state.read")
+            .id(1L)
+            .paramsObject(params -> params.put("status", "initial"));
+
+        ObjectNode first = builder.buildNode();
+        JsonNode firstParams = first.get("params");
+        ((ObjectNode) firstParams).put("status", "mutated");
+
+        ObjectNode second = builder.buildNode();
+
+        assertEquals("initial", second.get("params").get("status").stringValue());
+        assertNotSame(first.get("params"), second.get("params"));
     }
 
     @Test
