@@ -234,7 +234,7 @@ public final class JsonRpcRequestBuilder {
     private static JsonNode snapshot(JsonNode value) {
         if (value.isObject()) {
             ObjectNode copy = NODE_FACTORY.objectNode();
-            value.asObject().forEachEntry((name, child) -> copy.set(name, snapshot(child)));
+            value.forEachEntry((name, child) -> copy.set(name, snapshot(child)));
             return copy;
         }
         if (value.isArray()) {
