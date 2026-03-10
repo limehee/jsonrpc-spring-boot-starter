@@ -339,13 +339,13 @@ if (envelopeType == JsonRpcEnvelopeType.REQUEST) {
 For policy tuning, customize `JsonRpcResponseValidationOptions` and pass it into
 `DefaultJsonRpcResponseValidator`.
 
-## 9. Concurrency Notes
+## 10. Concurrency Notes
 
 - `JsonRpcDispatcher` invocation path is stateless per request except method registry lookups.
 - Notification behavior depends on the configured `JsonRpcNotificationExecutor`.
 - For asynchronous notification isolation in plain Java, provide an executor-backed implementation.
 
-## 10. Deep References
+## 11. Deep References
 
 - Protocol matrix: [`protocol-and-compliance.md`](protocol-and-compliance.md)
 - Registration/binding semantics: [`registration-and-binding.md`](registration-and-binding.md)
