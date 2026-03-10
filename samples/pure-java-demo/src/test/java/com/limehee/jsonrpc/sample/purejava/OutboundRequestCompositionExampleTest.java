@@ -23,6 +23,38 @@ class OutboundRequestCompositionExampleTest {
     }
 
     @Test
+    void buildsRequestPayloadFromRecord() {
+        ObjectNode request = OutboundRequestCompositionExample.buildInventoryLookupRequestFromRecord();
+
+        assertEquals("inventory.lookup.record", request.get("method").stringValue());
+        assertEquals(11L, request.get("id").longValue());
+        assertEquals("book-002", request.get("params").get("sku").stringValue());
+        assertEquals("busan", request.get("params").get("warehouse").stringValue());
+    }
+
+    @Test
+    void buildsRequestPayloadFromClass() {
+        ObjectNode request = OutboundRequestCompositionExample.buildTagCreateRequestFromClass();
+
+        assertEquals("tag.create", request.get("method").stringValue());
+        assertEquals(12L, request.get("id").longValue());
+        assertEquals("featured", request.get("params").get("name").stringValue());
+        assertEquals("green", request.get("params").get("color").stringValue());
+    }
+
+    @Test
+    void buildsRequestPayloadFromCollection() {
+        ObjectNode request = OutboundRequestCompositionExample.buildBulkLookupRequestFromCollection();
+
+        assertEquals("tags.bulkLookup", request.get("method").stringValue());
+        assertEquals(13L, request.get("id").longValue());
+        assertTrue(request.get("params").isArray());
+        assertEquals("alpha", request.get("params").get(0).stringValue());
+        assertEquals("beta", request.get("params").get(1).stringValue());
+        assertEquals("gamma", request.get("params").get(2).stringValue());
+    }
+
+    @Test
     void buildsNotificationPayloadWithoutId() {
         ObjectNode notification = OutboundRequestCompositionExample.buildAuditNotification();
 

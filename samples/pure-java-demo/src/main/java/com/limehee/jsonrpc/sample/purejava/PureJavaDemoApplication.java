@@ -68,6 +68,15 @@ public final class PureJavaDemoApplication {
         print("outbound request", OBJECT_MAPPER.writeValueAsString(
             OutboundRequestCompositionExample.buildInventoryLookupRequest()
         ));
+        print("outbound request from record", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildInventoryLookupRequestFromRecord()
+        ));
+        print("outbound request from class", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildTagCreateRequestFromClass()
+        ));
+        print("outbound request from collection", OBJECT_MAPPER.writeValueAsString(
+            OutboundRequestCompositionExample.buildBulkLookupRequestFromCollection()
+        ));
         print("outbound notification", OBJECT_MAPPER.writeValueAsString(
             OutboundRequestCompositionExample.buildAuditNotification()
         ));
