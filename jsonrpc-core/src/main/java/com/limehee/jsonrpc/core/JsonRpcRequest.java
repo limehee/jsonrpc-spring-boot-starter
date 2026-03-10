@@ -5,6 +5,11 @@ import tools.jackson.databind.JsonNode;
 
 /**
  * Parsed JSON-RPC request model used by the dispatcher pipeline.
+ * <p>
+ * This type is primarily produced by {@link DefaultJsonRpcRequestParser} and consumed internally by validation,
+ * interception, and dispatch components. For outbound JSON-RPC request composition, prefer
+ * {@link JsonRpcRequestBuilder}.
+ * </p>
  *
  * @param jsonrpc   protocol version string from payload; may be {@code null}
  * @param id        request id value; may be {@code null}
