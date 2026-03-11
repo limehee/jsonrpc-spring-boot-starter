@@ -359,8 +359,8 @@ class DefaultJsonRpcResponseValidatorTest {
         );
 
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
-            {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"server"}}
-        """)));
+                {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"server"}}
+            """)));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
     }
 

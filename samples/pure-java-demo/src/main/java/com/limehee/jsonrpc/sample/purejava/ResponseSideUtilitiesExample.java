@@ -96,7 +96,7 @@ public final class ResponseSideUtilitiesExample {
     /**
      * Classified integer error-code entry extracted from a validated response.
      *
-     * @param code integer JSON-RPC error code
+     * @param code     integer JSON-RPC error code
      * @param category semantic classifier result
      */
     public record ClassifiedErrorCode(int code, JsonRpcErrorCodeCategory category) {
