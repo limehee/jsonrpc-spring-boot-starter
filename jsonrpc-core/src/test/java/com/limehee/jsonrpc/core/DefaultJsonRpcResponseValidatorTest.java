@@ -365,6 +365,20 @@ class DefaultJsonRpcResponseValidatorTest {
     }
 
     @Test
+    void validateRejectsCustomErrorCodeWhenPolicyIsStandardOnly() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.STANDARD_ONLY)
+                .build()
+        );
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":1001,"message":"custom"}}
+            """)));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
     void validateAllowsStandardErrorCodeWhenPolicyIsStandardOnly() throws Exception {
         JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
             JsonRpcResponseValidationOptions.builder()

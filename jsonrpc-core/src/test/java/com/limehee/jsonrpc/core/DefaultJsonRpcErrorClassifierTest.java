@@ -26,7 +26,7 @@ class DefaultJsonRpcErrorClassifierTest {
     }
 
     @Test
-    void classifyReturnsCustomForValuesOutsideServerReservedRange() {
+    void classifyReturnsCustomForAllNonStandardNonReservedValues() {
         assertSame(JsonRpcErrorCodeCategory.CUSTOM, classifier.classify(-32100));
         assertSame(JsonRpcErrorCodeCategory.CUSTOM, classifier.classify(-31999));
         assertSame(JsonRpcErrorCodeCategory.CUSTOM, classifier.classify(-40000));
