@@ -6,8 +6,15 @@ import tools.jackson.databind.JsonNode;
 
 /**
  * Default validator for parsed incoming JSON-RPC responses.
+ * <p>
+ * Integer {@code error.code} validation uses {@link JsonRpcErrorClassifier} for standard and server-range policies.
+ * {@link JsonRpcResponseErrorCodePolicy#CUSTOM_RANGE} remains a direct numeric bounds check and does not depend on the
+ * classifier's category result.
+ * </p>
  */
 public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator {
+
+    private static final JsonRpcErrorClassifier ERROR_CLASSIFIER = new DefaultJsonRpcErrorClassifier();
 
     private final JsonRpcResponseValidationOptions options;
 
@@ -148,55 +155,26 @@ public class DefaultJsonRpcResponseValidator implements JsonRpcResponseValidator
      * @param code integer error code
      */
     private void validateErrorCodePolicy(int code) {
-        JsonRpcResponseErrorCodePolicy policy = options.errorCodePolicy();
-        if (policy == JsonRpcResponseErrorCodePolicy.ANY_INTEGER) {
-            return;
-        }
-        if (policy == JsonRpcResponseErrorCodePolicy.STANDARD_ONLY) {
-            if (!isStandardErrorCode(code)) {
-                throw invalidRequest();
+        switch (options.errorCodePolicy()) {
+            case ANY_INTEGER -> {
             }
-            return;
-        }
-        if (policy == JsonRpcResponseErrorCodePolicy.STANDARD_OR_SERVER_ERROR_RANGE) {
-            if (!isStandardErrorCode(code) && !isServerErrorRangeCode(code)) {
-                throw invalidRequest();
+            case STANDARD_ONLY -> {
+                if (!ERROR_CLASSIFIER.isStandard(code)) {
+                    throw invalidRequest();
+                }
             }
-            return;
-        }
-        if (policy == JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE) {
-            Integer min = options.errorCodeRangeMin();
-            Integer max = options.errorCodeRangeMax();
-            if (min == null || max == null) {
-                throw invalidRequest();
+            case STANDARD_OR_SERVER_ERROR_RANGE -> {
+                if (!ERROR_CLASSIFIER.isStandard(code) && !ERROR_CLASSIFIER.isServerErrorRange(code)) {
+                    throw invalidRequest();
+                }
             }
-            if (code < min || code > max) {
-                throw invalidRequest();
+            case CUSTOM_RANGE -> {
+                Integer min = options.errorCodeRangeMin();
+                Integer max = options.errorCodeRangeMax();
+                if (min == null || max == null || code < min || code > max) {
+                    throw invalidRequest();
+                }
             }
         }
-    }
-
-    /**
-     * Checks whether a code is one of the JSON-RPC standard error codes.
-     *
-     * @param code integer error code
-     * @return {@code true} when code is standard
-     */
-    private boolean isStandardErrorCode(int code) {
-        return code == JsonRpcErrorCode.PARSE_ERROR
-            || code == JsonRpcErrorCode.INVALID_REQUEST
-            || code == JsonRpcErrorCode.METHOD_NOT_FOUND
-            || code == JsonRpcErrorCode.INVALID_PARAMS
-            || code == JsonRpcErrorCode.INTERNAL_ERROR;
-    }
-
-    /**
-     * Checks whether a code belongs to the JSON-RPC server-error reserved range.
-     *
-     * @param code integer error code
-     * @return {@code true} when code is within {@code -32099..-32000}
-     */
-    private boolean isServerErrorRangeCode(int code) {
-        return code >= -32099 && code <= -32000;
     }
 }
