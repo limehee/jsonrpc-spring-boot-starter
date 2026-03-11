@@ -359,9 +359,36 @@ class DefaultJsonRpcResponseValidatorTest {
         );
 
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
-            {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"server"}}
+                {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"server"}}
             """)));
         assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateRejectsCustomErrorCodeWhenPolicyIsStandardOnly() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.STANDARD_ONLY)
+                .build()
+        );
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":1001,"message":"custom"}}
+            """)));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateAllowsStandardErrorCodeWhenPolicyIsStandardOnly() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.STANDARD_ONLY)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"missing"}}
+            """)));
     }
 
     @Test
@@ -374,6 +401,9 @@ class DefaultJsonRpcResponseValidatorTest {
 
         assertDoesNotThrow(() -> custom.validate(incoming("""
             {"jsonrpc":"2.0","id":1,"error":{"code":-32050,"message":"server"}}
+            """)));
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"missing"}}
             """)));
     }
 
@@ -435,6 +465,37 @@ class DefaultJsonRpcResponseValidatorTest {
         assertDoesNotThrow(() -> custom.validate(incoming("""
             {"jsonrpc":"2.0","id":1,"error":{"code":-44500,"message":"custom"}}
             """)));
+    }
+
+    @Test
+    void validateAllowsStandardCodeWhenCustomRangeContainsIt() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE)
+                .errorCodeRangeMin(-40000)
+                .errorCodeRangeMax(-30000)
+                .build()
+        );
+
+        assertDoesNotThrow(() -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"missing"}}
+            """)));
+    }
+
+    @Test
+    void validateRejectsStandardCodeWhenCustomRangeDoesNotContainIt() throws Exception {
+        JsonRpcResponseValidator custom = new DefaultJsonRpcResponseValidator(
+            JsonRpcResponseValidationOptions.builder()
+                .errorCodePolicy(JsonRpcResponseErrorCodePolicy.CUSTOM_RANGE)
+                .errorCodeRangeMin(1000)
+                .errorCodeRangeMax(2000)
+                .build()
+        );
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> custom.validate(incoming("""
+            {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"missing"}}
+            """)));
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
     }
 
     private JsonRpcIncomingResponse incoming(String json) throws Exception {

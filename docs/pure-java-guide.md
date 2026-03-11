@@ -350,9 +350,12 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import com.limehee.jsonrpc.core.DefaultJsonRpcEnvelopeClassifier;
+import com.limehee.jsonrpc.core.DefaultJsonRpcErrorClassifier;
 import com.limehee.jsonrpc.core.DefaultJsonRpcResponseParser;
 import com.limehee.jsonrpc.core.DefaultJsonRpcResponseValidator;
 import com.limehee.jsonrpc.core.JsonRpcEnvelopeClassifier;
+import com.limehee.jsonrpc.core.JsonRpcErrorClassifier;
+import com.limehee.jsonrpc.core.JsonRpcErrorCodeCategory;
 import com.limehee.jsonrpc.core.JsonRpcEnvelopeType;
 import com.limehee.jsonrpc.core.JsonRpcIncomingResponse;
 import com.limehee.jsonrpc.core.JsonRpcIncomingResponseEnvelope;
@@ -361,6 +364,7 @@ import com.limehee.jsonrpc.core.JsonRpcResponseValidator;
 
 ObjectMapper mapper = JsonMapper.builder().build();
 JsonRpcEnvelopeClassifier classifier = new DefaultJsonRpcEnvelopeClassifier();
+JsonRpcErrorClassifier errorClassifier = new DefaultJsonRpcErrorClassifier();
 JsonRpcResponseParser responseParser = new DefaultJsonRpcResponseParser();
 JsonRpcResponseValidator responseValidator = new DefaultJsonRpcResponseValidator();
 
@@ -373,6 +377,11 @@ if (envelopeType == JsonRpcEnvelopeType.REQUEST) {
     JsonRpcIncomingResponseEnvelope envelope = responseParser.parse(payload);
     for (JsonRpcIncomingResponse response : envelope.responses()) {
         responseValidator.validate(response);
+        if (response.errorPresent() && response.error() != null && response.error().has("code")) {
+            int code = response.error().get("code").asInt();
+            JsonRpcErrorCodeCategory category = errorClassifier.classify(code);
+            System.out.println("error.code category = " + category);
+        }
         // route by response.id() to pending-call registry
     }
 } else {
@@ -382,6 +391,12 @@ if (envelopeType == JsonRpcEnvelopeType.REQUEST) {
 
 For policy tuning, customize `JsonRpcResponseValidationOptions` and pass it into
 `DefaultJsonRpcResponseValidator`.
+
+`JsonRpcErrorClassifier` categories:
+
+- `STANDARD`: one of `-32700`, `-32600`, `-32601`, `-32602`, `-32603`
+- `SERVER_RESERVED_RANGE`: inside `-32099..-32000`
+- `CUSTOM`: any other integer code
 
 ## 10. Concurrency Notes
 

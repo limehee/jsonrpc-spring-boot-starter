@@ -9,7 +9,8 @@ Production-oriented JSON-RPC 2.0 server library for Java, with optional Spring W
 - Spring WebMVC transport adapter and Spring Boot auto-configuration
 - Multiple registration styles (annotation/manual/typed)
 - Explicit extension points (parser/validator/invoker/exception mapping/interceptors/metrics)
-- Response-side protocol utilities for bidirectional transports (classifier/parser/validator)
+- Response-side protocol utilities for bidirectional transports (envelope classifier, error-code classifier, parser,
+  validator)
 - Focused dependency surface (no direct Guava, Commons Lang3, or Jakarta Validation dependency)
 
 ## Specification

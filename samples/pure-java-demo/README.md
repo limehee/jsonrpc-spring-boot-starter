@@ -31,7 +31,7 @@ From repository root:
   `reject-response-fields`)
 - Response validation profile with `JsonRpcResponseValidationOptions` (`reject-request-fields`,
   `reject-duplicate-members`, `error-code.policy`)
-- Incoming response-side flow using classifier/parser/validator utilities
+- Incoming response-side flow using envelope classifier, error-code classifier, parser, and validator utilities
 - Interceptor lifecycle flow (`beforeValidate`, `beforeInvoke`, `afterInvoke`, `onError`)
 - Outbound request composition using `JsonRpcRequestBuilder` and `JsonRpcRequestBatchBuilder`
 - Direct `paramsObject(...)` and `paramsArray(...)` builder examples for outbound requests
