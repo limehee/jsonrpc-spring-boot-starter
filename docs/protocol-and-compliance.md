@@ -51,6 +51,7 @@ Implementation constants are in `JsonRpcErrorCode` and messages in `JsonRpcConst
 `jsonrpc-core` also provides response-side protocol utilities:
 
 - `JsonRpcEnvelopeClassifier`
+- `JsonRpcErrorClassifier`
 - `JsonRpcResponseParser`
 - `JsonRpcResponseValidator`
 - `JsonRpcResponseValidationOptions`
@@ -60,6 +61,15 @@ members during raw JSON parsing.
 
 These APIs are transport-agnostic and useful for bidirectional channels (for example WebSocket) where
 request/response envelopes may arrive on the same connection.
+
+`JsonRpcErrorClassifier` interprets integer `error.code` values as:
+
+- `STANDARD`: `-32700`, `-32600`, `-32601`, `-32602`, `-32603`
+- `SERVER_RESERVED_RANGE`: `-32099..-32000`
+- `CUSTOM`: any other integer value
+
+`CUSTOM` does not mean the code is invalid. It only means the code is outside the standard set and the reserved
+server-error range.
 
 ### Default Validation Rules (RFC MUST)
 

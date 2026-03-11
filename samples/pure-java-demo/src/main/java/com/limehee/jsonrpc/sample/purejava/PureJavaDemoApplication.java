@@ -19,6 +19,7 @@ import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcIncomingResponse;
 import com.limehee.jsonrpc.core.JsonRpcMethodRegistrationConflictPolicy;
 import com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy;
+import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcTypedMethodHandlerFactory;
 import tools.jackson.databind.node.StringNode;
 
@@ -65,6 +66,18 @@ public final class PureJavaDemoApplication {
             {"jsonrpc":"2.0","id":1,"error":{"code":-32000,"message":"server"}}
             """);
         print("strict response profile", OBJECT_MAPPER.writeValueAsString(strictResponses));
+        ResponseSideUtilitiesExample responseUtilities = new ResponseSideUtilitiesExample(
+            JsonRpcResponseValidationOptions.defaults()
+        );
+        print("response error-code categories", OBJECT_MAPPER.writeValueAsString(
+            responseUtilities.classifyValidatedErrorCodes("""
+                [
+                  {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}},
+                  {"jsonrpc":"2.0","id":2,"error":{"code":-32001,"message":"Server issue"}},
+                  {"jsonrpc":"2.0","id":3,"error":{"code":1001,"message":"Domain error"}}
+                ]
+                """)
+        ));
         print("outbound request", OBJECT_MAPPER.writeValueAsString(
             OutboundRequestCompositionExample.buildInventoryLookupRequest()
         ));
