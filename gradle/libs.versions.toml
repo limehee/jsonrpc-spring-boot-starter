@@ -8,7 +8,7 @@ jmh-plugin = "0.7.3"
 spring-dependency-management-plugin = "1.1.7"
 jsonrpc-starter = "0.2.0"
 errorprone-plugin = "5.1.0"
-errorprone = "2.42.0"
+errorprone = "2.48.0"
 nullaway = "0.13.1"
 
 [libraries]
