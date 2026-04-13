@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Normalize issue status labels
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             // Repository-wide status labels controlled by this workflow.
