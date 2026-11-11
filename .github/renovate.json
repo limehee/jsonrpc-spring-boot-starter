@@ -16,6 +16,16 @@
         "com.google.errorprone:error_prone_core"
       ],
       "allowedVersions": "<2.43.0"
+    },
+    {
+      "description": "Keep CI/publish workflows on JDK 17 (minimum supported version); do not propose JDK major upgrades",
+      "matchDatasources": [
+        "java-version"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
     }
   ]
 }
