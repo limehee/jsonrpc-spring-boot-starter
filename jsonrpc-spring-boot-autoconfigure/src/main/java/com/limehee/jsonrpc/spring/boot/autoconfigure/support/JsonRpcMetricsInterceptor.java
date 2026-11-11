@@ -31,6 +31,11 @@ import tools.jackson.databind.JsonNode;
  * unseen methods are collapsed into the {@code other} bucket. This limit is treated as a hard cap even when
  * requests are processed concurrently.
  * </p>
+ * <p>
+ * Each call is counted once in {@code jsonrpc.server.calls}. When another interceptor's {@code afterInvoke} fails
+ * after this interceptor already recorded the call as {@code success}, the follow-up {@link #onError} callback for the
+ * same request records only the stage and failure metrics instead of counting the call a second time.
+ * </p>
  */
 public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
 
@@ -52,6 +57,7 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
     private final ConcurrentHashMap<CounterKey, Counter> failureCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<LatencyKey, Timer> latencyTimers = new ConcurrentHashMap<>();
     private final ThreadLocal<Long> startedAtNanos = new ThreadLocal<>();
+    private final ThreadLocal<JsonRpcRequest> successRecordedRequest = new ThreadLocal<>();
 
     /**
      * Creates an interceptor with default metric options.
@@ -92,8 +98,19 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
      *
      * @param request JSON-RPC request being invoked
      */
+    /**
+     * Clears per-thread success tracking left by a previous request on this thread.
+     *
+     * @param rawRequest raw request node
+     */
+    @Override
+    public void beforeValidate(JsonNode rawRequest) {
+        successRecordedRequest.remove();
+    }
+
     @Override
     public void beforeInvoke(JsonRpcRequest request) {
+        successRecordedRequest.remove();
         startedAtNanos.set(System.nanoTime());
     }
 
@@ -107,6 +124,7 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
     public void afterInvoke(JsonRpcRequest request, JsonNode result) {
         String method = normalizeMethodName(request.method());
         recordCallAndLatency(method, "success", "none");
+        successRecordedRequest.set(request);
         counter(stageCounters, STAGE_EVENTS_METRIC, method, "invoke_success", "").increment();
     }
 
@@ -122,7 +140,13 @@ public final class JsonRpcMetricsInterceptor implements JsonRpcInterceptor {
         JsonRpcError error = Objects.requireNonNull(mappedError, "mappedError");
         String method = normalizeMethodName(request == null ? null : request.method());
         String errorCode = String.valueOf(error.code());
-        recordCallAndLatency(method, "error", errorCode);
+        boolean alreadyCounted = request != null && successRecordedRequest.get() == request;
+        successRecordedRequest.remove();
+        if (alreadyCounted) {
+            startedAtNanos.remove();
+        } else {
+            recordCallAndLatency(method, "error", errorCode);
+        }
 
         String stage = classifyStage(error);
         counter(stageCounters, STAGE_EVENTS_METRIC, method, stage, "").increment();

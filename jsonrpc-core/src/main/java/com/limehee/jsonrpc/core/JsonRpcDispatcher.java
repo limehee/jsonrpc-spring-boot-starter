@@ -302,8 +302,10 @@ public class JsonRpcDispatcher {
 
         runBeforeInvoke(request);
         JsonNode result = invokeHandler(handler, request);
+        // Compose before afterInvoke so a composition failure cannot surface after interceptors observed success.
+        JsonRpcResponse response = responseComposer.success(request.id(), result);
         runAfterInvoke(request, result);
-        return Optional.of(responseComposer.success(request.id(), result));
+        return Optional.of(response);
     }
 
     /**

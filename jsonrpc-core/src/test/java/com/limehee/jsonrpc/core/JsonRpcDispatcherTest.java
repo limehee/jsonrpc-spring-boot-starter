@@ -729,4 +729,51 @@ class JsonRpcDispatcherTest {
         assertTrue(afterInvokeResults.stream().allMatch(JsonNode::isNull));
         assertEquals(0, onErrorCalls.get());
     }
+
+    @Test
+    void afterInvokeIsNotCalledWhenSuccessResponseCompositionFails() throws Exception {
+        AtomicInteger afterInvokeCalls = new AtomicInteger();
+        AtomicInteger onErrorCalls = new AtomicInteger();
+        JsonRpcInterceptor interceptor = new JsonRpcInterceptor() {
+            @Override
+            public void afterInvoke(JsonRpcRequest request, JsonNode result) {
+                afterInvokeCalls.incrementAndGet();
+            }
+
+            @Override
+            public void onError(JsonRpcRequest request, Throwable throwable, JsonRpcError mappedError) {
+                onErrorCalls.incrementAndGet();
+            }
+        };
+        JsonRpcResponseComposer failingComposer = new JsonRpcResponseComposer() {
+            @Override
+            public JsonRpcResponse success(JsonNode id, JsonNode result) {
+                throw new IllegalStateException("compose failed");
+            }
+
+            @Override
+            public JsonRpcResponse error(JsonNode id, JsonRpcError error) {
+                return JsonRpcResponse.error(id, error);
+            }
+        };
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            failingComposer,
+            100,
+            List.of(interceptor)
+        );
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """));
+
+        assertEquals(JsonRpcErrorCode.INTERNAL_ERROR, result.singleResponse().orElseThrow().error().code());
+        assertEquals(0, afterInvokeCalls.get());
+        assertEquals(1, onErrorCalls.get());
+    }
 }
