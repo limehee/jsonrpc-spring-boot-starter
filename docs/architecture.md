@@ -66,7 +66,8 @@ Protocol-level normalization:
 - parse error -> `-32700`
 - invalid request -> `-32600`
 - method not found -> `-32601`
-- invalid params -> default `-32602` (`params` type-violation code is configurable in `DefaultJsonRpcRequestValidator`)
+- invalid params (binding failures) -> `-32602`
+- non-structured `params` -> default `-32600` (configurable to `-32602` in `DefaultJsonRpcRequestValidator`)
 - unhandled exceptions -> `-32603`
 
 Transport-level status is handled separately by `JsonRpcHttpStatusStrategy`.

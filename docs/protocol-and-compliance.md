@@ -13,7 +13,7 @@ This document maps current behavior to JSON-RPC 2.0 requirements.
 |-------------------------|--------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `jsonrpc` field         | MUST be string `"2.0"`               | Validated; otherwise `-32600 Invalid Request`                                                                                                        |
 | `method` field          | MUST be string                       | Validated non-null/non-blank; otherwise `-32600`                                                                                                     |
-| `params` field          | MAY be array/object                  | If present and not array/object -> default `-32602 Invalid params` (configurable to `-32600 Invalid Request` via validator policy / Spring property) |
+| `params` field          | MAY be array/object                  | If present and not array/object -> default `-32600 Invalid Request` (configurable to `-32602 Invalid params` via validator policy / Spring property) |
 | `id` field type         | String/Number/Null (if present)      | Invalid `id` type -> `-32600`; error response id normalized to `null`                                                                                |
 | Notification            | Request without `id`                 | Invoked with no response payload                                                                                                                     |
 | Success response        | MUST contain `result` (no `error`)   | Enforced by `JsonRpcResponse` invariant                                                                                                              |
@@ -143,5 +143,6 @@ This is transport policy, not protocol rule, and can be overridden via `JsonRpcH
   `Request payload too large`.
 - Parse errors always use `id: null`.
 - Generic exceptions are intentionally normalized to `-32603` to avoid leaking internals.
-- `params` type violations (non-array/object) default to `-32602`; in Spring Boot this can be changed with
-  `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_REQUEST`.
+- `params` type violations (non-array/object) default to `-32600`, because JSON-RPC 2.0 requires `params`, when
+  present, to be a structured value, which makes such a payload an invalid Request object. To keep the pre-0.3
+  `-32602` behavior, set `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_PARAMS`.

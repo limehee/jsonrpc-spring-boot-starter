@@ -279,8 +279,9 @@ Supported practical types include:
 ### 5.4 Params type violation code policy
 
 Default auto-configuration uses `DefaultJsonRpcRequestValidator` with
-`JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS`, so request `params` with non-object/non-array shape
-returns `-32602`.
+`JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST`, so request `params` with non-object/non-array shape
+returns `-32600`, as JSON-RPC 2.0 treats it as an invalid Request object. Set the policy to `INVALID_PARAMS` to keep
+the pre-0.3 `-32602` behavior.
 
 Use configuration to change this behavior:
 

@@ -389,7 +389,7 @@ public class JsonRpcProperties {
             private boolean rejectResponseFields = false;
             private boolean rejectDuplicateMembers = false;
             private JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy =
-                JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS;
+                JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST;
 
             /**
              * Indicates whether {@code jsonrpc == "2.0"} is required on incoming requests.

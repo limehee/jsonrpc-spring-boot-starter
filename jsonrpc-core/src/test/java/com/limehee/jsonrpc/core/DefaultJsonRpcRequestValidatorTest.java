@@ -204,22 +204,22 @@ class DefaultJsonRpcRequestValidatorTest {
     }
 
     @Test
-    void validateRejectsPrimitiveParams() {
+    void validateRejectsPrimitiveParamsAsInvalidRequestByDefault() {
         JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping", IntNode.valueOf(3), true);
 
         JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(request));
-        assertEquals(JsonRpcErrorCode.INVALID_PARAMS, ex.getCode());
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
     }
 
     @Test
-    void validateRejectsPrimitiveParamsAsInvalidRequestWhenPolicyIsConfigured() {
-        DefaultJsonRpcRequestValidator strictShapeValidator = new DefaultJsonRpcRequestValidator(
-            JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST
+    void validateRejectsPrimitiveParamsAsInvalidParamsWhenPolicyIsConfigured() {
+        DefaultJsonRpcRequestValidator legacyValidator = new DefaultJsonRpcRequestValidator(
+            JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS
         );
         JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping", IntNode.valueOf(3), true);
 
-        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> strictShapeValidator.validate(request));
-        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> legacyValidator.validate(request));
+        assertEquals(JsonRpcErrorCode.INVALID_PARAMS, ex.getCode());
     }
 
     @Test
