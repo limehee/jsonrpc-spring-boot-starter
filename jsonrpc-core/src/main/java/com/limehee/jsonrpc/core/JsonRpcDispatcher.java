@@ -261,9 +261,11 @@ public class JsonRpcDispatcher {
         JsonNode errorId = extractIdForError(node);
         JsonRpcRequest request = null;
         boolean validRequest = false;
+        boolean beforeValidatePassed = false;
 
         try {
             runBeforeValidate(node);
+            beforeValidatePassed = true;
             request = requestParser.parse(node);
             requestValidator.validate(request);
             validRequest = true;
@@ -271,8 +273,48 @@ public class JsonRpcDispatcher {
         } catch (Error error) {
             throw error;
         } catch (Throwable ex) {
+            if (!beforeValidatePassed) {
+                JsonRpcRequest notification = asValidNotification(node);
+                if (notification != null) {
+                    return handleRequestError(errorId, notification, true, ex);
+                }
+            }
             return handleRequestError(errorId, request, validRequest, ex);
         }
+    }
+
+    /**
+     * Returns the parsed request when {@code node} is a valid notification, otherwise {@code null}.
+     * <p>
+     * Used when a {@code beforeValidate} interceptor rejects a payload: if the payload is a valid notification, the
+     * rejection must not produce a response (JSON-RPC 2.0 section 4.1).
+     * </p>
+     *
+     * @param node raw request object node
+     * @return valid notification request, or {@code null}
+     */
+    private @Nullable JsonRpcRequest asValidNotification(JsonNode node) {
+        try {
+            JsonRpcRequest candidate = requestParser.parse(node);
+            if (!candidate.isNotification()) {
+                return null;
+            }
+            requestValidator.validate(candidate);
+            return candidate;
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns whether a method name is rejected regardless of registration: blank names and names in the reserved
+     * {@code rpc.} namespace.
+     *
+     * @param method method name
+     * @return {@code true} when the name must not be dispatched
+     */
+    static boolean isRejectedMethodName(String method) {
+        return method.isBlank() || method.startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX);
     }
 
     /**
@@ -284,7 +326,7 @@ public class JsonRpcDispatcher {
      */
     private Optional<JsonRpcResponse> dispatchSingleRequest(JsonRpcRequest request) throws Exception {
         String methodName = request.method();
-        if (methodName == null || methodName.isBlank()) {
+        if (methodName == null || isRejectedMethodName(methodName)) {
             throw new JsonRpcException(
                 JsonRpcErrorCode.INVALID_REQUEST,
                 JsonRpcConstants.MESSAGE_INVALID_REQUEST
