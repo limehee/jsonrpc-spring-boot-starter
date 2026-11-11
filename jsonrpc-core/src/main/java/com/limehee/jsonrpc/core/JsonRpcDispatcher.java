@@ -307,17 +307,6 @@ public class JsonRpcDispatcher {
     }
 
     /**
-     * Returns whether a method name is rejected regardless of registration: blank names and names in the reserved
-     * {@code rpc.} namespace.
-     *
-     * @param method method name
-     * @return {@code true} when the name must not be dispatched
-     */
-    static boolean isRejectedMethodName(String method) {
-        return method.isBlank() || method.startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX);
-    }
-
-    /**
      * Invokes a validated request against the method registry.
      *
      * @param request validated request
@@ -326,7 +315,7 @@ public class JsonRpcDispatcher {
      */
     private Optional<JsonRpcResponse> dispatchSingleRequest(JsonRpcRequest request) throws Exception {
         String methodName = request.method();
-        if (methodName == null || isRejectedMethodName(methodName)) {
+        if (methodName == null || JsonRpcMethodNames.isRejected(methodName)) {
             throw new JsonRpcException(
                 JsonRpcErrorCode.INVALID_REQUEST,
                 JsonRpcConstants.MESSAGE_INVALID_REQUEST

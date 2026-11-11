@@ -58,10 +58,10 @@ public final class JsonRpcRequestBuilder {
 
     private static String validateMethod(String method) {
         Objects.requireNonNull(method, "method");
-        if (method.isBlank()) {
+        if (JsonRpcMethodNames.isBlank(method)) {
             throw new IllegalArgumentException("method must not be blank");
         }
-        if (method.startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX)) {
+        if (JsonRpcMethodNames.isReserved(method)) {
             throw new IllegalArgumentException("method must not use the reserved 'rpc.' namespace");
         }
         return method;
