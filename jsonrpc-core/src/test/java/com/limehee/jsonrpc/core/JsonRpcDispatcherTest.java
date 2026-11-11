@@ -934,4 +934,31 @@ class JsonRpcDispatcherTest {
             }
         };
     }
+
+    @Test
+    void typedNoParamsHandlerAcceptsExplicitNullParamsWhenAllowed() throws Exception {
+        JsonRpcTypedMethodHandlerFactory factory = new DefaultJsonRpcTypedMethodHandlerFactory(
+            new JacksonJsonRpcParameterBinder(OBJECT_MAPPER), new JacksonJsonRpcResultWriter(OBJECT_MAPPER));
+        JsonRpcDispatcher strict = new JsonRpcDispatcher();
+        JsonRpcDispatcher lenient = new JsonRpcDispatcher(
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(JsonRpcRequestValidationOptions.builder().allowNullParams(true).build()),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100
+        );
+        strict.register("ping", factory.noParams(() -> "pong"));
+        lenient.register("ping", factory.noParams(() -> "pong"));
+        String payload = """
+            {"jsonrpc":"2.0","method":"ping","params":null,"id":1}
+            """;
+
+        JsonRpcResponse strictResponse = strict.dispatch(OBJECT_MAPPER.readTree(payload)).singleResponse().orElseThrow();
+        JsonRpcResponse lenientResponse = lenient.dispatch(OBJECT_MAPPER.readTree(payload)).singleResponse().orElseThrow();
+
+        assertEquals(JsonRpcErrorCode.INVALID_PARAMS, strictResponse.error().code());
+        assertEquals("pong", lenientResponse.result().asString());
+    }
 }

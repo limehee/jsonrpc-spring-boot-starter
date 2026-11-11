@@ -20,6 +20,7 @@ class JsonRpcRequestValidationOptionsTest {
         assertTrue(options.allowFractionalId());
         assertFalse(options.rejectResponseFields());
         assertFalse(options.rejectDuplicateMembers());
+        assertFalse(options.allowNullParams());
         assertTrue(options.paramsTypeViolationCodePolicy() == JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
     }
 
@@ -54,5 +55,10 @@ class JsonRpcRequestValidationOptionsTest {
             NullPointerException.class,
             () -> JsonRpcRequestValidationOptions.builder().paramsTypeViolationCodePolicy(null)
         );
+    }
+
+    @Test
+    void builderEnablesNullParams() {
+        assertTrue(JsonRpcRequestValidationOptions.builder().allowNullParams(true).build().allowNullParams());
     }
 }

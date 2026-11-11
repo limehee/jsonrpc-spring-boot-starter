@@ -147,5 +147,10 @@ This is transport policy, not protocol rule, and can be overridden via `JsonRpcH
   `Request payload too large`.
 - Parse errors always use `id: null`.
 - Generic exceptions are intentionally normalized to `-32603` to avoid leaking internals.
+- `"params": null` is a params type violation by default, because JSON-RPC 2.0 requires `params`, when present, to
+  be an array or object. For interoperability with clients that send `null` instead of omitting the member, enable
+  `JsonRpcRequestValidationOptions.allowNullParams(true)` or `jsonrpc.validation.request.allow-null-params=true`;
+  typed handlers (`JsonRpcTypedMethodHandlerFactory`) and `@JsonRpcMethod` methods then bind it exactly like an omitted
+  `params`, while a raw `JsonRpcMethodHandler` receives `NullNode`.
 - `params` type violations (non-array/object) default to `-32602`; in Spring Boot this can be changed with
   `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_REQUEST`.

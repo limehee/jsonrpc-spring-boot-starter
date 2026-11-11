@@ -648,6 +648,47 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
+    void acceptsExplicitNullParamsWhenConfiguredViaProperty() {
+        contextRunner
+            .withPropertyValues("jsonrpc.validation.request.allow-null-params=true")
+            .withBean("ping", JsonRpcMethodRegistration.class,
+                () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
+            .run(context -> {
+                JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                    "2.0",
+                    IntNode.valueOf(37),
+                    "ping",
+                    tools.jackson.databind.node.NullNode.getInstance(),
+                    true
+                ));
+
+                assertNotNull(response);
+                assertEquals("pong", response.result().asString());
+            });
+    }
+
+    @Test
+    void rejectsExplicitNullParamsByDefault() {
+        contextRunner
+            .withBean("ping", JsonRpcMethodRegistration.class,
+                () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
+            .run(context -> {
+                JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                JsonRpcResponse response = dispatcher.dispatch(new JsonRpcRequest(
+                    "2.0",
+                    IntNode.valueOf(38),
+                    "ping",
+                    tools.jackson.databind.node.NullNode.getInstance(),
+                    true
+                ));
+
+                assertNotNull(response.error());
+                assertEquals(-32602, response.error().code());
+            });
+    }
+
+    @Test
     void rejectsUnknownParamsTypeViolationCodePolicyValue() {
         contextRunner
             .withPropertyValues("jsonrpc.validation.request.params-type-violation-code-policy=NOT_A_POLICY")

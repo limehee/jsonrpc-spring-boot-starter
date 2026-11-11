@@ -388,6 +388,7 @@ public class JsonRpcProperties {
             private boolean allowFractionalId = true;
             private boolean rejectResponseFields = false;
             private boolean rejectDuplicateMembers = false;
+            private boolean allowNullParams = false;
             private JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy =
                 JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS;
 
@@ -515,6 +516,28 @@ public class JsonRpcProperties {
              */
             public void setRejectResponseFields(boolean rejectResponseFields) {
                 this.rejectResponseFields = rejectResponseFields;
+            }
+
+            /**
+             * Indicates whether an explicit {@code "params": null} member is accepted as if it were omitted.
+             *
+             * @return {@code true} when {@code "params": null} is accepted
+             */
+            public boolean isAllowNullParams() {
+                return allowNullParams;
+            }
+
+            /**
+             * Sets whether an explicit {@code "params": null} member is accepted as if it were omitted.
+             * <p>
+             * JSON-RPC 2.0 requires {@code params}, when present, to be an array or object; keep this disabled for
+             * strict compliance.
+             * </p>
+             *
+             * @param allowNullParams {@code true} to accept {@code "params": null}
+             */
+            public void setAllowNullParams(boolean allowNullParams) {
+                this.allowNullParams = allowNullParams;
             }
 
             /**
