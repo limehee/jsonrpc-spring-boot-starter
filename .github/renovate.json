@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "assignees": [
+    "limehee"
+  ],
+  "labels": [
+    "type: dependencies"
+  ],
+  "packageRules": [
+    {
+      "description": "Error Prone 2.43.0+ requires a Java 21+ runtime and cannot run on the JDK 17 compile toolchain",
+      "matchPackageNames": [
+        "com.google.errorprone:error_prone_core"
+      ],
+      "allowedVersions": "<2.43.0"
+    }
+  ]
+}
