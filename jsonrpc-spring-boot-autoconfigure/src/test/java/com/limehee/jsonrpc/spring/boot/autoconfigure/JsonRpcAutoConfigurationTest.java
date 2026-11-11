@@ -18,6 +18,7 @@ import com.limehee.jsonrpc.core.JsonRpcParam;
 import com.limehee.jsonrpc.core.JsonRpcRequest;
 import com.limehee.jsonrpc.core.JsonRpcRequestValidationOptions;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
+import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcResponseErrorCodePolicy;
 import com.limehee.jsonrpc.core.JsonRpcResponseParser;
 import com.limehee.jsonrpc.core.JsonRpcResponseValidationOptions;
@@ -276,6 +277,30 @@ class JsonRpcAutoConfigurationTest {
                 assertNotNull(response.error());
                 assertEquals(-32001, response.error().code());
                 assertEquals("secret", response.error().data().asString());
+            });
+    }
+
+    @Test
+    void countsEachCallOnceWhenInterceptorRegisteredAfterMetricsFailsInAfterInvoke() {
+        contextRunner
+            .withBean(MeterRegistry.class, SimpleMeterRegistry::new)
+            .withConfiguration(AutoConfigurations.of(LateFailingInterceptorConfiguration.class))
+            .withBean("ping", JsonRpcMethodRegistration.class,
+                () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
+            .run(context -> {
+                JsonRpcDispatcher dispatcher = context.getBean(JsonRpcDispatcher.class);
+                MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
+
+                JsonRpcResponse response = dispatcher.dispatch(
+                    new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping", null, true));
+
+                assertNotNull(response);
+                assertEquals(JsonRpcErrorCode.INTERNAL_ERROR, response.error().code());
+                double success = meterRegistry.counter("jsonrpc.server.calls",
+                    "method", "ping", "outcome", "success", "errorCode", "none").count();
+                double error = meterRegistry.counter("jsonrpc.server.calls",
+                    "method", "ping", "outcome", "error", "errorCode", "-32603").count();
+                assertEquals(1.0, success + error);
             });
     }
 
@@ -1475,6 +1500,21 @@ class JsonRpcAutoConfigurationTest {
                 Thread.currentThread().interrupt();
                 return false;
             }
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @org.springframework.boot.autoconfigure.AutoConfigureAfter(JsonRpcAutoConfiguration.class)
+    static class LateFailingInterceptorConfiguration {
+
+        @Bean
+        JsonRpcInterceptor lateFailingAfterInvokeInterceptor() {
+            return new JsonRpcInterceptor() {
+                @Override
+                public void afterInvoke(JsonRpcRequest request, JsonNode result) {
+                    throw new IllegalStateException("audit sink unavailable");
+                }
+            };
         }
     }
 }
