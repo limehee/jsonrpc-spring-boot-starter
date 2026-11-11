@@ -307,4 +307,14 @@ class DefaultJsonRpcRequestValidatorTest {
             """));
         assertDoesNotThrow(() -> validator.validate(request));
     }
+
+    @Test
+    void validateAppliesMethodNameRulesToRequestsOnly() {
+        assertThrows(JsonRpcException.class,
+            () -> validator.validate(new JsonRpcRequest("2.0", IntNode.valueOf(1), "rpc.x", null, true)));
+        assertThrows(JsonRpcException.class,
+            () -> validator.validate(new JsonRpcRequest("2.0", IntNode.valueOf(1), "", null, true)));
+        assertDoesNotThrow(() -> validator.validate(new JsonRpcRequest("2.0", null, "rpc.x", null, false)));
+        assertDoesNotThrow(() -> validator.validate(new JsonRpcRequest("2.0", null, "", null, false)));
+    }
 }

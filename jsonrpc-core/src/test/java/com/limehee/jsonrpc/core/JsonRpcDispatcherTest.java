@@ -645,4 +645,162 @@ class JsonRpcDispatcherTest {
             return Optional.ofNullable(handlers.get(method));
         }
     }
+
+    @Test
+    void doesNotReplyToNotificationWithReservedMethodName() throws Exception {
+        List<JsonRpcError> errors = new ArrayList<>();
+        JsonRpcDispatcher dispatcher = dispatcherWithInterceptor(errorRecorder(errors));
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"rpc.discover"}
+            """));
+
+        assertFalse(result.hasResponse());
+        assertEquals(1, errors.size());
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, errors.get(0).code());
+    }
+
+    @Test
+    void doesNotReplyToNotificationWithEmptyMethodName() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":""}
+            """));
+
+        assertFalse(result.hasResponse());
+    }
+
+    @Test
+    void stillRejectsReservedMethodNameForRequestsWithId() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        JsonRpcResponse response = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"rpc.discover","id":7}
+            """)).singleResponse().orElseThrow();
+
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
+        assertEquals(7, response.id().asInt());
+    }
+
+    @Test
+    void omitsRejectedNotificationsFromBatchResponse() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            [
+              {"jsonrpc":"2.0","method":"rpc.x"},
+              {"jsonrpc":"2.0","method":""},
+              {"jsonrpc":"2.0","method":"ping","id":1}
+            ]
+            """));
+
+        assertTrue(result.isBatch());
+        assertEquals(1, result.responses().size());
+        assertEquals("pong", result.responses().get(0).result().asString());
+    }
+
+    @Test
+    void omitsBatchResponseEntirelyWhenOnlyRejectedNotificationsArePresent() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            [{"jsonrpc":"2.0","method":"rpc.x"},{"jsonrpc":"2.0","method":""}]
+            """));
+
+        assertFalse(result.hasResponse());
+    }
+
+    @Test
+    void doesNotReplyToPreParsedNotificationWithReservedMethodName() {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        assertNull(dispatcher.dispatch(new JsonRpcRequest("2.0", null, "rpc.x", null, false)));
+    }
+
+    @Test
+    void doesNotReplyWhenBeforeValidateInterceptorRejectsValidNotification() throws Exception {
+        List<JsonRpcError> errors = new ArrayList<>();
+        JsonRpcInterceptor rejecting = new JsonRpcInterceptor() {
+            @Override
+            public void beforeValidate(JsonNode rawRequest) {
+                throw new JsonRpcException(-32001, "Unauthorized");
+            }
+
+            @Override
+            public void onError(JsonRpcRequest request, Throwable throwable, JsonRpcError mappedError) {
+                errors.add(mappedError);
+            }
+        };
+        JsonRpcDispatcher dispatcher = dispatcherWithInterceptor(rejecting);
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
+
+        JsonRpcDispatchResult notification = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"ping"}
+            """));
+        JsonRpcDispatchResult request = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"ping","id":1}
+            """));
+
+        assertFalse(notification.hasResponse());
+        assertEquals(-32001, request.singleResponse().orElseThrow().error().code());
+        assertEquals(2, errors.size());
+    }
+
+    @Test
+    void stillRepliesToStructurallyInvalidNotification() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+
+        JsonRpcDispatchResult wrongVersion = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"1.0","method":"ping"}
+            """));
+        JsonRpcDispatchResult nonStringMethod = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":1,"params":"bar"}
+            """));
+
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, wrongVersion.singleResponse().orElseThrow().error().code());
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, nonStringMethod.singleResponse().orElseThrow().error().code());
+    }
+
+    @Test
+    void stillRepliesToNotificationWhenIdMemberIsRequired() throws Exception {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(JsonRpcRequestValidationOptions.builder().requireIdMember(true).build()),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100
+        );
+
+        JsonRpcDispatchResult result = dispatcher.dispatch(OBJECT_MAPPER.readTree("""
+            {"jsonrpc":"2.0","method":"rpc.x"}
+            """));
+
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, result.singleResponse().orElseThrow().error().code());
+    }
+
+    private static JsonRpcDispatcher dispatcherWithInterceptor(JsonRpcInterceptor interceptor) {
+        return new JsonRpcDispatcher(
+            new InMemoryJsonRpcMethodRegistry(),
+            new DefaultJsonRpcRequestParser(),
+            new DefaultJsonRpcRequestValidator(),
+            new DefaultJsonRpcMethodInvoker(),
+            new DefaultJsonRpcExceptionResolver(),
+            new DefaultJsonRpcResponseComposer(),
+            100,
+            List.of(interceptor)
+        );
+    }
+
+    private static JsonRpcInterceptor errorRecorder(List<JsonRpcError> errors) {
+        return new JsonRpcInterceptor() {
+            @Override
+            public void onError(JsonRpcRequest request, Throwable throwable, JsonRpcError mappedError) {
+                errors.add(mappedError);
+            }
+        };
+    }
 }
