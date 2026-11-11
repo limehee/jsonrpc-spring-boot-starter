@@ -141,7 +141,7 @@ public final class JsonRpcRequestValidationOptions {
         private boolean rejectDuplicateMembers = false;
         private boolean allowNullParams = false;
         private JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy =
-            JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS;
+            JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST;
 
         private Builder() {
         }

@@ -312,7 +312,7 @@ import java.util.List;
 JsonRpcDispatcher dispatcher = new JsonRpcDispatcher(
     new InMemoryJsonRpcMethodRegistry(JsonRpcMethodRegistrationConflictPolicy.REJECT),
     new DefaultJsonRpcRequestParser(),
-    new DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS),
+    new DefaultJsonRpcRequestValidator(JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST),
     new DefaultJsonRpcMethodInvoker(),
     new DefaultJsonRpcExceptionResolver(false),
     new DefaultJsonRpcResponseComposer(),
@@ -328,8 +328,8 @@ This keeps protocol behavior while letting you customize policy and implementati
 `JsonRpcParamsTypeViolationCodePolicy` controls which code is used when request `params` is present but not
 an object/array:
 
-- `INVALID_PARAMS` (default behavior): `-32602`
-- `INVALID_REQUEST`: `-32600`
+- `INVALID_REQUEST` (default behavior): `-32600`
+- `INVALID_PARAMS`: `-32602` (pre-0.3 behavior)
 
 ## 8. Custom Transport Pattern
 

@@ -607,7 +607,7 @@ class JsonRpcAutoConfigurationTest {
     }
 
     @Test
-    void mapsParamsTypeViolationToInvalidParamsByDefault() {
+    void mapsParamsTypeViolationToInvalidRequestByDefault() {
         contextRunner
             .withBean("ping", JsonRpcMethodRegistration.class,
                 () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
@@ -622,14 +622,14 @@ class JsonRpcAutoConfigurationTest {
                 ));
 
                 assertNotNull(response.error());
-                assertEquals(-32602, response.error().code());
+                assertEquals(-32600, response.error().code());
             });
     }
 
     @Test
-    void mapsParamsTypeViolationToInvalidRequestWhenConfiguredViaProperty() {
+    void mapsParamsTypeViolationToInvalidParamsWhenConfiguredViaProperty() {
         contextRunner
-            .withPropertyValues("jsonrpc.validation.request.params-type-violation-code-policy=INVALID_REQUEST")
+            .withPropertyValues("jsonrpc.validation.request.params-type-violation-code-policy=INVALID_PARAMS")
             .withBean("ping", JsonRpcMethodRegistration.class,
                 () -> JsonRpcMethodRegistration.of("ping", params -> StringNode.valueOf("pong")))
             .run(context -> {
@@ -643,7 +643,7 @@ class JsonRpcAutoConfigurationTest {
                 ));
 
                 assertNotNull(response.error());
-                assertEquals(-32600, response.error().code());
+                assertEquals(-32602, response.error().code());
             });
     }
 
@@ -684,7 +684,7 @@ class JsonRpcAutoConfigurationTest {
                 ));
 
                 assertNotNull(response.error());
-                assertEquals(-32602, response.error().code());
+                assertEquals(-32600, response.error().code());
             });
     }
 

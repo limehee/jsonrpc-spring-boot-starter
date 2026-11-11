@@ -41,7 +41,8 @@ Possible causes:
 - Missing named argument in object mode
 - Positional array size mismatch
 - Jackson conversion failure for target type
-- Custom `JsonRpcRequestValidator` policy maps params-shape errors to `-32600`
+- `params` is present but not an array/object: `-32600` by default (JSON-RPC 2.0 treats it as an invalid Request
+  object), or `-32602` when `params-type-violation-code-policy=INVALID_PARAMS`
 
 Checks:
 

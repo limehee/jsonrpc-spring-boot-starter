@@ -153,7 +153,7 @@ class JsonRpcDispatcherTest {
     }
 
     @Test
-    void dispatchInvalidParamsReturnsError() throws Exception {
+    void dispatchNonStructuredParamsReturnsInvalidRequest() throws Exception {
         JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
         dispatcher.register("ping", params -> StringNode.valueOf("pong"));
 
@@ -162,7 +162,8 @@ class JsonRpcDispatcherTest {
             """));
 
         JsonRpcResponse response = result.singleResponse().orElseThrow();
-        assertEquals(JsonRpcErrorCode.INVALID_PARAMS, response.error().code());
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, response.error().code());
+        assertEquals(1, response.id().asInt());
     }
 
     @Test
@@ -958,7 +959,7 @@ class JsonRpcDispatcherTest {
         JsonRpcResponse strictResponse = strict.dispatch(OBJECT_MAPPER.readTree(payload)).singleResponse().orElseThrow();
         JsonRpcResponse lenientResponse = lenient.dispatch(OBJECT_MAPPER.readTree(payload)).singleResponse().orElseThrow();
 
-        assertEquals(JsonRpcErrorCode.INVALID_PARAMS, strictResponse.error().code());
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, strictResponse.error().code());
         assertEquals("pong", lenientResponse.result().asString());
     }
 }

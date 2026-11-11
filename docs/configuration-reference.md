@@ -21,7 +21,7 @@ All properties are under `jsonrpc.*` and are bound to `JsonRpcProperties`.
 | `jsonrpc.validation.request.reject-response-fields`             | `boolean`                             | `false`          | Reject request objects containing `result`/`error`                   |
 | `jsonrpc.validation.request.reject-duplicate-members`           | `boolean`                             | `false`          | Reject duplicate members while parsing raw request JSON              |
 | `jsonrpc.validation.request.allow-null-params`                  | `boolean`                             | `false`          | Accept `"params": null` as if `params` were omitted (non-standard)   |
-| `jsonrpc.validation.request.params-type-violation-code-policy`  | `INVALID_PARAMS` or `INVALID_REQUEST` | `INVALID_PARAMS` | Error code used when `params` exists but is neither object nor array |
+| `jsonrpc.validation.request.params-type-violation-code-policy`  | `INVALID_PARAMS` or `INVALID_REQUEST` | `INVALID_REQUEST` | Error code used when `params` exists but is neither object nor array |
 | `jsonrpc.validation.response.require-json-rpc-version-20`       | `boolean`                             | `true`           | Require incoming response `jsonrpc` to equal `"2.0"`                 |
 | `jsonrpc.validation.response.require-id-member`                 | `boolean`                             | `true`           | Require incoming responses to include an `id` member                 |
 | `jsonrpc.validation.response.allow-null-id`                     | `boolean`                             | `true`           | Allow `id: null` in incoming responses                               |
@@ -155,7 +155,7 @@ jsonrpc:
       reject-response-fields: false
       reject-duplicate-members: false
       allow-null-params: false
-      params-type-violation-code-policy: INVALID_PARAMS
+      params-type-violation-code-policy: INVALID_REQUEST
     response:
       require-json-rpc-version-20: true
       require-id-member: true
@@ -225,6 +225,27 @@ Use the canonical symmetric keys in the right column.
 Inversion rule:
 
 - `reject-request-fields = !allow-request-fields-in-response`
+
+
+### Default change in 0.3.0: params type violation code
+
+`jsonrpc.validation.request.params-type-violation-code-policy` (and
+`JsonRpcRequestValidationOptions.defaults()`) now default to `INVALID_REQUEST`. A request whose `params` is present
+but is neither an array nor an object now returns `-32600 Invalid Request` instead of `-32602 Invalid params`, matching
+JSON-RPC 2.0 (section 4: `params` "MUST be a Structured value"; section 5.1: `-32600` "The JSON sent is not a valid
+Request object").
+
+To keep the previous behavior:
+
+```yaml
+jsonrpc:
+  validation:
+    request:
+      params-type-violation-code-policy: INVALID_PARAMS
+```
+
+Binding failures for structurally valid `params` (wrong field types, missing named arguments, positional size
+mismatch) still return `-32602`.
 
 ## 7. IDE Auto-completion and Metadata
 

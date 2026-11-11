@@ -135,7 +135,7 @@
     {
       "name": "jsonrpc.validation.request.params-type-violation-code-policy",
       "type": "com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy",
-      "defaultValue": "INVALID_PARAMS",
+      "defaultValue": "INVALID_REQUEST",
       "description": "Error-code policy when request params is present but neither object nor array."
     },
     {

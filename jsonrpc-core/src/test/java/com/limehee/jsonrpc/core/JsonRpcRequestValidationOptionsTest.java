@@ -21,7 +21,7 @@ class JsonRpcRequestValidationOptionsTest {
         assertFalse(options.rejectResponseFields());
         assertFalse(options.rejectDuplicateMembers());
         assertFalse(options.allowNullParams());
-        assertTrue(options.paramsTypeViolationCodePolicy() == JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
+        assertTrue(options.paramsTypeViolationCodePolicy() == JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST);
     }
 
     @Test
@@ -35,7 +35,7 @@ class JsonRpcRequestValidationOptionsTest {
             .allowFractionalId(false)
             .rejectResponseFields(true)
             .rejectDuplicateMembers(true)
-            .paramsTypeViolationCodePolicy(JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST)
+            .paramsTypeViolationCodePolicy(JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS)
             .build();
 
         assertFalse(options.requireJsonRpcVersion20());
@@ -46,7 +46,7 @@ class JsonRpcRequestValidationOptionsTest {
         assertFalse(options.allowFractionalId());
         assertTrue(options.rejectResponseFields());
         assertTrue(options.rejectDuplicateMembers());
-        assertTrue(options.paramsTypeViolationCodePolicy() == JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST);
+        assertTrue(options.paramsTypeViolationCodePolicy() == JsonRpcParamsTypeViolationCodePolicy.INVALID_PARAMS);
     }
 
     @Test
