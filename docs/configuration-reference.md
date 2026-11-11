@@ -20,6 +20,7 @@ All properties are under `jsonrpc.*` and are bound to `JsonRpcProperties`.
 | `jsonrpc.validation.request.allow-fractional-id`                | `boolean`                             | `true`           | Allow fractional numeric IDs in incoming requests                    |
 | `jsonrpc.validation.request.reject-response-fields`             | `boolean`                             | `false`          | Reject request objects containing `result`/`error`                   |
 | `jsonrpc.validation.request.reject-duplicate-members`           | `boolean`                             | `false`          | Reject duplicate members while parsing raw request JSON              |
+| `jsonrpc.validation.request.allow-null-params`                  | `boolean`                             | `false`          | Accept `"params": null` as if `params` were omitted (non-standard)   |
 | `jsonrpc.validation.request.params-type-violation-code-policy`  | `INVALID_PARAMS` or `INVALID_REQUEST` | `INVALID_PARAMS` | Error code used when `params` exists but is neither object nor array |
 | `jsonrpc.validation.response.require-json-rpc-version-20`       | `boolean`                             | `true`           | Require incoming response `jsonrpc` to equal `"2.0"`                 |
 | `jsonrpc.validation.response.require-id-member`                 | `boolean`                             | `true`           | Require incoming responses to include an `id` member                 |
@@ -153,6 +154,7 @@ jsonrpc:
       allow-fractional-id: true
       reject-response-fields: false
       reject-duplicate-members: false
+      allow-null-params: false
       params-type-violation-code-policy: INVALID_PARAMS
     response:
       require-json-rpc-version-20: true

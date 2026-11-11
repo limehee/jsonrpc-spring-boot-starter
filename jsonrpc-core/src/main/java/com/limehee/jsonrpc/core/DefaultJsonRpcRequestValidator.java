@@ -79,6 +79,9 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
         }
 
         JsonNode params = request.params();
+        if (params != null && params.isNull() && options.allowNullParams()) {
+            return;
+        }
         if (params != null && !params.isArray() && !params.isObject()) {
             if (options.paramsTypeViolationCodePolicy() == JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST) {
                 throw invalidRequest();
