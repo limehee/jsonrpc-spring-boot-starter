@@ -55,6 +55,7 @@ Implementation constants are in `JsonRpcErrorCode` and messages in `JsonRpcConst
 - `JsonRpcResponseParser`
 - `JsonRpcResponseValidator`
 - `JsonRpcResponseValidationOptions`
+- `JsonRpcResponseIndex` (correlates batch responses by `id`; responses may arrive in any order)
 
 `DefaultJsonRpcResponseParser` can parse from `JsonNode`, `String`, or `byte[]`, and can optionally reject duplicate
 members during raw JSON parsing.

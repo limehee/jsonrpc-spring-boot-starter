@@ -392,6 +392,35 @@ if (envelopeType == JsonRpcEnvelopeType.REQUEST) {
 For policy tuning, customize `JsonRpcResponseValidationOptions` and pass it into
 `DefaultJsonRpcResponseValidator`.
 
+### Correlating batch responses by id
+
+A server may return batch responses in any order. `JsonRpcResponseIndex` groups parsed responses by `id`:
+
+```java
+import com.limehee.jsonrpc.core.JsonRpcResponseIndex;
+
+JsonRpcResponseIndex index = JsonRpcResponseIndex.of(envelope);
+
+if (index.hasDuplicateIds()) {
+    // server bug: index.duplicateIds() lists the ids returned more than once
+}
+
+JsonRpcIncomingResponse first = index.requireById(1);        // NoSuchElementException when absent
+Optional<JsonRpcIncomingResponse> user = index.findById("user-7");
+
+List<JsonRpcIncomingResponse> ok = index.successes();        // result and no error
+List<JsonRpcIncomingResponse> failed = index.errors();       // error and no result
+List<JsonRpcIncomingResponse> orphaned = index.unidentified(); // id missing, null, or not string/number
+```
+
+Id matching rules:
+
+- String ids match by exact text; numeric ids match by value (`1`, `1.0`, and `requireById(1L)` are the same id).
+- A string id never matches a numeric id (`"1"` is not `1`).
+- Looking up an id shared by more than one response throws `IllegalStateException` instead of picking one.
+- `successes()` and `errors()` skip malformed responses with both or neither of `result` / `error`; validate first
+  when strict checks are required.
+
 `JsonRpcErrorClassifier` categories:
 
 - `STANDARD`: one of `-32700`, `-32600`, `-32601`, `-32602`, `-32603`
