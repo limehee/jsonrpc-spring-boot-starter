@@ -1,0 +1,55 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "timezone": "Asia/Seoul",
+  "schedule": [
+    "before 9am on monday"
+  ],
+  "labels": [
+    "type: dependencies"
+  ],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "build",
+  "semanticCommitScope": "deps",
+  "prConcurrentLimit": 15,
+  "packageRules": [
+    {
+      "description": "Group Gradle (incl. wrapper) patch updates into a single PR",
+      "matchManagers": [
+        "gradle",
+        "gradle-wrapper"
+      ],
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "groupName": "gradle patch updates"
+    },
+    {
+      "description": "Group Gradle (incl. wrapper) minor updates into a single PR",
+      "matchManagers": [
+        "gradle",
+        "gradle-wrapper"
+      ],
+      "matchUpdateTypes": [
+        "minor"
+      ],
+      "groupName": "gradle minor updates"
+    },
+    {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "github actions updates"
+    },
+    {
+      "description": "Error Prone 2.43.0+ requires a Java 21+ runtime and cannot run on the JDK 17 compile toolchain",
+      "matchPackageNames": [
+        "com.google.errorprone:error_prone_core"
+      ],
+      "allowedVersions": "<2.43.0"
+    }
+  ]
+}
