@@ -3,6 +3,12 @@
   "extends": [
     "config:recommended"
   ],
+  "assignees": [
+    "limehee"
+  ],
+  "labels": [
+    "type: dependencies"
+  ],
   "packageRules": [
     {
       "description": "Error Prone 2.43.0+ requires a Java 21+ runtime and cannot run on the JDK 17 compile toolchain",
