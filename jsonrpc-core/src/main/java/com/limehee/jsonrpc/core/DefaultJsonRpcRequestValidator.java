@@ -65,7 +65,7 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
         if (method == null) {
             throw invalidRequest();
         }
-        if (!request.isNotification() && JsonRpcDispatcher.isRejectedMethodName(method)) {
+        if (!request.isNotification() && JsonRpcMethodNames.isRejected(method)) {
             throw invalidRequest();
         }
 

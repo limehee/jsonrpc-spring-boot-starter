@@ -34,13 +34,13 @@ public class InMemoryJsonRpcMethodRegistry implements JsonRpcMethodRegistry {
      */
     @Override
     public void register(String method, JsonRpcMethodHandler handler) {
-        if (method == null || method.isBlank()) {
+        if (method == null || JsonRpcMethodNames.isBlank(method)) {
             throw new IllegalArgumentException("method must not be blank");
         }
         if (handler == null) {
             throw new IllegalArgumentException("handler must not be null");
         }
-        if (method.startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX)) {
+        if (JsonRpcMethodNames.isReserved(method)) {
             throw new IllegalArgumentException("methods starting with rpc. are reserved");
         }
         if (conflictPolicy == JsonRpcMethodRegistrationConflictPolicy.REJECT) {
