@@ -307,4 +307,43 @@ class DefaultJsonRpcRequestValidatorTest {
             """));
         assertDoesNotThrow(() -> validator.validate(request));
     }
+
+    @Test
+    void validateAppliesMethodNameRulesToRequestsOnly() {
+        assertThrows(JsonRpcException.class,
+            () -> validator.validate(new JsonRpcRequest("2.0", IntNode.valueOf(1), "rpc.x", null, true)));
+        assertThrows(JsonRpcException.class,
+            () -> validator.validate(new JsonRpcRequest("2.0", IntNode.valueOf(1), "", null, true)));
+        assertDoesNotThrow(() -> validator.validate(new JsonRpcRequest("2.0", null, "rpc.x", null, false)));
+        assertDoesNotThrow(() -> validator.validate(new JsonRpcRequest("2.0", null, "", null, false)));
+    }
+
+    @Test
+    void validateRejectsExplicitNullParamsByDefault() {
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping",
+            tools.jackson.databind.node.NullNode.getInstance(), true);
+
+        JsonRpcException ex = assertThrows(JsonRpcException.class, () -> validator.validate(request));
+
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, ex.getCode());
+    }
+
+    @Test
+    void validateAcceptsExplicitNullParamsWhenEnabled() {
+        DefaultJsonRpcRequestValidator lenient = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder().allowNullParams(true).build());
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping",
+            tools.jackson.databind.node.NullNode.getInstance(), true);
+
+        assertDoesNotThrow(() -> lenient.validate(request));
+    }
+
+    @Test
+    void allowNullParamsStillRejectsScalarParams() {
+        DefaultJsonRpcRequestValidator lenient = new DefaultJsonRpcRequestValidator(
+            JsonRpcRequestValidationOptions.builder().allowNullParams(true).build());
+        JsonRpcRequest request = new JsonRpcRequest("2.0", IntNode.valueOf(1), "ping", IntNode.valueOf(5), true);
+
+        assertThrows(JsonRpcException.class, () -> lenient.validate(request));
+    }
 }

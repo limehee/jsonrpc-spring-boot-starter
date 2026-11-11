@@ -23,6 +23,41 @@ import tools.jackson.databind.node.IntNode;
 class JsonRpcMetricsInterceptorTest {
 
     @Test
+    void doesNotCountCallTwiceWhenLaterInterceptorFailsAfterSuccessWasRecorded() {
+        MeterRegistry meterRegistry = new SimpleMeterRegistry();
+        JsonRpcMetricsInterceptor interceptor = new JsonRpcMetricsInterceptor(meterRegistry);
+        JsonRpcRequest request = request("ping");
+
+        interceptor.beforeInvoke(request);
+        interceptor.afterInvoke(request, IntNode.valueOf(1));
+        interceptor.onError(request, new IllegalStateException("later interceptor failed"),
+            JsonRpcError.of(JsonRpcErrorCode.INTERNAL_ERROR, "Internal error"));
+
+        assertEquals(1.0, meterRegistry.counter(
+            "jsonrpc.server.calls", "method", "ping", "outcome", "success", "errorCode", "none").count());
+        assertEquals(0.0, meterRegistry.counter(
+            "jsonrpc.server.calls", "method", "ping", "outcome", "error", "errorCode", "-32603").count());
+        assertEquals(1.0, meterRegistry.counter(
+            "jsonrpc.server.failures", "method", "ping", "errorCode", "-32603", "source", "handler").count());
+    }
+
+    @Test
+    void countsErrorForNextRequestOnSameThreadAfterPreviousSuccess() {
+        MeterRegistry meterRegistry = new SimpleMeterRegistry();
+        JsonRpcMetricsInterceptor interceptor = new JsonRpcMetricsInterceptor(meterRegistry);
+        JsonRpcRequest first = request("ping");
+        JsonRpcRequest second = request("ping");
+
+        interceptor.beforeInvoke(first);
+        interceptor.afterInvoke(first, IntNode.valueOf(1));
+        interceptor.onError(second, new IllegalStateException("boom"),
+            JsonRpcError.of(JsonRpcErrorCode.INTERNAL_ERROR, "Internal error"));
+
+        assertEquals(1.0, meterRegistry.counter(
+            "jsonrpc.server.calls", "method", "ping", "outcome", "error", "errorCode", "-32603").count());
+    }
+
+    @Test
     void classifiesMethodNotFoundAsResolutionForNonAccessControlThrowable() {
         MeterRegistry meterRegistry = new SimpleMeterRegistry();
         JsonRpcMetricsInterceptor interceptor = new JsonRpcMetricsInterceptor(meterRegistry);

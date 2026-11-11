@@ -127,6 +127,12 @@
       "description": "Reject duplicate members when parsing raw JSON request payloads."
     },
     {
+      "name": "jsonrpc.validation.request.allow-null-params",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Accept an explicit \"params\": null member as if params were omitted. JSON-RPC 2.0 requires params, when present, to be an array or object."
+    },
+    {
       "name": "jsonrpc.validation.request.params-type-violation-code-policy",
       "type": "com.limehee.jsonrpc.core.JsonRpcParamsTypeViolationCodePolicy",
       "defaultValue": "INVALID_REQUEST",

@@ -12,7 +12,7 @@ This document maps current behavior to JSON-RPC 2.0 requirements.
 | Rule                    | Spec Requirement                     | Implementation Behavior                                                                                                                              |
 |-------------------------|--------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `jsonrpc` field         | MUST be string `"2.0"`               | Validated; otherwise `-32600 Invalid Request`                                                                                                        |
-| `method` field          | MUST be string                       | Validated non-null/non-blank; otherwise `-32600`                                                                                                     |
+| `method` field          | MUST be string                       | Must be a string; blank or reserved `rpc.*` names -> `-32600` for requests, silently dropped for notifications                                       |
 | `params` field          | MAY be array/object                  | If present and not array/object -> default `-32600 Invalid Request` (configurable to `-32602 Invalid params` via validator policy / Spring property) |
 | `id` field type         | String/Number/Null (if present)      | Invalid `id` type -> `-32600`; error response id normalized to `null`                                                                                |
 | Notification            | Request without `id`                 | Invoked with no response payload                                                                                                                     |
@@ -111,6 +111,10 @@ This library does not expose predefined strict/lenient modes; policy is controll
 ## `id` Handling Details
 
 - Notification is defined by **absence** of `id` field (`idPresent == false`).
+- A notification is never answered, even when it is rejected after it was recognized as a valid Request object: blank
+  or reserved `rpc.*` method names, unknown methods, `beforeValidate` interceptor rejections, and handler failures are
+  reported to `onError` only. Structurally invalid payloads without `id` (for example a wrong `jsonrpc` version or a
+  non-string `method`) are not valid Request objects and still receive `-32600` with `id: null`.
 - `"id": null` is not treated as notification; it is still considered present.
 - For malformed requests where `id` exists but type is not allowed (for example object/array), response uses `id: null`.
 
@@ -143,6 +147,11 @@ This is transport policy, not protocol rule, and can be overridden via `JsonRpcH
   `Request payload too large`.
 - Parse errors always use `id: null`.
 - Generic exceptions are intentionally normalized to `-32603` to avoid leaking internals.
+- `"params": null` is a params type violation by default, because JSON-RPC 2.0 requires `params`, when present, to
+  be an array or object. For interoperability with clients that send `null` instead of omitting the member, enable
+  `JsonRpcRequestValidationOptions.allowNullParams(true)` or `jsonrpc.validation.request.allow-null-params=true`;
+  typed handlers (`JsonRpcTypedMethodHandlerFactory`) and `@JsonRpcMethod` methods then bind it exactly like an omitted
+  `params`, while a raw `JsonRpcMethodHandler` receives `NullNode`.
 - `params` type violations (non-array/object) default to `-32600`, because JSON-RPC 2.0 requires `params`, when
   present, to be a structured value, which makes such a payload an invalid Request object. To keep the pre-0.3
   `-32602` behavior, set `jsonrpc.validation.request.params-type-violation-code-policy=INVALID_PARAMS`.

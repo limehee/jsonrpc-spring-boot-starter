@@ -15,6 +15,7 @@ public final class JsonRpcRequestValidationOptions {
     private final boolean allowFractionalId;
     private final boolean rejectResponseFields;
     private final boolean rejectDuplicateMembers;
+    private final boolean allowNullParams;
     private final JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy;
 
     private JsonRpcRequestValidationOptions(Builder builder) {
@@ -26,6 +27,7 @@ public final class JsonRpcRequestValidationOptions {
         this.allowFractionalId = builder.allowFractionalId;
         this.rejectResponseFields = builder.rejectResponseFields;
         this.rejectDuplicateMembers = builder.rejectDuplicateMembers;
+        this.allowNullParams = builder.allowNullParams;
         this.paramsTypeViolationCodePolicy = builder.paramsTypeViolationCodePolicy;
     }
 
@@ -104,6 +106,20 @@ public final class JsonRpcRequestValidationOptions {
     }
 
     /**
+     * Returns whether an explicit {@code "params": null} member is accepted and treated like an omitted member.
+     * <p>
+     * JSON-RPC 2.0 requires {@code params}, when present, to be a structured value (array or object), so the default
+     * is {@code false} and {@code null} is reported as a params type violation. Enable this only for interoperability
+     * with clients that send {@code null} instead of omitting the member.
+     * </p>
+     *
+     * @return whether {@code "params": null} is accepted
+     */
+    public boolean allowNullParams() {
+        return allowNullParams;
+    }
+
+    /**
      * @return error-code policy used when {@code params} exists but is neither object nor array
      */
     public JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy() {
@@ -123,6 +139,7 @@ public final class JsonRpcRequestValidationOptions {
         private boolean allowFractionalId = true;
         private boolean rejectResponseFields = false;
         private boolean rejectDuplicateMembers = false;
+        private boolean allowNullParams = false;
         private JsonRpcParamsTypeViolationCodePolicy paramsTypeViolationCodePolicy =
             JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST;
 
@@ -214,6 +231,17 @@ public final class JsonRpcRequestValidationOptions {
          */
         public Builder rejectDuplicateMembers(boolean enabled) {
             this.rejectDuplicateMembers = enabled;
+            return this;
+        }
+
+        /**
+         * Enables or disables accepting an explicit {@code "params": null} member as if it were omitted.
+         *
+         * @param enabled {@code true} to accept {@code "params": null}
+         * @return this builder
+         */
+        public Builder allowNullParams(boolean enabled) {
+            this.allowNullParams = enabled;
             return this;
         }
 

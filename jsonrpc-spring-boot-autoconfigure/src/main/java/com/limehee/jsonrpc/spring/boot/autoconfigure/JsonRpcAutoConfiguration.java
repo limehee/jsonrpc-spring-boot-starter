@@ -126,6 +126,7 @@ public class JsonRpcAutoConfiguration {
             .allowFractionalId(request.isAllowFractionalId())
             .rejectResponseFields(request.isRejectResponseFields())
             .rejectDuplicateMembers(request.isRejectDuplicateMembers())
+            .allowNullParams(request.isAllowNullParams())
             .paramsTypeViolationCodePolicy(request.getParamsTypeViolationCodePolicy())
             .build();
     }

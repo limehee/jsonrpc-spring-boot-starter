@@ -5,13 +5,17 @@ import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcPayloadReader;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
@@ -118,33 +122,61 @@ public class JsonRpcWebMvcEndpoint {
     }
 
     /**
-     * Handles JSON-RPC HTTP requests.
+     * Handles JSON-RPC HTTP requests by streaming the request body with an enforced size limit.
      * <p>
-     * Parsing errors, oversized payloads, and whitespace-only payloads produce a single JSON-RPC error response.
-     * Notification-only handling returns an empty HTTP response with a transport status from
-     * {@link JsonRpcHttpStatusStrategy#statusForNotificationOnly()}.
+     * The configured {@code maxRequestBytes} limit is enforced before the payload is buffered: a declared
+     * {@code Content-Length} above the limit is rejected without reading the body, and otherwise at most
+     * {@code maxRequestBytes + 1} bytes are read, so chunked or mis-declared payloads cannot force the whole body into
+     * memory. Accepted payloads are then processed exactly like {@link #invoke(byte[])}.
      * </p>
      *
-     * @param body raw HTTP request payload bytes; may be {@code null} when request body is absent
+     * @param body          raw HTTP request body stream
+     * @param contentLength declared {@code Content-Length}; {@code null} when absent (for example chunked transfer)
      * @return HTTP response entity containing either serialized JSON-RPC payload or empty body
+     * @throws IOException when reading the request body fails
      */
     @PostMapping(
         value = "${jsonrpc.path:/jsonrpc}",
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<String> invoke(@RequestBody(required = false) byte[] body) {
+    public ResponseEntity<String> handle(
+        InputStream body,
+        @RequestHeader(value = HttpHeaders.CONTENT_LENGTH, required = false) @Nullable Long contentLength
+    ) throws IOException {
+        if (contentLength != null && contentLength > maxRequestBytes) {
+            return requestTooLargeResponse((int) Math.min(contentLength, Integer.MAX_VALUE));
+        }
+        int readLimit = maxRequestBytes == Integer.MAX_VALUE ? Integer.MAX_VALUE : maxRequestBytes + 1;
+        byte[] payload = body.readNBytes(readLimit);
+        if (payload.length > maxRequestBytes) {
+            return requestTooLargeResponse(payload.length);
+        }
+        return invoke(payload);
+    }
+
+    /**
+     * Handles an already-buffered JSON-RPC HTTP payload.
+     * <p>
+     * Parsing errors, oversized payloads, and whitespace-only payloads produce a single JSON-RPC error response.
+     * Notification-only handling returns an empty HTTP response with a transport status from
+     * {@link JsonRpcHttpStatusStrategy#statusForNotificationOnly()}.
+     * </p>
+     * <p>
+     * This method is not the HTTP mapping; the HTTP mapping is {@link #handle(InputStream, Long)}, which enforces the
+     * size limit while reading. Callers passing a pre-buffered array have already paid its memory cost.
+     * </p>
+     *
+     * @param body raw HTTP request payload bytes; may be {@code null} when request body is absent
+     * @return HTTP response entity containing either serialized JSON-RPC payload or empty body
+     */
+    public ResponseEntity<String> invoke(byte @Nullable [] body) {
         if (body == null || body.length == 0) {
             observer.onParseError();
             return singleErrorResponse(dispatcher.parseErrorResponse(), httpStatusStrategy.statusForParseError());
         }
         if (body.length > maxRequestBytes) {
-            observer.onRequestTooLarge(body.length, maxRequestBytes);
-            JsonRpcResponse response = JsonRpcResponse.error(
-                null,
-                JsonRpcErrorCode.INVALID_REQUEST,
-                "Request payload too large");
-            return singleErrorResponse(response, httpStatusStrategy.statusForRequestTooLarge());
+            return requestTooLargeResponse(body.length);
         }
         if (isJsonWhitespaceOnly(body)) {
             observer.onParseError();
@@ -187,6 +219,22 @@ public class JsonRpcWebMvcEndpoint {
      * @param status   HTTP status selected for that payload
      * @return HTTP response entity containing serialized JSON-RPC error payload
      */
+    /**
+     * Builds the JSON-RPC error response for a payload exceeding {@code maxRequestBytes}.
+     *
+     * @param observedBytes declared or observed payload size; when streaming, this is a lower bound of the actual
+     *                      size
+     * @return HTTP response entity containing an invalid-request error payload
+     */
+    private ResponseEntity<String> requestTooLargeResponse(int observedBytes) {
+        observer.onRequestTooLarge(observedBytes, maxRequestBytes);
+        JsonRpcResponse response = JsonRpcResponse.error(
+            null,
+            JsonRpcErrorCode.INVALID_REQUEST,
+            "Request payload too large");
+        return singleErrorResponse(response, httpStatusStrategy.statusForRequestTooLarge());
+    }
+
     private ResponseEntity<String> singleErrorResponse(JsonRpcResponse response, HttpStatus status) {
         return jsonResponse(status, response);
     }

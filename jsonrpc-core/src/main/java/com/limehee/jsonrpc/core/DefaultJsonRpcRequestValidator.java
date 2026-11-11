@@ -42,6 +42,11 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
 
     /**
      * Validates protocol version, method presence, reserved method namespace, id shape, and params type.
+     * <p>
+     * The method-name rules (non-blank, not in the reserved {@code rpc.} namespace) are applied to requests only. A
+     * notification with such a method is still a structurally valid Request object, and JSON-RPC 2.0 forbids replying
+     * to notifications, so {@link JsonRpcDispatcher} rejects it after validation without producing a response.
+     * </p>
      *
      * @param request parsed request model
      * @throws JsonRpcException when request violates JSON-RPC 2.0 constraints
@@ -56,10 +61,11 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
             throw invalidRequest();
         }
 
-        if (request.method() == null || request.method().isBlank()) {
+        String method = request.method();
+        if (method == null) {
             throw invalidRequest();
         }
-        if (request.method().startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX)) {
+        if (!request.isNotification() && JsonRpcDispatcher.isRejectedMethodName(method)) {
             throw invalidRequest();
         }
 
@@ -79,6 +85,9 @@ public class DefaultJsonRpcRequestValidator implements JsonRpcRequestValidator {
         }
 
         JsonNode params = request.params();
+        if (params != null && params.isNull() && options.allowNullParams()) {
+            return;
+        }
         if (params != null && !params.isArray() && !params.isObject()) {
             if (options.paramsTypeViolationCodePolicy() == JsonRpcParamsTypeViolationCodePolicy.INVALID_REQUEST) {
                 throw invalidRequest();

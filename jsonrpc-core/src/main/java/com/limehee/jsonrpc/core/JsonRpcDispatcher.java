@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.NullNode;
 
 /**
  * Central JSON-RPC dispatcher orchestrating parsing, validation, invocation, interception, and response composition.
@@ -260,9 +261,11 @@ public class JsonRpcDispatcher {
         JsonNode errorId = extractIdForError(node);
         JsonRpcRequest request = null;
         boolean validRequest = false;
+        boolean beforeValidatePassed = false;
 
         try {
             runBeforeValidate(node);
+            beforeValidatePassed = true;
             request = requestParser.parse(node);
             requestValidator.validate(request);
             validRequest = true;
@@ -270,8 +273,48 @@ public class JsonRpcDispatcher {
         } catch (Error error) {
             throw error;
         } catch (Throwable ex) {
+            if (!beforeValidatePassed) {
+                JsonRpcRequest notification = asValidNotification(node);
+                if (notification != null) {
+                    return handleRequestError(errorId, notification, true, ex);
+                }
+            }
             return handleRequestError(errorId, request, validRequest, ex);
         }
+    }
+
+    /**
+     * Returns the parsed request when {@code node} is a valid notification, otherwise {@code null}.
+     * <p>
+     * Used when a {@code beforeValidate} interceptor rejects a payload: if the payload is a valid notification, the
+     * rejection must not produce a response (JSON-RPC 2.0 section 4.1).
+     * </p>
+     *
+     * @param node raw request object node
+     * @return valid notification request, or {@code null}
+     */
+    private @Nullable JsonRpcRequest asValidNotification(JsonNode node) {
+        try {
+            JsonRpcRequest candidate = requestParser.parse(node);
+            if (!candidate.isNotification()) {
+                return null;
+            }
+            requestValidator.validate(candidate);
+            return candidate;
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns whether a method name is rejected regardless of registration: blank names and names in the reserved
+     * {@code rpc.} namespace.
+     *
+     * @param method method name
+     * @return {@code true} when the name must not be dispatched
+     */
+    static boolean isRejectedMethodName(String method) {
+        return method.isBlank() || method.startsWith(JsonRpcConstants.RESERVED_METHOD_PREFIX);
     }
 
     /**
@@ -283,7 +326,7 @@ public class JsonRpcDispatcher {
      */
     private Optional<JsonRpcResponse> dispatchSingleRequest(JsonRpcRequest request) throws Exception {
         String methodName = request.method();
-        if (methodName == null || methodName.isBlank()) {
+        if (methodName == null || isRejectedMethodName(methodName)) {
             throw new JsonRpcException(
                 JsonRpcErrorCode.INVALID_REQUEST,
                 JsonRpcConstants.MESSAGE_INVALID_REQUEST
@@ -300,9 +343,27 @@ public class JsonRpcDispatcher {
         }
 
         runBeforeInvoke(request);
-        JsonNode result = methodInvoker.invoke(handler, request.params());
+        JsonNode result = invokeHandler(handler, request);
+        // Compose before afterInvoke so a composition failure cannot surface after interceptors observed success.
+        JsonRpcResponse response = responseComposer.success(request.id(), result);
         runAfterInvoke(request, result);
-        return Optional.of(responseComposer.success(request.id(), result));
+        return Optional.of(response);
+    }
+
+    /**
+     * Invokes the handler and normalizes a Java {@code null} result to JSON {@code null}.
+     * <p>
+     * JSON-RPC 2.0 requires the {@code result} member on success; a handler that returns no value must therefore be
+     * represented as {@code "result": null} rather than an absent member.
+     *
+     * @param handler target method handler
+     * @param request validated request
+     * @return invocation result, never Java {@code null}
+     * @throws Exception when invocation fails
+     */
+    private JsonNode invokeHandler(JsonRpcMethodHandler handler, JsonRpcRequest request) throws Exception {
+        @Nullable JsonNode result = methodInvoker.invoke(handler, request.params());
+        return result == null ? NullNode.getInstance() : result;
     }
 
     /**
@@ -459,7 +520,7 @@ public class JsonRpcDispatcher {
     private void invokeNotificationHandler(JsonRpcRequest request, JsonRpcMethodHandler handler) {
         try {
             runBeforeInvoke(request);
-            JsonNode result = methodInvoker.invoke(handler, request.params());
+            JsonNode result = invokeHandler(handler, request);
             runAfterInvoke(request, result);
         } catch (Error error) {
             throw error;
