@@ -9,6 +9,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.limehee.jsonrpc.core.JsonRpcDispatcher;
 import com.limehee.jsonrpc.core.JsonRpcErrorCode;
 import com.limehee.jsonrpc.core.JsonRpcResponse;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -406,6 +410,120 @@ class JsonRpcWebMvcEndpointTest {
         public void onNotificationOnly(boolean batch, int requestCount) {
             notificationOnly++;
             notificationOnlyRequestCount = requestCount;
+        }
+    }
+
+    @Test
+    void rejectsDeclaredContentLengthAboveLimitWithoutReadingBody() throws Exception {
+        List<Integer> observed = new ArrayList<>();
+        JsonRpcWebMvcEndpoint endpoint = limitedEndpoint(16, observed);
+        CountingInputStream body = new CountingInputStream(new byte[1024]);
+
+        var response = endpoint.handle(body, 1024L);
+
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, errorCode(response.getBody()));
+        assertEquals(0, body.bytesRead());
+        assertEquals(List.of(1024), observed);
+    }
+
+    @Test
+    void stopsReadingUndeclaredLengthBodyOnceLimitIsExceeded() throws Exception {
+        List<Integer> observed = new ArrayList<>();
+        JsonRpcWebMvcEndpoint endpoint = limitedEndpoint(16, observed);
+        CountingInputStream body = new CountingInputStream(new byte[1024 * 1024]);
+
+        var response = endpoint.handle(body, null);
+
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, errorCode(response.getBody()));
+        assertEquals(17, body.bytesRead());
+        assertEquals(List.of(17), observed);
+    }
+
+    @Test
+    void stopsReadingWhenDeclaredContentLengthUnderstatesActualBody() throws Exception {
+        JsonRpcWebMvcEndpoint endpoint = limitedEndpoint(16, new ArrayList<>());
+        CountingInputStream body = new CountingInputStream(new byte[1024 * 1024]);
+
+        var response = endpoint.handle(body, 4L);
+
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, errorCode(response.getBody()));
+        assertEquals(17, body.bytesRead());
+    }
+
+    @Test
+    void acceptsPayloadExactlyAtLimit() throws Exception {
+        byte[] payload = "{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}".getBytes(StandardCharsets.UTF_8);
+        JsonRpcWebMvcEndpoint endpoint = limitedEndpoint(payload.length, new ArrayList<>());
+
+        var response = endpoint.handle(new ByteArrayInputStream(payload), (long) payload.length);
+
+        JsonRpcResponse rpcResponse = OBJECT_MAPPER.readValue(response.getBody(), JsonRpcResponse.class);
+        assertEquals("pong", rpcResponse.result().asString());
+    }
+
+    @Test
+    void rejectsChunkedPayloadAboveLimitOverHttp() throws Exception {
+        JsonRpcWebMvcEndpoint endpoint = limitedEndpoint(8, new ArrayList<>());
+        MockMvc localMockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
+
+        MvcResult result = localMockMvc.perform(post("/jsonrpc")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Transfer-Encoding", "chunked")
+                .content("{\"jsonrpc\":\"2.0\",\"method\":\"ping\",\"id\":1}"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertEquals(JsonRpcErrorCode.INVALID_REQUEST, errorCode(result.getResponse().getContentAsString()));
+    }
+
+    private static JsonRpcWebMvcEndpoint limitedEndpoint(int maxRequestBytes, List<Integer> observedSizes) {
+        JsonRpcDispatcher dispatcher = new JsonRpcDispatcher();
+        dispatcher.register("ping", params -> StringNode.valueOf("pong"));
+        return new JsonRpcWebMvcEndpoint(
+            dispatcher,
+            OBJECT_MAPPER,
+            new DefaultJsonRpcHttpStatusStrategy(),
+            maxRequestBytes,
+            new JsonRpcWebMvcObserver() {
+                @Override
+                public void onRequestTooLarge(int actualBytes, int maxBytes) {
+                    observedSizes.add(actualBytes);
+                }
+            }
+        );
+    }
+
+    private static int errorCode(String body) {
+        return OBJECT_MAPPER.readValue(body, JsonRpcResponse.class).error().code();
+    }
+
+    private static final class CountingInputStream extends InputStream {
+
+        private final byte[] data;
+        private int position;
+
+        private CountingInputStream(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public int read() {
+            return position < data.length ? data[position++] & 0xFF : -1;
+        }
+
+        @Override
+        public int read(byte[] buffer, int offset, int length) {
+            if (position >= data.length) {
+                return -1;
+            }
+            int count = Math.min(length, data.length - position);
+            System.arraycopy(data, position, buffer, offset, count);
+            position += count;
+            return count;
+        }
+
+        private int bytesRead() {
+            return position;
         }
     }
 }
