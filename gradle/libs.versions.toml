@@ -9,7 +9,7 @@ spring-dependency-management-plugin = "1.1.7"
 jsonrpc-starter = "0.3.0"
 errorprone-plugin = "5.2.0"
 errorprone = "2.42.0"
-nullaway = "0.14.3"
+nullaway = "0.14.4"
 
 [libraries]
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
