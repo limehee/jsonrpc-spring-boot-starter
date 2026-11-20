@@ -1,5 +1,5 @@
 [versions]
-spring-boot = "4.1.2"
+spring-boot = "4.2.0"
 jspecify = "1.0.1"
 jackson = "3.3.0"
 junit = "6.1.3"
